@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/image">
+        <file alias="icon">icon.png</file>
+        <file alias="transparent_dark">transparent_dark.png</file>
+        <file alias="transparent_light">transparent_light.png</file>
+        <file alias="box">Reshot/Box/box.svg</file>
+        <file alias="grid-view">Reshot/GridView/grid-view.svg</file>
+    </qresource>
+</RCC>

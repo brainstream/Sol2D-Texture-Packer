@@ -1,0 +1,16 @@
+Makefile
+Makefile.*
+CMakeLists.txt.user*
+.directory
+*.autosave
+*.qm
+/distr/
+/build*/
+/translations/*.qm
+/packages/*.deb
+/packages/*.rpm
+/packages/*.zip
+/packages/*.exe
+/packages/*.msi
+/packages/*.pkg
+/release/release-*
