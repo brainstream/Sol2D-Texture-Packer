@@ -16,34 +16,49 @@
  *                                                                                                        *
  **********************************************************************************************************/
 
-#pragma once
+#include <Sol2dTexturePackerCli/UnpackApplication.h>
+#include <LibSol2dTexturePacker/Splitters/GridSplitter.h>
+#include <QImage>
 
-#include <LibSol2dTexturePacker/Packers/AtlasPacker.h>
-
-enum S2TP_EXPORT class MaxRectsBinAtlasPackerChoiceHeuristic
+UnpackApplication::UnpackApplication(IO & _io, const GridOptions & _grid, const QString & _out_directory) :
+    Application(_io),
+    m_input(_grid),
+    m_out_directory(_out_directory)
 {
-    BestShortSideFit,
-    BestLongSideFit,
-    BestAreaFit,
-    BottomLeftRule,
-    ContactPointRule
-};
+}
 
-struct S2TP_EXPORT MaxRectsBinAtlasPackerOptions
+UnpackApplication::UnpackApplication(IO & _io, const QString & _atlas, const QString & _out_directory) :
+    Application(_io),
+    m_input(_atlas),
+    m_out_directory(_out_directory)
 {
-    QSize max_atlas_size;
-    MaxRectsBinAtlasPackerChoiceHeuristic heuristic;
-    bool allow_flip;
-};
+}
 
-class S2TP_EXPORT FreeRectAtlasPacker : public AtlasPacker
+int UnpackApplication::exec()
 {
-    Q_OBJECT
 
-public:
-    explicit FreeRectAtlasPacker(const MaxRectsBinAtlasPackerOptions & _options, QObject * _parent);
-    QList<QPixmap> pack(const QList<Sprite> & _sprites) const override;
+    struct Visitor
+    {
+        const UnpackApplication * app;
 
-private:
-    const MaxRectsBinAtlasPackerOptions m_options;
-};
+        void operator ()(const GridOptions & _grid)
+        {
+            GridSplitter splitter(nullptr);
+            Texture texture
+            {
+                .path = _grid.texture.toStdString(),
+                .image = QImage(_grid.texture)
+            };
+            splitter.reconfigure(_grid.splitter_options);
+            splitter.apply(texture, QDir(app->m_out_directory));
+        }
+
+        void operator ()(const QString & _atlas)
+        {
+            app->m_io.out << "UNPACKING ATLAS..." << Qt::endl;
+        }
+    };
+    Visitor visitor { .app = this };
+    std::visit(visitor, m_input);
+    return 0;
+}

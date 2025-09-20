@@ -18,32 +18,25 @@
 
 #pragma once
 
-#include <LibSol2dTexturePacker/Packers/AtlasPacker.h>
+#include <Sol2dTexturePackerCli/Application.h>
+#include <LibSol2dTexturePacker/Splitters/GridSplitter.h>
+#include <variant>
 
-enum S2TP_EXPORT class MaxRectsBinAtlasPackerChoiceHeuristic
+class UnpackApplication : public Application
 {
-    BestShortSideFit,
-    BestLongSideFit,
-    BestAreaFit,
-    BottomLeftRule,
-    ContactPointRule
-};
-
-struct S2TP_EXPORT MaxRectsBinAtlasPackerOptions
-{
-    QSize max_atlas_size;
-    MaxRectsBinAtlasPackerChoiceHeuristic heuristic;
-    bool allow_flip;
-};
-
-class S2TP_EXPORT FreeRectAtlasPacker : public AtlasPacker
-{
-    Q_OBJECT
+public:
+    struct GridOptions
+    {
+        QString texture;
+        GridSplitterOptions splitter_options;
+    };
 
 public:
-    explicit FreeRectAtlasPacker(const MaxRectsBinAtlasPackerOptions & _options, QObject * _parent);
-    QList<QPixmap> pack(const QList<Sprite> & _sprites) const override;
+    UnpackApplication(IO & _io, const GridOptions & _grid, const QString & _out_directory);
+    UnpackApplication(IO & _io, const QString & _atlas, const QString & _out_directory);
+    int exec() override;
 
 private:
-    const MaxRectsBinAtlasPackerOptions m_options;
+    const std::variant<GridOptions, QString> m_input;
+    const QString m_out_directory;
 };

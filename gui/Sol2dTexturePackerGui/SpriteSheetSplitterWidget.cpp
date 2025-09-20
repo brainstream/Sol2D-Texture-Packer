@@ -1,13 +1,13 @@
 /**********************************************************************************************************
  * Copyright © 2025 Sergey Smolyannikov aka brainstream                                                   *
  *                                                                                                        *
- * This file is part of the Open Sprite Sheet Tools.                                                      *
+ * This file is part of the Sol2D Texture Packer.                                                         *
  *                                                                                                        *
- * Open Sprite Sheet Tools is free software: you can redistribute it and/or modify it under  the terms of *
+ * Sol2D Texture Packer is free software: you can redistribute it and/or modify it under  the terms of    *
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of the   *
  * License, or (at your option) any later version.                                                        *
  *                                                                                                        *
- * Open Sprite Sheet Tools is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;   *
+ * Sol2D Texture Packer is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;      *
  * without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.             *
  * See the GNU General Public License for more details.                                                   *
  *                                                                                                        *
@@ -157,21 +157,11 @@ void SpriteSheetSplitterWidget::exportSprites()
     QString last_dir = settings.value(gc_settings_key_split_dir, gc_settings_key_sheet_dir).toString();
     QString dir_path = QFileDialog::getExistingDirectory(this, QString(), last_dir);
     if(dir_path.isEmpty())
-    {
         return;
-    }
-    QDir dir(dir_path);
-    settings.setValue(gc_settings_key_split_dir, dir.absolutePath());
-    QFileInfo fi(m_edit_texture_file->text());
-    QString format = dir.filePath(QString("%1_%2.png").arg(fi.baseName()).arg("%1"));
-    quint32 index = 0;
-    m_current_splitter->forEachFrame([this, &format, &index](const Frame & __frame) {
-        QImage img(__frame.width, __frame.height, QImage::Format_ARGB32);
-        img.fill(0);
-        QPainter painter(&img);
-        painter.drawPixmap(0, 0, *m_pixmap, __frame.x, __frame.y, __frame.width, __frame.height);
-        img.save(format.arg(++index, 4, 10, QChar('0')));
-    });
+    m_current_splitter->apply(
+        Texture { .path = dir_path.toStdString(), .image = m_pixmap->toImage() },
+        QDir(dir_path)
+    );
 }
 
 void SpriteSheetSplitterWidget::exportToAtlas()

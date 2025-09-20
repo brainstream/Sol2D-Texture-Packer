@@ -16,34 +16,21 @@
  *                                                                                                        *
  **********************************************************************************************************/
 
-#pragma once
+#include <LibSol2dTexturePacker/Splitters/Splitter.h>
+#include <QPainter>
+#include <QImage>
+#include <QFileInfo>
 
-#include <LibSol2dTexturePacker/Packers/AtlasPacker.h>
-
-enum S2TP_EXPORT class MaxRectsBinAtlasPackerChoiceHeuristic
+void Splitter::apply(const Texture & _texture, const QDir & _out_dir) const
 {
-    BestShortSideFit,
-    BestLongSideFit,
-    BestAreaFit,
-    BottomLeftRule,
-    ContactPointRule
-};
-
-struct S2TP_EXPORT MaxRectsBinAtlasPackerOptions
-{
-    QSize max_atlas_size;
-    MaxRectsBinAtlasPackerChoiceHeuristic heuristic;
-    bool allow_flip;
-};
-
-class S2TP_EXPORT FreeRectAtlasPacker : public AtlasPacker
-{
-    Q_OBJECT
-
-public:
-    explicit FreeRectAtlasPacker(const MaxRectsBinAtlasPackerOptions & _options, QObject * _parent);
-    QList<QPixmap> pack(const QList<Sprite> & _sprites) const override;
-
-private:
-    const MaxRectsBinAtlasPackerOptions m_options;
-};
+    QFileInfo fi(_texture.path);
+    QString format = _out_dir.filePath(QString("%1_%2.png").arg(fi.baseName()).arg("%1"));
+    quint32 index = 0;
+    forEachFrame([&](const Frame & __frame) {
+        QImage img(__frame.width, __frame.height, QImage::Format_ARGB32);
+        img.fill(0);
+        QPainter painter(&img);
+        painter.drawImage(0, 0, _texture.image, __frame.x, __frame.y, __frame.width, __frame.height);
+        img.save(format.arg(++index, 4, 10, QChar('0')));
+    });
+}

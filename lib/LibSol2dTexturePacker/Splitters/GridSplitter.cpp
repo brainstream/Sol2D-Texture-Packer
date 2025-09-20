@@ -1,13 +1,13 @@
 /**********************************************************************************************************
  * Copyright © 2025 Sergey Smolyannikov aka brainstream                                                   *
  *                                                                                                        *
- * This file is part of the Open Sprite Sheet Tools.                                                      *
+ * This file is part of the Sol2D Texture Packer.                                                         *
  *                                                                                                        *
- * Open Sprite Sheet Tools is free software: you can redistribute it and/or modify it under  the terms of *
+ * Sol2D Texture Packer is free software: you can redistribute it and/or modify it under  the terms of    *
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of the   *
  * License, or (at your option) any later version.                                                        *
  *                                                                                                        *
- * Open Sprite Sheet Tools is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;   *
+ * Sol2D Texture Packer is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;      *
  * without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.             *
  * See the GNU General Public License for more details.                                                   *
  *                                                                                                        *
@@ -20,26 +20,28 @@
 
 GridSplitter::GridSplitter(QObject * _parent) :
     Splitter(_parent),
-    m_column_count(0),
-    m_row_count(0),
-    m_sprite_width(0),
-    m_sprite_height(0),
-    m_margin_top(0),
-    m_margin_left(0),
-    m_horizontal_spacing(0),
-    m_vertical_spacing(0),
-    m_is_valid(false)
+    m_options({})
 {
+}
+
+void GridSplitter::reconfigure(const GridSplitterOptions & _options)
+{
+    m_options = _options;
+    recalculate();
 }
 
 void GridSplitter::recalculate()
 {
     bool has_changes = false;
-    if(m_margin_left < 0) m_margin_left = 0;
-    if(m_margin_top < 0) m_margin_top = 0;
-    if(m_horizontal_spacing < 0) m_horizontal_spacing = 0;
-    if(m_vertical_spacing < 0) m_vertical_spacing = 0;
-    if(m_row_count <= 0 || m_column_count <= 0 || m_sprite_width <= 0 || m_sprite_height <= 0)
+    if(m_options.margin_left < 0) m_options.margin_left = 0;
+    if(m_options.margin_top < 0) m_options.margin_top = 0;
+    if(m_options.horizontal_spacing < 0) m_options.horizontal_spacing = 0;
+    if(m_options.vertical_spacing < 0) m_options.vertical_spacing = 0;
+    if(
+        m_options.row_count <= 0 ||
+        m_options.column_count <= 0 ||
+        m_options.sprite_width <= 0 ||
+        m_options.sprite_height <= 0)
     {
         has_changes = m_is_valid;
         m_is_valid = false;
@@ -55,6 +57,54 @@ void GridSplitter::recalculate()
     }
 }
 
+void GridSplitter::setColumnCount(int _count)
+{
+    m_options.column_count = _count;
+    recalculate();
+}
+
+void GridSplitter::setRowCount(int _count)
+{
+    m_options.row_count = _count;
+    recalculate();
+}
+
+void GridSplitter::setSpriteWidth(int _width)
+{
+    m_options.sprite_width = _width;
+    recalculate();
+}
+
+void GridSplitter::setSpriteHeight(int _height)
+{
+    m_options.sprite_height = _height;
+    recalculate();
+}
+
+void GridSplitter::setMarginTop(int _margin)
+{
+    m_options.margin_top = _margin;
+    recalculate();
+}
+
+void GridSplitter::setMarginLeft(int _margin)
+{
+    m_options.margin_left = _margin;
+    recalculate();
+}
+
+void GridSplitter::setHorizontalSpacing(int _spacing)
+{
+    m_options.horizontal_spacing = _spacing;
+    recalculate();
+}
+
+void GridSplitter::setVerticalSpacing(int _spacing)
+{
+    m_options.vertical_spacing = _spacing;
+    recalculate();
+}
+
 bool GridSplitter::forEachFrame(std::function<void (const Frame &)> _cb) const
 {
     if(!m_is_valid)
@@ -62,14 +112,14 @@ bool GridSplitter::forEachFrame(std::function<void (const Frame &)> _cb) const
         return false;
     }
     Frame frame;
-    frame.width = m_sprite_width;
-    frame.height = m_sprite_height;
-    for(qint32 row = 0; row < m_row_count; ++row)
+    frame.width = m_options.sprite_width;
+    frame.height = m_options.sprite_height;
+    for(qint32 row = 0; row < m_options.row_count; ++row)
     {
-        frame.y = m_margin_top + row * m_sprite_height + row * m_vertical_spacing;
-        for(qint32 col = 0; col < m_column_count; ++col)
+        frame.y = m_options.margin_top + row * m_options.sprite_height + row * m_options.vertical_spacing;
+        for(qint32 col = 0; col < m_options.column_count; ++col)
         {
-            frame.x = m_margin_left + col * m_sprite_width + col * m_horizontal_spacing;
+            frame.x = m_options.margin_left + col * m_options.sprite_width + col * m_options.horizontal_spacing;
             _cb(frame);
         }
     }
@@ -78,21 +128,10 @@ bool GridSplitter::forEachFrame(std::function<void (const Frame &)> _cb) const
 
 qsizetype GridSplitter::frameCount() const
 {
-    return m_is_valid ? m_column_count * m_row_count : 0;
+    return m_is_valid ? m_options.column_count * m_options.row_count : 0;
 }
 
 void GridSplitter::reset()
 {
-    bool has_changes = m_is_valid;
-    m_column_count = 0;
-    m_row_count = 0;
-    m_sprite_width = 0;
-    m_sprite_height = 0;
-    m_margin_top = 0;
-    m_margin_left = 0;
-    m_horizontal_spacing = 0;
-    m_vertical_spacing = 0;
-    m_is_valid = false;
-    if(has_changes)
-        emit framesChanged();
+    reconfigure({});
 }

@@ -18,32 +18,22 @@
 
 #pragma once
 
-#include <LibSol2dTexturePacker/Packers/AtlasPacker.h>
+#include <Sol2dTexturePackerCli/Application.h>
 
-enum S2TP_EXPORT class MaxRectsBinAtlasPackerChoiceHeuristic
+class NopApplication : public Application
 {
-    BestShortSideFit,
-    BestLongSideFit,
-    BestAreaFit,
-    BottomLeftRule,
-    ContactPointRule
-};
-
-struct S2TP_EXPORT MaxRectsBinAtlasPackerOptions
-{
-    QSize max_atlas_size;
-    MaxRectsBinAtlasPackerChoiceHeuristic heuristic;
-    bool allow_flip;
-};
-
-class S2TP_EXPORT FreeRectAtlasPacker : public AtlasPacker
-{
-    Q_OBJECT
-
 public:
-    explicit FreeRectAtlasPacker(const MaxRectsBinAtlasPackerOptions & _options, QObject * _parent);
-    QList<QPixmap> pack(const QList<Sprite> & _sprites) const override;
+    NopApplication(IO & _io, int _exit_code) :
+        Application(_io),
+        m_exit_code(_exit_code)
+    {
+    }
+
+    int exec() override
+    {
+        return m_exit_code;
+    }
 
 private:
-    const MaxRectsBinAtlasPackerOptions m_options;
+    int m_exit_code;
 };

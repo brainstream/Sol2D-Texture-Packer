@@ -1,3 +1,21 @@
+##########################################################################################################
+# Copyright © 2025 Sergey Smolyannikov aka brainstream                                                   #
+#                                                                                                        #
+# This file is part of the Sol2D Texture Packer.                                                         #
+#                                                                                                        #
+# Sol2D Texture Packer is free software: you can redistribute it and/or modify it under  the terms of    #
+# the GNU General Public License as published by the Free Software Foundation, either version 3 of the   #
+# License, or (at your option) any later version.                                                        #
+#                                                                                                        #
+# Sol2D Texture Packer is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;      #
+# without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.             #
+# See the GNU General Public License for more details.                                                   #
+#                                                                                                        #
+# You should have received a copy of the GNU General Public License along with MailUnit.                 #
+# If not, see <http://www.gnu.org/licenses/>.                                                            #
+#                                                                                                        #
+##########################################################################################################
+
 cmake_minimum_required(VERSION 3.16)
 
 project("Sol2D Texture Packer" VERSION 0.1 LANGUAGES CXX)
@@ -14,6 +32,10 @@ add_subdirectory(third_party/RectangleBinPack)
 set(S2TP_LIB_TARGET Library)
 set(S2TP_CLI_TARGET CLI)
 set(S2TP_GUI_TARGET GUI)
+
+set(S2TP_LIB_BIN s2texpacker)
+set(S2TP_CLI_BIN s2tp)
+set(S2TP_GUI_BIN s2texpacker)
 
 file(GLOB_RECURSE S2TP_LIB_SRC
     lib/LibSol2dTexturePacker/*.h
@@ -59,7 +81,7 @@ target_link_libraries(
 target_link_libraries(
     ${S2TP_CLI_TARGET}
     PRIVATE
-    Qt6::Core
+    Qt6::Gui
     ${S2TP_LIB_TARGET}
 )
 target_link_libraries(
@@ -72,17 +94,17 @@ target_link_libraries(
 set_target_properties(
     ${S2TP_LIB_TARGET}
     PROPERTIES
-    OUTPUT_NAME s2texpacker
+    OUTPUT_NAME ${S2TP_LIB_BIN}
 )
 set_target_properties(
     ${S2TP_CLI_TARGET}
     PROPERTIES
-    OUTPUT_NAME s2tp
+    OUTPUT_NAME ${S2TP_CLI_BIN}
 )
 set_target_properties(
     ${S2TP_GUI_TARGET}
     PROPERTIES
-    OUTPUT_NAME s2texpacker
+    OUTPUT_NAME ${S2TP_GUI_BIN}
 )
 
 target_include_directories(
@@ -106,11 +128,24 @@ target_include_directories(
 
 add_compile_definitions(
     __S2TP_VERSION="${CMAKE_PROJECT_VERSION}"
+    __S2TP_ORG="sol2d"
+    __S2TP_APP="Sol2d Texture Packer"
 )
 target_compile_definitions(
     ${S2TP_LIB_TARGET}
     PRIVATE
     __S2TP_LIB
+    __S2TP_BIN="${S2TP_LIB_BIN}"
+)
+target_compile_definitions(
+    ${S2TP_CLI_TARGET}
+    PRIVATE
+    __S2TP_BIN="${S2TP_CLI_BIN}"
+)
+target_compile_definitions(
+    ${S2TP_GUI_TARGET}
+    PRIVATE
+    __S2TP_BIN="${S2TP_GUI_BIN}"
 )
 
 qt_finalize_target(${S2TP_LIB_TARGET})

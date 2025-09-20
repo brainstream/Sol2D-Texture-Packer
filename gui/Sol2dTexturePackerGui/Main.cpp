@@ -1,13 +1,13 @@
 /**********************************************************************************************************
  * Copyright © 2025 Sergey Smolyannikov aka brainstream                                                   *
  *                                                                                                        *
- * This file is part of the Open Sprite Sheet Tools.                                                      *
+ * This file is part of the Sol2D Texture Packer.                                                         *
  *                                                                                                        *
- * Open Sprite Sheet Tools is free software: you can redistribute it and/or modify it under  the terms of *
+ * Sol2D Texture Packer is free software: you can redistribute it and/or modify it under  the terms of    *
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of the   *
  * License, or (at your option) any later version.                                                        *
  *                                                                                                        *
- * Open Sprite Sheet Tools is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;   *
+ * Sol2D Texture Packer is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;      *
  * without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.             *
  * See the GNU General Public License for more details.                                                   *
  *                                                                                                        *
@@ -19,14 +19,14 @@
 #include <QApplication>
 #include <Sol2dTexturePackerGui/MainWindow.h>
 
-int main(int argc, char *argv[])
+int main(int _argc, char * _argv[])
 {
-    QApplication a(argc, argv);
-    a.setApplicationName("texture-packer-gui");
-    a.setApplicationDisplayName("Sol2d Texture Packer");
-    a.setApplicationVersion(QT_STRINGIFY(__S2TP_VERSION));
-    a.setOrganizationName("sol2d");
-    MainWindow w;
-    w.show();
-    return a.exec();
+    QApplication app(_argc, _argv);
+    app.setApplicationName(__S2TP_BIN);
+    app.setApplicationDisplayName(__S2TP_APP);
+    app.setApplicationVersion(__S2TP_VERSION);
+    app.setOrganizationName(__S2TP_ORG);
+    MainWindow wnd;
+    wnd.show();
+    return app.exec();
 }

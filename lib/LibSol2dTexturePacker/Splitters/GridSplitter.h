@@ -1,13 +1,13 @@
 /**********************************************************************************************************
  * Copyright © 2025 Sergey Smolyannikov aka brainstream                                                   *
  *                                                                                                        *
- * This file is part of the Open Sprite Sheet Tools.                                                      *
+ * This file is part of the Sol2D Texture Packer.                                                         *
  *                                                                                                        *
- * Open Sprite Sheet Tools is free software: you can redistribute it and/or modify it under  the terms of *
+ * Sol2D Texture Packer is free software: you can redistribute it and/or modify it under  the terms of    *
  * the GNU General Public License as published by the Free Software Foundation, either version 3 of the   *
  * License, or (at your option) any later version.                                                        *
  *                                                                                                        *
- * Open Sprite Sheet Tools is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;   *
+ * Sol2D Texture Packer is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;      *
  * without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.             *
  * See the GNU General Public License for more details.                                                   *
  *                                                                                                        *
@@ -20,78 +20,44 @@
 
 #include <LibSol2dTexturePacker/Splitters/Splitter.h>
 
+struct S2TP_EXPORT GridSplitterOptions
+{
+    int column_count;
+    int row_count;
+    int sprite_width;
+    int sprite_height;
+    int margin_top;
+    int margin_left;
+    int horizontal_spacing;
+    int vertical_spacing;
+};
+
 class S2TP_EXPORT GridSplitter : public Splitter
 {
     Q_OBJECT
 
 public:
     explicit GridSplitter(QObject * _parent);
+    void reconfigure(const GridSplitterOptions & _options);
     bool forEachFrame(std::function<void(const Frame &)> _cb) const override;
-    virtual qsizetype frameCount() const override;
+    qsizetype frameCount() const override;
 
 public slots:
-    void setColumnCount(int _count)
-    {
-        m_column_count = _count;
-        recalculate();
-    }
-
-    void setRowCount(int _count)
-    {
-        m_row_count = _count;
-        recalculate();
-    }
-
-    void setSpriteWidth(int _width)
-    {
-        m_sprite_width = _width;
-        recalculate();
-    }
-
-    void setSpriteHeight(int _height)
-    {
-        m_sprite_height = _height;
-        recalculate();
-    }
-
-    void setMarginTop(int _margin)
-    {
-        m_margin_top = _margin;
-        recalculate();
-    }
-
-    void setMarginLeft(int _margin)
-    {
-        m_margin_left = _margin;
-        recalculate();
-    }
-
-    void setHorizontalSpacing(int _spacing)
-    {
-        m_horizontal_spacing = _spacing;
-        recalculate();
-    }
-
-    void setVerticalSpacing(int _spacing)
-    {
-        m_vertical_spacing = _spacing;
-        recalculate();
-    }
-
+    void setColumnCount(int _count);
+    void setRowCount(int _count);
+    void setSpriteWidth(int _width);
+    void setSpriteHeight(int _height);
+    void setMarginTop(int _margin);
+    void setMarginLeft(int _margin);
+    void setHorizontalSpacing(int _spacing);
+    void setVerticalSpacing(int _spacing);
     void reset() override;
 
 private:
     void recalculate();
 
 private:
-    int m_column_count;
-    int m_row_count;
-    int m_sprite_width;
-    int m_sprite_height;
-    int m_margin_top;
-    int m_margin_left;
-    int m_horizontal_spacing;
-    int m_vertical_spacing;
+    GridSplitterOptions m_options;
     bool m_is_valid;
 };
 
