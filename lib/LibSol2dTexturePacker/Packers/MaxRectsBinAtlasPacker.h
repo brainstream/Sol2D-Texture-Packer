@@ -42,7 +42,7 @@ class S2TP_EXPORT FreeRectAtlasPacker final : public AtlasPacker
 
 public:
     explicit FreeRectAtlasPacker(const MaxRectsBinAtlasPackerOptions & _options, QObject * _parent);
-    [[nodiscard]] QList<QPixmap> pack(const QList<Sprite> & _sprites) const override;
+    QList<QPixmap> pack(const QList<Sprite> & _sprites) const override;
 
 private:
     const MaxRectsBinAtlasPackerOptions m_options;

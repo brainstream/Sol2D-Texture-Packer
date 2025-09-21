@@ -21,10 +21,8 @@
 #include <LibSol2dTexturePacker/Def.h>
 #include <QString>
 #include <QObject>
-#include <filesystem>
-#include <utility>
 
-class S2TP_EXPORT Exception : public std::exception
+class S2TP_EXPORT Exception
 {
 public:
     explicit Exception(QString _message) :
@@ -32,14 +30,9 @@ public:
     {
     }
 
-    [[nodiscard]] const QString & message() const
+    const QString & message() const
     {
         return m_message;
-    }
-
-    [[nodiscard]] const char * what() const noexcept override
-    {
-        return m_message.toStdString().c_str();
     }
 
 private:
@@ -60,14 +53,8 @@ public:
     {
     }
 
-    FileOpenException(const std::filesystem::path & _filename, Mode _mode) :
-        Exception(getMessage(_filename.string(), _mode))
-    {
-    }
-
 private:
-    template<typename Path>
-    static QString getMessage(const Path & _filename, Mode _mode)
+    static QString getMessage(const QString & _filename, Mode _mode)
     {
         switch(_mode)
         {
@@ -84,8 +71,8 @@ private:
 class S2TP_EXPORT InvalidXmlException : public Exception
 {
 public:
-    explicit InvalidXmlException(const std::filesystem::path & _filename) :
-        Exception(QObject::tr("File \"%1\" is not valid XML").arg(_filename.string()))
+    explicit InvalidXmlException(const QString & _filename) :
+        Exception(QObject::tr("File \"%1\" is not valid XML").arg(_filename))
     {
     }
 };
@@ -93,20 +80,20 @@ public:
 class InvalidFileFormatException : public Exception
 {
 public:
-    explicit InvalidFileFormatException(const std::filesystem::path & _filename) :
+    explicit InvalidFileFormatException(const QString & _filename) :
         Exception(getMessage(_filename))
     {
     }
 
-    InvalidFileFormatException(const std::filesystem::path & _filename, const QString & _additional_message) :
+    InvalidFileFormatException(const QString & _filename, const QString & _additional_message) :
         Exception(getMessage(_filename, _additional_message))
     {
     }
 
 private:
-    static QString getMessage(const std::filesystem::path & _filename, const QString & _additional_message = QString())
+    static QString getMessage(const QString & _filename, const QString & _additional_message = QString())
     {
-        QString message = QObject::tr("File \"%1\" has invalid format").arg(_filename.string());
+        QString message = QObject::tr("File \"%1\" has invalid format").arg(_filename);
         return _additional_message.isEmpty() ? message : QString("%1.\n%2").arg(message, _additional_message);
     }
 };
@@ -114,19 +101,13 @@ private:
 class S2TP_EXPORT ImageLoadingException : public Exception
 {
 public:
-    explicit ImageLoadingException(const std::filesystem::path & _filename) :
-        Exception(getMessage(_filename.string()))
-    {
-    }
-
     explicit ImageLoadingException(const QString & _filename) :
         Exception(getMessage(_filename))
     {
     }
 
 private:
-    template<typename TString>
-    static QString getMessage(const TString & _filename)
+    static QString getMessage(const QString & _filename)
     {
         return QObject::tr("Unable to load image from file \"%1\"").arg(_filename);
     }

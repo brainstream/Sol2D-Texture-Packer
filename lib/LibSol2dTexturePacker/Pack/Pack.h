@@ -16,58 +16,34 @@
  *                                                                                                        *
  **********************************************************************************************************/
 
-#include <Sol2dTexturePackerCli/UnpackApplication.h>
-#include <LibSol2dTexturePacker/Splitters/GridSplitter.h>
-#include <LibSol2dTexturePacker/Exception.h>
+#pragma once
+
+#include <LibSol2dTexturePacker/Frame.h>
 #include <QImage>
+#include <QDir>
+#include <QObject>
 
-UnpackApplication::UnpackApplication(const GridOptions & _grid, QString _out_directory) :
-    m_input(_grid),
-    m_out_directory(std::move(_out_directory))
+class S2TP_EXPORT Pack : public QObject
 {
-}
+    Q_OBJECT
 
-UnpackApplication::UnpackApplication(const QString & _atlas, QString _out_directory) :
-    m_input(_atlas),
-    m_out_directory(std::move(_out_directory))
-{
-}
-
-int UnpackApplication::exec()
-{
-    struct Visitor
+public:
+    explicit Pack(const QString & _texture_filename, QObject * _parent = nullptr) :
+        QObject(_parent),
+        m_texture_filename(_texture_filename)
     {
-        const UnpackApplication * app;
-
-        void operator ()(const GridOptions & _grid) const
-        {
-            GridSplitter splitter(nullptr);
-            splitter.reconfigure(_grid.splitter_options);
-            splitter.apply(
-                {
-                    .path = _grid.texture,
-                    .image = loadImage(_grid.texture)
-                },
-                QDir(app->m_out_directory)
-            );
-        }
-
-        void operator ()(const QString & _atlas) const
-        {
-            // TODO: unpack atlas
-        }
-    };
-    Visitor visitor { .app = this };
-    std::visit(visitor, m_input);
-    return 0;
-}
-
-QImage UnpackApplication::loadImage(const QString & _path)
-{
-    QImage image;
-    if(!image.load(_path))
-    {
-        throw ImageLoadingException(_path);
     }
-    return image;
-}
+
+    virtual ~Pack() = default;
+    void unpack(const QDir & _output_dir) const;
+    const QImage & texture() const;
+    const QString & textureFilename() const { return m_texture_filename; }
+    virtual qsizetype frameCount() const = 0;
+
+protected:
+    virtual bool forEachFrame(std::function<void(const Frame &)> _cb) const = 0;
+
+private:
+    const QString m_texture_filename;
+    mutable QImage m_texture;
+};

@@ -33,7 +33,7 @@ void AtlasSplitter::setDataFile(const QString & _file)
     std::unique_ptr<Atlas> atlas(new Atlas);
     try
     {
-        m_serializer->deserialize(_file.toStdString(), *atlas);
+        m_serializer->deserialize(_file, *atlas);
         m_atlas.swap(atlas);
         has_changes = true;
     }

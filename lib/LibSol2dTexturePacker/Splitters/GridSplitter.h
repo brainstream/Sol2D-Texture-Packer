@@ -32,7 +32,7 @@ struct S2TP_EXPORT GridSplitterOptions
     int vertical_spacing;
 };
 
-class S2TP_EXPORT GridSplitter : public Splitter
+class S2TP_EXPORT GridSplitter final : public Splitter
 {
     Q_OBJECT
 
@@ -40,7 +40,7 @@ public:
     explicit GridSplitter(QObject * _parent);
     void reconfigure(const GridSplitterOptions & _options);
     bool forEachFrame(std::function<void(const Frame &)> _cb) const override;
-    [[nodiscard]] qsizetype frameCount() const override;
+    qsizetype frameCount() const override;
 
 public slots:
     void setColumnCount(int _count);

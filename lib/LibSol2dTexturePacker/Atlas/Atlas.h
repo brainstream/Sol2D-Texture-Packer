@@ -18,12 +18,11 @@
 
 #pragma once
 
-#include <LibSol2dTexturePacker/Atlas/Frame.h>
+#include <LibSol2dTexturePacker/Frame.h>
 #include <QList>
-#include <filesystem>
 
 struct S2TP_EXPORT Atlas
 {
-    std::filesystem::path texture;
+    QString texture;
     QList<Frame> frames;
 };

@@ -16,58 +16,22 @@
  *                                                                                                        *
  **********************************************************************************************************/
 
-#include <Sol2dTexturePackerCli/UnpackApplication.h>
-#include <LibSol2dTexturePacker/Splitters/GridSplitter.h>
-#include <LibSol2dTexturePacker/Exception.h>
-#include <QImage>
+#pragma once
 
-UnpackApplication::UnpackApplication(const GridOptions & _grid, QString _out_directory) :
-    m_input(_grid),
-    m_out_directory(std::move(_out_directory))
+#include <LibSol2dTexturePacker/Pack/Pack.h>
+#include <LibSol2dTexturePacker/Atlas/Atlas.h>
+
+class AtlasPack : public Pack
 {
-}
+    Q_OBJECT
 
-UnpackApplication::UnpackApplication(const QString & _atlas, QString _out_directory) :
-    m_input(_atlas),
-    m_out_directory(std::move(_out_directory))
-{
-}
+public:
+    explicit AtlasPack(const Atlas & _atlas, QObject * _parent = nullptr);
+    qsizetype frameCount() const override;
 
-int UnpackApplication::exec()
-{
-    struct Visitor
-    {
-        const UnpackApplication * app;
+protected:
+    bool forEachFrame(std::function<void (const Frame &)> _cb) const override;
 
-        void operator ()(const GridOptions & _grid) const
-        {
-            GridSplitter splitter(nullptr);
-            splitter.reconfigure(_grid.splitter_options);
-            splitter.apply(
-                {
-                    .path = _grid.texture,
-                    .image = loadImage(_grid.texture)
-                },
-                QDir(app->m_out_directory)
-            );
-        }
-
-        void operator ()(const QString & _atlas) const
-        {
-            // TODO: unpack atlas
-        }
-    };
-    Visitor visitor { .app = this };
-    std::visit(visitor, m_input);
-    return 0;
-}
-
-QImage UnpackApplication::loadImage(const QString & _path)
-{
-    QImage image;
-    if(!image.load(_path))
-    {
-        throw ImageLoadingException(_path);
-    }
-    return image;
-}
+private:
+    const QList<Frame> m_frames;
+};

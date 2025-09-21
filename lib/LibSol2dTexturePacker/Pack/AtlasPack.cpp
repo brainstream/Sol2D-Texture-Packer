@@ -16,58 +16,22 @@
  *                                                                                                        *
  **********************************************************************************************************/
 
-#include <Sol2dTexturePackerCli/UnpackApplication.h>
-#include <LibSol2dTexturePacker/Splitters/GridSplitter.h>
-#include <LibSol2dTexturePacker/Exception.h>
-#include <QImage>
+#include <LibSol2dTexturePacker/Pack/AtlasPack.h>
 
-UnpackApplication::UnpackApplication(const GridOptions & _grid, QString _out_directory) :
-    m_input(_grid),
-    m_out_directory(std::move(_out_directory))
+AtlasPack::AtlasPack(const Atlas & _atlas, QObject * _parent) :
+    Pack(_atlas.texture, _parent),
+    m_frames(_atlas.frames)
 {
 }
 
-UnpackApplication::UnpackApplication(const QString & _atlas, QString _out_directory) :
-    m_input(_atlas),
-    m_out_directory(std::move(_out_directory))
+qsizetype AtlasPack::frameCount() const
 {
+    return m_frames.count();
 }
 
-int UnpackApplication::exec()
+bool AtlasPack::forEachFrame(std::function<void (const Frame &)> _cb) const
 {
-    struct Visitor
-    {
-        const UnpackApplication * app;
-
-        void operator ()(const GridOptions & _grid) const
-        {
-            GridSplitter splitter(nullptr);
-            splitter.reconfigure(_grid.splitter_options);
-            splitter.apply(
-                {
-                    .path = _grid.texture,
-                    .image = loadImage(_grid.texture)
-                },
-                QDir(app->m_out_directory)
-            );
-        }
-
-        void operator ()(const QString & _atlas) const
-        {
-            // TODO: unpack atlas
-        }
-    };
-    Visitor visitor { .app = this };
-    std::visit(visitor, m_input);
-    return 0;
-}
-
-QImage UnpackApplication::loadImage(const QString & _path)
-{
-    QImage image;
-    if(!image.load(_path))
-    {
-        throw ImageLoadingException(_path);
-    }
-    return image;
+    foreach(const Frame & frame, m_frames)
+        _cb(frame);
+    return !m_frames.empty();
 }

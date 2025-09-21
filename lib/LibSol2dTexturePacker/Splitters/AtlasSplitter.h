@@ -22,14 +22,14 @@
 #include <LibSol2dTexturePacker/Atlas/AtlasSerializer.h>
 #include <memory>
 
-class S2TP_EXPORT AtlasSplitter : public Splitter
+class S2TP_EXPORT AtlasSplitter final : public Splitter
 {
     Q_OBJECT
 
 public:
     explicit AtlasSplitter(QObject * _parent);
     bool forEachFrame(std::function<void(const Frame &)> _cb) const override;
-    [[nodiscard]] qsizetype frameCount() const override;
+    qsizetype frameCount() const override;
     void reset() override;
 
 public slots:
@@ -42,4 +42,3 @@ private:
     std::unique_ptr<AtlasSerializer> m_serializer;
     std::unique_ptr<Atlas> m_atlas;
 };
-

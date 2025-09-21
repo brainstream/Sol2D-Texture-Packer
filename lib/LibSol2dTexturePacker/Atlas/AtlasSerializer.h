@@ -19,7 +19,6 @@
 #pragma once
 
 #include <LibSol2dTexturePacker/Atlas/Atlas.h>
-#include <QObject>
 
 class S2TP_EXPORT AtlasSerializer
 {
@@ -28,21 +27,11 @@ class S2TP_EXPORT AtlasSerializer
 public:
     AtlasSerializer() { }
     virtual ~AtlasSerializer() { }
-    virtual void serialize(const Atlas & _atlas, const std::filesystem::path & _file) = 0;
-    virtual void deserialize(const std::filesystem::path & _file, Atlas & _atlas) = 0;
+    virtual void serialize(const Atlas & _atlas, const QString & _file) = 0;
+    virtual void deserialize(const QString & _file, Atlas & _atlas) = 0;
     virtual const char * defaultFileExtenstion() const = 0;
 
 protected:
-    static QString makeDefaultFrameName(const Atlas & _atlas, quint32 _index)
-    {
-        return QString("%1_%2%3")
-            .arg(_atlas.texture.stem().string())
-            .arg(_index, 4, 10, QChar('0'))
-            .arg(_atlas.texture.extension().string());
-    }
-
-    static QString makeTextureRelativePath(const Atlas & _atlas, const std::filesystem::path & _data_file_path)
-    {
-        return QString::fromStdString(std::filesystem::relative(_atlas.texture, _data_file_path.parent_path()));
-    }
+    static QString makeDefaultFrameName(const Atlas & _atlas, quint32 _index);
+    static QString makeTextureRelativePath(const Atlas & _atlas, const QString & _data_file_path);
 };

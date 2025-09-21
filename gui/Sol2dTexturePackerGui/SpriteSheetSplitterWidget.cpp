@@ -158,8 +158,9 @@ void SpriteSheetSplitterWidget::exportSprites()
     QString dir_path = QFileDialog::getExistingDirectory(this, QString(), last_dir);
     if(dir_path.isEmpty())
         return;
+    settings.setValue(gc_settings_key_split_dir, dir_path);
     m_current_splitter->apply(
-        Texture { .path = dir_path.toStdString(), .image = m_pixmap->toImage() },
+        Texture { .path = m_edit_texture_file->text(), .image = m_pixmap->toImage() },
         QDir(dir_path)
     );
 }
@@ -167,13 +168,15 @@ void SpriteSheetSplitterWidget::exportSprites()
 void SpriteSheetSplitterWidget::exportToAtlas()
 {
     DefaultAtlasSerializer serializer;
-    std::filesystem::path texture_file_path(m_edit_texture_file->text().toStdString());
+    QString texture_file_path = m_edit_texture_file->text();
     QString default_filename = m_last_atlas_export_file;
     if(default_filename.isEmpty())
     {
-        std::filesystem::path atlas_file_path = texture_file_path;
-        atlas_file_path.replace_extension(serializer.defaultFileExtenstion());
-        default_filename = atlas_file_path.c_str();
+        const QFileInfo texture_fi(texture_file_path);
+        default_filename = texture_fi
+            .dir()
+            .absoluteFilePath(QString("%1.%2")
+            .arg(texture_fi.baseName(), serializer.defaultFileExtenstion()));
     }
     QString filename = QFileDialog::getSaveFileName(
         this,
@@ -194,7 +197,7 @@ void SpriteSheetSplitterWidget::exportToAtlas()
         });
         try
         {
-            serializer.serialize(atlas, filename.toStdString());
+            serializer.serialize(atlas, filename);
         }
         catch(const Exception & _exception)
         {

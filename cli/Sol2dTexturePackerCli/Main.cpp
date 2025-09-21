@@ -101,15 +101,15 @@ private:
     {
     }
 
-    [[nodiscard]] std::unique_ptr<Application> run() const;
-    [[nodiscard]] std::unique_ptr<Application> noop(int _exit_code) const;
-    [[nodiscard]] std::unique_ptr<Application> noRequiredArgument(const QCommandLineOption & _option) const;
-    [[nodiscard]] std::unique_ptr<Application> invalidArgument(const QCommandLineOption & _option) const;
-    [[nodiscard]] std::unique_ptr<Application> parseGlobal() const;
-    [[nodiscard]] std::unique_ptr<Application> parsePack() const;
-    [[nodiscard]] std::unique_ptr<Application> parseUnpack() const;
-    [[nodiscard]] std::unique_ptr<Application> parseUnpackGrid() const;
-    [[nodiscard]] std::unique_ptr<Application> parseUnpackAtlas() const;
+    std::unique_ptr<Application> run() const;
+    std::unique_ptr<Application> noop(int _exit_code) const;
+    std::unique_ptr<Application> noRequiredArgument(const QCommandLineOption & _option) const;
+    std::unique_ptr<Application> invalidArgument(const QCommandLineOption & _option) const;
+    std::unique_ptr<Application> parseGlobal() const;
+    std::unique_ptr<Application> parsePack() const;
+    std::unique_ptr<Application> parseUnpack() const;
+    std::unique_ptr<Application> parseUnpackGrid() const;
+    std::unique_ptr<Application> parseUnpackAtlas() const;
 
 private:
     IO & m_io;

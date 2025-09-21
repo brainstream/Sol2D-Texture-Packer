@@ -19,11 +19,10 @@
 #pragma once
 
 #include <LibSol2dTexturePacker/Def.h>
-#include <filesystem>
 #include <QImage>
 
 struct S2TP_EXPORT Texture
 {
-    std::filesystem::path path;
+    QString path;
     QImage image;
 };

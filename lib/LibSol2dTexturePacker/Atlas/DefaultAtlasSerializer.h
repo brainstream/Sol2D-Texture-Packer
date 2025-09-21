@@ -20,11 +20,11 @@
 
 #include <LibSol2dTexturePacker/Atlas/AtlasSerializer.h>
 
-class S2TP_EXPORT DefaultAtlasSerializer : public AtlasSerializer
+class S2TP_EXPORT DefaultAtlasSerializer final : public AtlasSerializer
 {
 public:
-    void serialize(const Atlas & _atlas, const std::filesystem::path & _file) override;
-    void deserialize(const std::filesystem::path & _file, Atlas & _atlas) override;
+    void serialize(const Atlas & _atlas, const QString & _file) override;
+    void deserialize(const QString & _file, Atlas & _atlas) override;
     const char * defaultFileExtenstion() const override { return "xml"; }
 };
 

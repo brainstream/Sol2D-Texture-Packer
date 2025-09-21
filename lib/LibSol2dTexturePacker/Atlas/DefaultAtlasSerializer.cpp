@@ -34,7 +34,7 @@ const char * g_xml_attr_width = "width";
 const char * g_xml_attr_height = "height";
 
 void validateXmlFrameAttribute(
-    const std::filesystem::path & _file,
+    const QString & _file,
     const QDomElement & _xframe,
     const char * _attribute_name,
     quint32 _frame_position)
@@ -53,7 +53,7 @@ void validateXmlFrameAttribute(
 
 template<std::integral Int>
 Int getXmlFrameIntAttribute(
-    const std::filesystem::path & _file,
+    const QString & _file,
     const QDomElement & _xframe,
     const char * _attribute_name,
     quint32 _frame_position)
@@ -77,7 +77,7 @@ Int getXmlFrameIntAttribute(
 
 } // namespace
 
-void DefaultAtlasSerializer::serialize(const Atlas & _atlas, const std::filesystem::path & _file)
+void DefaultAtlasSerializer::serialize(const Atlas & _atlas, const QString & _file)
 {
     QFile file(_file);
     if(!file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
@@ -107,7 +107,7 @@ void DefaultAtlasSerializer::serialize(const Atlas & _atlas, const std::filesyst
     xml.writeEndDocument();
 }
 
-void DefaultAtlasSerializer::deserialize(const std::filesystem::path & _file, Atlas & _atlas)
+void DefaultAtlasSerializer::deserialize(const QString & _file, Atlas & _atlas)
 {
     QFile file(_file);
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -127,7 +127,7 @@ void DefaultAtlasSerializer::deserialize(const std::filesystem::path & _file, At
             QObject::tr("The XML root element must be \"%1\"").arg(g_xml_tag_atlas));
     }
     Atlas tmp_atlas;
-    tmp_atlas.texture = xatlas.attribute(g_xml_attr_texture).toStdString();
+    tmp_atlas.texture = xatlas.attribute(g_xml_attr_texture);
     quint32 frame_position = 1;
     for(
         QDomElement xframe = xatlas.firstChildElement(g_xml_tag_frame);

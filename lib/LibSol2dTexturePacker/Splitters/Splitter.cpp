@@ -24,7 +24,7 @@
 void Splitter::apply(const Texture & _texture, const QDir & _out_dir) const
 {
     const QFileInfo fi(_texture.path);
-    const QString format = _out_dir.filePath(QString("%1_%2.png").arg(fi.baseName(), "%1"));
+    const QString format = _out_dir.filePath(QString("%1_%2.png").arg(fi.baseName()));
     quint32 index = 0;
     forEachFrame([&](const Frame & _frame) {
         QImage img(

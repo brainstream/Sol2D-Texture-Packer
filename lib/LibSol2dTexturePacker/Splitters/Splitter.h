@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <LibSol2dTexturePacker/Atlas/Frame.h>
+#include <LibSol2dTexturePacker/Frame.h>
 #include <LibSol2dTexturePacker/Texture.h>
 #include <QObject>
 #include <QDir>
@@ -34,7 +34,7 @@ public:
     }
 
     virtual bool forEachFrame(std::function<void(const Frame &)> _cb) const = 0;
-    [[nodiscard]] virtual qsizetype frameCount() const = 0;
+    virtual qsizetype frameCount() const = 0;
     virtual void reset() = 0;
     void apply(const Texture & _texture, const QDir & _out_dir) const;
 

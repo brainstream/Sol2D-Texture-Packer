@@ -16,58 +16,52 @@
  *                                                                                                        *
  **********************************************************************************************************/
 
-#include <Sol2dTexturePackerCli/UnpackApplication.h>
-#include <LibSol2dTexturePacker/Splitters/GridSplitter.h>
-#include <LibSol2dTexturePacker/Exception.h>
-#include <QImage>
+#pragma once
 
-UnpackApplication::UnpackApplication(const GridOptions & _grid, QString _out_directory) :
-    m_input(_grid),
-    m_out_directory(std::move(_out_directory))
+#include <LibSol2dTexturePacker/Pack/Pack.h>
+#include <QObject>
+
+struct S2TP_EXPORT GridOptions
 {
-}
+    int column_count;
+    int row_count;
+    int sprite_width;
+    int sprite_height;
+    int margin_top;
+    int margin_left;
+    int horizontal_spacing;
+    int vertical_spacing;
+};
 
-UnpackApplication::UnpackApplication(const QString & _atlas, QString _out_directory) :
-    m_input(_atlas),
-    m_out_directory(std::move(_out_directory))
+class S2TP_EXPORT GridPack : public Pack
 {
-}
+    Q_OBJECT
 
-int UnpackApplication::exec()
-{
-    struct Visitor
-    {
-        const UnpackApplication * app;
+public:
+    explicit GridPack(const QString & _texture_filename, QObject * _parent = nullptr);
+    qsizetype frameCount() const override;
+    void reconfigure(const GridOptions & _options);
 
-        void operator ()(const GridOptions & _grid) const
-        {
-            GridSplitter splitter(nullptr);
-            splitter.reconfigure(_grid.splitter_options);
-            splitter.apply(
-                {
-                    .path = _grid.texture,
-                    .image = loadImage(_grid.texture)
-                },
-                QDir(app->m_out_directory)
-            );
-        }
+public slots:
+    void setColumnCount(int _count);
+    void setRowCount(int _count);
+    void setSpriteWidth(int _width);
+    void setSpriteHeight(int _height);
+    void setMarginTop(int _margin);
+    void setMarginLeft(int _margin);
+    void setHorizontalSpacing(int _spacing);
+    void setVerticalSpacing(int _spacing);
 
-        void operator ()(const QString & _atlas) const
-        {
-            // TODO: unpack atlas
-        }
-    };
-    Visitor visitor { .app = this };
-    std::visit(visitor, m_input);
-    return 0;
-}
+signals:
+    void framesChanged();
 
-QImage UnpackApplication::loadImage(const QString & _path)
-{
-    QImage image;
-    if(!image.load(_path))
-    {
-        throw ImageLoadingException(_path);
-    }
-    return image;
-}
+protected:
+    bool forEachFrame(std::function<void (const Frame &)> _cb) const override;
+
+private:
+    void recalculate();
+
+private:
+    GridOptions m_options;
+    bool m_is_valid;
+};
