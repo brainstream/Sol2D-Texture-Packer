@@ -19,8 +19,8 @@
 #pragma once
 
 #include "ui_SpriteSheetSplitterWidget.h"
-#include <LibSol2dTexturePacker/Splitters/GridSplitter.h>
-#include <LibSol2dTexturePacker/Splitters/AtlasSplitter.h>
+#include <LibSol2dTexturePacker/Pack/GridPack.h>
+#include <LibSol2dTexturePacker/Pack/AtlasPack.h>
 
 class SpriteSheetSplitterWidget : public QWidget, private Ui::SpriteSheetSplitterWidget
 {
@@ -53,7 +53,7 @@ private:
     QPen m_sheet_pen;
     QPen m_sprite_pen;
     QBrush m_sprite_brush;
-    Splitter * m_current_splitter;
-    GridSplitter * m_grid_splitter;
-    AtlasSplitter * m_atlas_splitter;
+    Pack * m_current_pack;
+    GridPack * m_grid_pack;
+    AtlasPack * m_atlas_pack;
 };

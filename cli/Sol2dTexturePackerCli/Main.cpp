@@ -19,13 +19,11 @@
 #include <Sol2dTexturePackerCli/NoopApplication.h>
 #include <Sol2dTexturePackerCli/PackApplication.h>
 #include <Sol2dTexturePackerCli/UnpackApplication.h>
-#include <LibSol2dTexturePacker/Splitters/GridSplitter.h>
 #include <LibSol2dTexturePacker/Exception.h>
 #include <QCommandLineParser>
 #include <QIODevice>
 #include <QTextStream>
 #include <memory>
-#include <cstdio>
 
 namespace {
 
@@ -327,52 +325,53 @@ std::unique_ptr<Application> AppRunner::parseUnpackGrid() const
         return noop(ExitCodes::Success);
     }
 
-    UnpackApplication::GridOptions grid_options = {};
+    GridOptions grid_options = {};
+    QString texture;
     QString out_directory;
 
     if(parser.isSet(texture_option.names().first()))
-        grid_options.texture = parser.value(texture_option.names().first());
+        texture = parser.value(texture_option.names().first());
     if(parser.isSet(output_option.names().first()))
         out_directory = parser.value(output_option.names().first());
     if(parser.isSet(rows_option.names().first()))
-        grid_options.splitter_options.row_count = parser.value(rows_option.names().first()).toInt();
+        grid_options.row_count = parser.value(rows_option.names().first()).toInt();
     if(parser.isSet(columns_option.names().first()))
-        grid_options.splitter_options.column_count = parser.value(columns_option.names().first()).toInt();
+        grid_options.column_count = parser.value(columns_option.names().first()).toInt();
     if(parser.isSet(sprite_height_option.names().first()))
-        grid_options.splitter_options.sprite_height = parser.value(sprite_height_option.names().first()).toInt();
+        grid_options.sprite_height = parser.value(sprite_height_option.names().first()).toInt();
     if(parser.isSet(sprite_width_option.names().first()))
-        grid_options.splitter_options.sprite_width = parser.value(sprite_width_option.names().first()).toInt();
+        grid_options.sprite_width = parser.value(sprite_width_option.names().first()).toInt();
     if(parser.isSet(vertical_spacing_option.names().first()))
-        grid_options.splitter_options.vertical_spacing = parser.value(vertical_spacing_option.names().first()).toInt();
+        grid_options.vertical_spacing = parser.value(vertical_spacing_option.names().first()).toInt();
     if(parser.isSet(horizontal_spacing_option.names().first()))
-        grid_options.splitter_options.horizontal_spacing = parser.value(horizontal_spacing_option.names().first()).toInt();
+        grid_options.horizontal_spacing = parser.value(horizontal_spacing_option.names().first()).toInt();
     if(parser.isSet(margin_top_option.names().first()))
-        grid_options.splitter_options.margin_top = parser.value(margin_top_option.names().first()).toInt();
+        grid_options.margin_top = parser.value(margin_top_option.names().first()).toInt();
     if(parser.isSet(margin_left_option.names().first()))
-        grid_options.splitter_options.margin_left = parser.value(margin_left_option.names().first()).toInt();
+        grid_options.margin_left = parser.value(margin_left_option.names().first()).toInt();
 
-    if(grid_options.texture.isEmpty())
+    if(texture.isEmpty())
         return noRequiredArgument(texture_option);
     if(out_directory.isEmpty())
         return noRequiredArgument(output_option);
-    if(grid_options.splitter_options.row_count <= 0)
+    if(grid_options.row_count <= 0)
         return noRequiredArgument(rows_option);
-    if(grid_options.splitter_options.column_count <= 0)
+    if(grid_options.column_count <= 0)
         return noRequiredArgument(columns_option);
-    if(grid_options.splitter_options.sprite_width <= 0)
+    if(grid_options.sprite_width <= 0)
         return noRequiredArgument(sprite_width_option);
-    if(grid_options.splitter_options.sprite_height <= 0)
+    if(grid_options.sprite_height <= 0)
         return noRequiredArgument(sprite_height_option);
-    if(grid_options.splitter_options.vertical_spacing < 0)
+    if(grid_options.vertical_spacing < 0)
         return invalidArgument(vertical_spacing_option);
-    if(grid_options.splitter_options.horizontal_spacing < 0)
+    if(grid_options.horizontal_spacing < 0)
         return invalidArgument(horizontal_spacing_option);
-    if(grid_options.splitter_options.margin_top < 0)
+    if(grid_options.margin_top < 0)
         return invalidArgument(margin_top_option);
-    if(grid_options.splitter_options.margin_left < 0)
+    if(grid_options.margin_left < 0)
         return invalidArgument(margin_left_option);
 
-    return std::unique_ptr<Application>(new UnpackApplication(grid_options, out_directory));
+    return std::unique_ptr<Application>(new UnpackApplication(texture, grid_options, out_directory));
 }
 
 std::unique_ptr<Application> AppRunner::parseUnpackAtlas() const

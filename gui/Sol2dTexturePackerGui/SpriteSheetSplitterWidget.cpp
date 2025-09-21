@@ -40,33 +40,33 @@ SpriteSheetSplitterWidget::SpriteSheetSplitterWidget(QWidget *parent) :
     m_preview->setScene(new QGraphicsScene(this));
     m_preview->setZoomModel(&m_zoom_widget->model());
     setExportControlsEnabled(false);
-    m_grid_splitter = new GridSplitter(this);
-    m_atlas_splitter = new AtlasSplitter(this);
-    m_current_splitter = m_grid_splitter;
+    m_grid_pack = new GridPack(this);
+    m_atlas_pack = new AtlasPack(this);
+    m_current_pack = m_grid_pack;
 
     connect(m_btn_browse_texture_file, &QPushButton::clicked, this, &SpriteSheetSplitterWidget::openTexture);
     connect(m_btn_export_sprites, &QPushButton::clicked, this, &SpriteSheetSplitterWidget::exportSprites);
     connect(m_btn_export_to_atlas, &QPushButton::clicked, this, &SpriteSheetSplitterWidget::exportToAtlas);
     connect(m_btn_brows_data_file, &QPushButton::clicked, this, &SpriteSheetSplitterWidget::openAtlas);
-    connect(m_spin_rows, &QSpinBox::valueChanged, m_grid_splitter, &GridSplitter::setRowCount);
-    connect(m_spin_columns, &QSpinBox::valueChanged, m_grid_splitter, &GridSplitter::setColumnCount);
-    connect(m_spin_sprite_width, &QSpinBox::valueChanged, m_grid_splitter, &GridSplitter::setSpriteWidth);
-    connect(m_spin_sprite_height, &QSpinBox::valueChanged, m_grid_splitter, &GridSplitter::setSpriteHeight);
-    connect(m_spin_margin_left, &QSpinBox::valueChanged, m_grid_splitter, &GridSplitter::setMarginLeft);
-    connect(m_spin_margin_top, &QSpinBox::valueChanged, m_grid_splitter, &GridSplitter::setMarginTop);
-    connect(m_spin_hspacing, &QSpinBox::valueChanged, m_grid_splitter, &GridSplitter::setHorizontalSpacing);
-    connect(m_spin_vspacing, &QSpinBox::valueChanged, m_grid_splitter, &GridSplitter::setVerticalSpacing);
-    connect(m_grid_splitter, &Splitter::framesChanged, this, &SpriteSheetSplitterWidget::syncWithSplitter);
-    connect(m_atlas_splitter, &Splitter::framesChanged, this, &SpriteSheetSplitterWidget::syncWithSplitter);
-    connect(m_atlas_splitter, &AtlasSplitter::error, this, &SpriteSheetSplitterWidget::showError);
+    connect(m_spin_rows, &QSpinBox::valueChanged, m_grid_pack, &GridPack::setRowCount);
+    connect(m_spin_columns, &QSpinBox::valueChanged, m_grid_pack, &GridPack::setColumnCount);
+    connect(m_spin_sprite_width, &QSpinBox::valueChanged, m_grid_pack, &GridPack::setSpriteWidth);
+    connect(m_spin_sprite_height, &QSpinBox::valueChanged, m_grid_pack, &GridPack::setSpriteHeight);
+    connect(m_spin_margin_left, &QSpinBox::valueChanged, m_grid_pack, &GridPack::setMarginLeft);
+    connect(m_spin_margin_top, &QSpinBox::valueChanged, m_grid_pack, &GridPack::setMarginTop);
+    connect(m_spin_hspacing, &QSpinBox::valueChanged, m_grid_pack, &GridPack::setHorizontalSpacing);
+    connect(m_spin_vspacing, &QSpinBox::valueChanged, m_grid_pack, &GridPack::setVerticalSpacing);
+    connect(m_grid_pack, &GridPack::framesChanged, this, &SpriteSheetSplitterWidget::syncWithSplitter);
+    connect(m_grid_pack, &GridPack::framesChanged, this, &SpriteSheetSplitterWidget::syncWithSplitter);
+    connect(m_grid_pack, &AtlasSplitter::error, this, &SpriteSheetSplitterWidget::showError);
     connect(m_tabs_source, &QTabWidget::currentChanged, this, [this](int __index) {
         switch(__index)
         {
         case 0:
-            m_current_splitter = m_grid_splitter;
+            m_current_pack = m_grid_pack;
             break;
         case 1:
-            m_current_splitter = m_atlas_splitter;
+            m_current_pack = m_atlas_pack;
             break;
         default:
             return;
@@ -86,13 +86,13 @@ void SpriteSheetSplitterWidget::openTexture()
     QString last_dir = settings.value(gc_settings_key_sheet_dir).toString();
     QString filename = QFileDialog::getOpenFileName(
         this,
-        tr("Open a Sprite Sheet"),
+        tr("Open a Texture"),
         last_dir,
         m_open_image_dialog_filter);
     if(!filename.isEmpty())
     {
-        m_grid_splitter->reset();
-        m_atlas_splitter->reset();
+        m_grid_pack->reset();
+        m_atlas_pack->reset();
         QFileInfo file_info(filename);
         settings.setValue(gc_settings_key_sheet_dir, file_info.absolutePath());
         loadImage(filename);
@@ -138,7 +138,7 @@ void SpriteSheetSplitterWidget::syncWithSplitter()
     QGraphicsPixmapItem * pixmap_item = scene->addPixmap(*m_pixmap);
     scene->addRect({pixmap_item->pos(), m_pixmap->size()}, m_sheet_pen, m_sheet_brush);
     pixmap_item->setZValue(1);
-    bool is_valid = m_current_splitter->forEachFrame([this, scene](const Frame & __frame) {
+    bool is_valid = m_current_pack->forEachFrame([this, scene](const Frame & __frame) {
         QGraphicsRectItem * item = scene->addRect(
             __frame.x,
             __frame.y,
@@ -159,10 +159,7 @@ void SpriteSheetSplitterWidget::exportSprites()
     if(dir_path.isEmpty())
         return;
     settings.setValue(gc_settings_key_split_dir, dir_path);
-    m_current_splitter->apply(
-        Texture { .path = m_edit_texture_file->text(), .image = m_pixmap->toImage() },
-        QDir(dir_path)
-    );
+    m_current_pack->unpack(dir_path);
 }
 
 void SpriteSheetSplitterWidget::exportToAtlas()
@@ -191,8 +188,8 @@ void SpriteSheetSplitterWidget::exportToAtlas()
             .texture = texture_file_path,
             .frames = QList<Frame>()
         };
-        atlas.frames.reserve(m_current_splitter->frameCount());
-        m_current_splitter->forEachFrame([&atlas](const Frame & __frame) {
+        atlas.frames.reserve(m_current_pack->frameCount());
+        m_current_pack->forEachFrame([&atlas](const Frame & __frame) {
             atlas.frames.append(__frame);
         });
         try
@@ -217,7 +214,7 @@ void SpriteSheetSplitterWidget::openAtlas()
     if(!filename.isEmpty())
     {
         m_edit_data_file->setText(filename);
-        m_atlas_splitter->setDataFile(filename);
+        m_atlas_pack->setDataFile(filename);
     }
 }
 

@@ -19,27 +19,26 @@
 #pragma once
 
 #include <Sol2dTexturePackerCli/Application.h>
-#include <LibSol2dTexturePacker/Splitters/GridSplitter.h>
-#include <variant>
+#include <LibSol2dTexturePacker/Pack/GridPack.h>
 
 class UnpackApplication : public Application
 {
-public:
-    struct GridOptions
-    {
-        QString texture;
-        GridSplitterOptions splitter_options;
-    };
+    Q_DISABLE_COPY_MOVE(UnpackApplication)
+
+private:
+    class Runner;
+    class GridRunner;
+    class AtlasRunner;
 
 public:
-    UnpackApplication(const GridOptions & _grid, QString  _out_directory);
-    UnpackApplication(const QString & _atlas, QString  _out_directory);
+    UnpackApplication(const QString & _texture, const GridOptions & _grid, const QString & _out_directory);
+    UnpackApplication(const QString & _atlas, const QString & _out_directory);
+    ~UnpackApplication() override;
     int exec() override;
 
 private:
     static QImage loadImage(const QString & _path);
 
 private:
-    const std::variant<GridOptions, QString> m_input;
-    const QString m_out_directory;
+    Runner * m_runner;
 };

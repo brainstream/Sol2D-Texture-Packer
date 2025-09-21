@@ -28,8 +28,6 @@ class AtlasPack : public Pack
 public:
     explicit AtlasPack(const Atlas & _atlas, QObject * _parent = nullptr);
     qsizetype frameCount() const override;
-
-protected:
     bool forEachFrame(std::function<void (const Frame &)> _cb) const override;
 
 private:

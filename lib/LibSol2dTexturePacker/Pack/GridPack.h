@@ -41,6 +41,8 @@ public:
     explicit GridPack(const QString & _texture_filename, QObject * _parent = nullptr);
     qsizetype frameCount() const override;
     void reconfigure(const GridOptions & _options);
+    bool isValid() const { return m_is_valid; }
+    bool forEachFrame(std::function<void (const Frame &)> _cb) const override;
 
 public slots:
     void setColumnCount(int _count);
@@ -54,9 +56,6 @@ public slots:
 
 signals:
     void framesChanged();
-
-protected:
-    bool forEachFrame(std::function<void (const Frame &)> _cb) const override;
 
 private:
     void recalculate();

@@ -17,48 +17,98 @@
  **********************************************************************************************************/
 
 #include <Sol2dTexturePackerCli/UnpackApplication.h>
-#include <LibSol2dTexturePacker/Splitters/GridSplitter.h>
+#include <LibSol2dTexturePacker/Pack/AtlasPack.h>
+#include <LibSol2dTexturePacker/Atlas/DefaultAtlasSerializer.h>
 #include <LibSol2dTexturePacker/Exception.h>
 #include <QImage>
 
-UnpackApplication::UnpackApplication(const GridOptions & _grid, QString _out_directory) :
-    m_input(_grid),
-    m_out_directory(std::move(_out_directory))
+class UnpackApplication::Runner
+{
+public:
+    Runner(const QString & _out_directory) :
+        m_out_directory(_out_directory)
+    {
+    }
+
+    virtual ~Runner() = default;
+    virtual void run() = 0;
+
+protected:
+    const QString m_out_directory;
+};
+
+class UnpackApplication::GridRunner : public UnpackApplication::Runner
+{
+public:
+    GridRunner(const QString & _texture, const GridOptions & _grid, const QString & _out_directory) :
+        UnpackApplication::Runner(_out_directory),
+        m_texture(_texture),
+        m_grid(_grid)
+    {
+    }
+
+    void run() override;
+
+private:
+    const QString m_texture;
+    const GridOptions m_grid;
+};
+
+void UnpackApplication::GridRunner::run()
+{
+    GridPack pack(m_texture);
+    pack.reconfigure(m_grid);
+    pack.unpack(m_out_directory);
+}
+
+class UnpackApplication::AtlasRunner : public UnpackApplication::Runner
+{
+public:
+    AtlasRunner(const QString & _atlas, const QString & _out_directory) :
+        UnpackApplication::Runner(_out_directory),
+        m_atlas(_atlas)
+    {
+    }
+
+    void run() override;
+
+private:
+    const QString m_atlas;
+};
+
+void UnpackApplication::AtlasRunner::run()
+{
+    Atlas atlas;
+    {
+        DefaultAtlasSerializer serializer;
+        serializer.deserialize(m_atlas, atlas);
+    }
+    AtlasPack pack(atlas);
+    pack.unpack(m_out_directory);
+}
+
+UnpackApplication::UnpackApplication(
+    const QString & _texture,
+    const GridOptions & _grid,
+    const QString & _out_directory
+) :
+    m_runner(new GridRunner(_texture, _grid, _out_directory))
 {
 }
 
-UnpackApplication::UnpackApplication(const QString & _atlas, QString _out_directory) :
-    m_input(_atlas),
-    m_out_directory(std::move(_out_directory))
+UnpackApplication::UnpackApplication(const QString & _atlas, const QString & _out_directory) :
+    m_runner(new AtlasRunner(_atlas, _out_directory))
 {
+}
+
+UnpackApplication::~UnpackApplication()
+{
+    delete m_runner;
 }
 
 int UnpackApplication::exec()
 {
-    struct Visitor
-    {
-        const UnpackApplication * app;
-
-        void operator ()(const GridOptions & _grid) const
-        {
-            GridSplitter splitter(nullptr);
-            splitter.reconfigure(_grid.splitter_options);
-            splitter.apply(
-                {
-                    .path = _grid.texture,
-                    .image = loadImage(_grid.texture)
-                },
-                QDir(app->m_out_directory)
-            );
-        }
-
-        void operator ()(const QString & _atlas) const
-        {
-            // TODO: unpack atlas
-        }
-    };
-    Visitor visitor { .app = this };
-    std::visit(visitor, m_input);
+    m_runner->run();
     return 0;
 }
 

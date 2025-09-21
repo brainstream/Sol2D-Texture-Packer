@@ -39,8 +39,6 @@ public:
     const QImage & texture() const;
     const QString & textureFilename() const { return m_texture_filename; }
     virtual qsizetype frameCount() const = 0;
-
-protected:
     virtual bool forEachFrame(std::function<void(const Frame &)> _cb) const = 0;
 
 private:

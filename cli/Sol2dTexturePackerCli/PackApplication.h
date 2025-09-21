@@ -19,9 +19,13 @@
 #pragma once
 
 #include <Sol2dTexturePackerCli/Application.h>
+#include <QtGlobal>
 
 class PackApplication : public Application
 {
+    Q_DISABLE_COPY_MOVE(PackApplication)
+
 public:
+    PackApplication() = default;
     int exec() override;
 };
