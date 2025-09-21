@@ -32,9 +32,12 @@ public:
     };
 
 public:
-    UnpackApplication(IO & _io, const GridOptions & _grid, const QString & _out_directory);
-    UnpackApplication(IO & _io, const QString & _atlas, const QString & _out_directory);
+    UnpackApplication(const GridOptions & _grid, QString  _out_directory);
+    UnpackApplication(const QString & _atlas, QString  _out_directory);
     int exec() override;
+
+private:
+    static QImage loadImage(const QString & _path);
 
 private:
     const std::variant<GridOptions, QString> m_input;

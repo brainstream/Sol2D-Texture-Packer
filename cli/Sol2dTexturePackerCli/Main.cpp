@@ -16,18 +16,35 @@
  *                                                                                                        *
  **********************************************************************************************************/
 
-#include <Sol2dTexturePackerCli/NopApplication.h>
+#include <Sol2dTexturePackerCli/NoopApplication.h>
 #include <Sol2dTexturePackerCli/PackApplication.h>
 #include <Sol2dTexturePackerCli/UnpackApplication.h>
-#include <Sol2dTexturePackerCli/ExitCodes.h>
 #include <LibSol2dTexturePacker/Splitters/GridSplitter.h>
-#include <QCoreApplication>
+#include <LibSol2dTexturePacker/Exception.h>
 #include <QCommandLineParser>
 #include <QIODevice>
+#include <QTextStream>
 #include <memory>
 #include <cstdio>
 
 namespace {
+
+struct IO
+{
+    QTextStream out;
+    QTextStream err;
+};
+
+struct ExitCodes
+{
+    enum Codes : int
+    {
+        Success = 0,
+        Error = 1,
+        RequiredArgumentNotSpecified = 10,
+        InvalidArgumentValue = 11
+    };
+};
 
 QTextStream & operator << (QTextStream & _stream, const QList<QCommandLineOption> & _options)
 {
@@ -79,19 +96,25 @@ public:
 private:
     AppRunner(IO & _io, const QStringList & _args) :
         m_io(_io),
-        m_args(_args)
+        m_args(_args),
+        m_help_options({{ "h", "help" }, QObject::tr("Displays help")})
     {
     }
 
-    std::unique_ptr<Application> run() const;
-    std::unique_ptr<Application> parseGlobal() const;
-    std::unique_ptr<Application> parsePack() const;
-    std::unique_ptr<Application> parseUnpack() const;
-    static bool tryParseGridOptions(const QString & _str, UnpackApplication::GridOptions & _options);
+    [[nodiscard]] std::unique_ptr<Application> run() const;
+    [[nodiscard]] std::unique_ptr<Application> noop(int _exit_code) const;
+    [[nodiscard]] std::unique_ptr<Application> noRequiredArgument(const QCommandLineOption & _option) const;
+    [[nodiscard]] std::unique_ptr<Application> invalidArgument(const QCommandLineOption & _option) const;
+    [[nodiscard]] std::unique_ptr<Application> parseGlobal() const;
+    [[nodiscard]] std::unique_ptr<Application> parsePack() const;
+    [[nodiscard]] std::unique_ptr<Application> parseUnpack() const;
+    [[nodiscard]] std::unique_ptr<Application> parseUnpackGrid() const;
+    [[nodiscard]] std::unique_ptr<Application> parseUnpackAtlas() const;
 
 private:
     IO & m_io;
     const QStringList & m_args;
+    const QCommandLineOption m_help_options;
 };
 
 std::unique_ptr<Application> AppRunner::run() const
@@ -109,187 +132,322 @@ std::unique_ptr<Application> AppRunner::run() const
 std::unique_ptr<Application> AppRunner::parseGlobal() const
 {
     QCommandLineParser parser;
-    QList<QCommandLineOption> options
+    const QCommandLineOption version_option = {
+        { "v", "version" },
+        QObject::tr("Displays version")
+    };
+    const QList options
     {
-        {
-            { "h", "help" },
-            QObject::tr("Displays help")
-        },
-        {
-            { "v", "version" },
-            QObject::tr("Displays version")
-        }
+        m_help_options,
+        version_option
     };
     parser.addOptions(options);
     parser.process(m_args);
 
     int exit_code = ExitCodes::Success;
 
-    if(parser.isSet("version"))
+    if(parser.isSet(version_option.names().first()))
     {
         m_io.out << __S2TP_VERSION << Qt::endl;
     }
     else
     {
-        if(!parser.isSet("help"))
+        if(!parser.isSet(m_help_options.names().first()))
         {
             m_io.err << QObject::tr("Command not specified") << Qt::endl;
             exit_code = ExitCodes::RequiredArgumentNotSpecified;
         }
         m_io.out <<
             QObject::tr("Usage:") << " " << m_args[0] << " " <<
-            QObject::tr("[global options] [command] [command args]") << Qt::endl <<
+                QObject::tr("[global options] [command] [command args]") << Qt::endl <<
             Qt::endl <<
             QObject::tr("Global options:") << Qt::endl <<
             options << Qt::endl <<
             Qt::endl <<
             QObject::tr("Commands:") << Qt::endl <<
-            " pack    " << QObject::tr("Packs textures into an atlas") << Qt::endl <<
-            " unpack  " << QObject::tr("Unpacks textures from the atlas") << Qt::endl;
+            " pack    " << QObject::tr("Packs sprites into an atlas") << Qt::endl <<
+            " unpack  " << QObject::tr("Unpacks a texture") << Qt::endl;
     }
 
-    return std::unique_ptr<Application>(new NopApplication(m_io, exit_code));
+    return noop(exit_code);
+}
+
+std::unique_ptr<Application> AppRunner::noop(int _exit_code) const
+{
+    return std::unique_ptr<Application>(new NoopApplication(_exit_code));
+}
+
+std::unique_ptr<Application> AppRunner::noRequiredArgument(const QCommandLineOption & _option) const
+{
+    m_io.err <<
+        QObject::tr("Required argument not specified or has invalid value: ") <<
+        _option.description() <<
+        Qt::endl;
+    return noop(ExitCodes::RequiredArgumentNotSpecified);
+}
+
+std::unique_ptr<Application> AppRunner::invalidArgument(const QCommandLineOption & _option) const
+{
+    m_io.err <<
+        QObject::tr("Argument has invalid value: ") <<
+        _option.description() <<
+        Qt::endl;
+    return noop(ExitCodes::InvalidArgumentValue);
 }
 
 std::unique_ptr<Application> AppRunner::parsePack() const
 {
-    return std::unique_ptr<Application>(new PackApplication(m_io));
+    return std::unique_ptr<Application>(new PackApplication);
 }
 
 std::unique_ptr<Application> AppRunner::parseUnpack() const
 {
-    QCommandLineParser parser;
-    const QString opt_name_help = "help";
-    const QString opt_name_grid = "grid";
-    const QString opt_name_atlas = "atlas";
-    const QString opt_name_output = "output";
-    QList<QCommandLineOption> options
+    // 1st argument is app name
+    // 2nd argument is "unpack"
+    if(m_args.length() > 2)
     {
-        {
-            { "h", opt_name_help },
-            QObject::tr("Displays unpacker help")
-        },
-        {
-            { "g", opt_name_grid },
-            QObject::tr("Unpacks using grid"),
-            "grid description"
-        },
-        {
-            { "a", opt_name_atlas },
-            QObject::tr("Unpacks using atlas"),
-            "file"
-        },
-        {
-            { "o", opt_name_output },
-            QObject::tr("Output directory"),
-            "directory"
-        }
-    };
+        if(m_args[2] == "grid")
+            return parseUnpackGrid();
+        if(m_args[2] == "atlas")
+            return parseUnpackAtlas();
+    }
+
     QStringList args = m_args;
-    args.removeAt(1);
+    args.removeAt(1); // remove the "unpack" argument to hide it from the parser
+
+    QCommandLineParser parser;
+    const QList options { m_help_options };
     parser.addOptions(options);
     parser.process(args);
 
-    if(parser.isSet(opt_name_help))
+    int exit_code = ExitCodes::Success;
+
+    if(!parser.isSet("help"))
     {
-        m_io.out <<
-            QObject::tr("Usage:") << " " << m_args[0] << " " << m_args[1] << " " << QObject::tr("[options]") << Qt::endl <<
+        m_io.err << QObject::tr("Method not specified") << Qt::endl;
+        exit_code = ExitCodes::RequiredArgumentNotSpecified;
+    }
+
+    m_io.out <<
+        QObject::tr("Usage:") << " " << m_args[0] << " " << m_args[1] << " " <<
+            QObject::tr("[options] [method] [method options]") << Qt::endl <<
+        Qt::endl <<
+        QObject::tr("Options:") << Qt::endl <<
+        options << Qt::endl <<
+        Qt::endl <<
+        QObject::tr("Methods:") << Qt::endl <<
+        " grid   " << QObject::tr("Unpacks a grid-aligned texture") << Qt::endl <<
+        " atlas  " << QObject::tr("Unpacks a texture using an atlas") << Qt::endl;
+
+    return noop(exit_code);
+}
+
+std::unique_ptr<Application> AppRunner::parseUnpackGrid() const
+{
+    QStringList args = m_args;
+    args.removeAt(1); // remove the "unpack" argument to hide it from the parser
+    args.removeAt(1); // remove the "grid" argument to hide it from the parser
+
+    const QCommandLineOption texture_option {
+        QStringList { "tx", "texture" },
+        QObject::tr("Texture filename"),
+        QObject::tr("filename")
+    };
+    const QCommandLineOption output_option {
+        QStringList { "out" },
+        QObject::tr("Output directory"),
+        QObject::tr("directory")
+    };
+    const QCommandLineOption rows_option {
+        QStringList { "rows" },
+        QObject::tr("Row count"),
+        QObject::tr("value")
+    };
+    const QCommandLineOption columns_option {
+        QStringList { "cols", "columns" },
+        QObject::tr("Column count"),
+        QObject::tr("value")
+    };
+    const QCommandLineOption sprite_width_option {
+        QStringList { "wd", "sprite-width" },
+        QObject::tr("Sprite width"),
+        QObject::tr("value")
+    };
+    const QCommandLineOption sprite_height_option {
+        QStringList { "ht", "sprite-height" },
+        QObject::tr("Sprite height"),
+        QObject::tr("value")
+    };
+    const QCommandLineOption horizontal_spacing_option {
+        QStringList { "hs", "horizontal-spacing" },
+        QObject::tr("Horizontal spacing"),
+        QObject::tr("value")
+    };
+    const QCommandLineOption vertical_spacing_option {
+        QStringList { "vs", "vertical-spacing" },
+        QObject::tr("Vertical spacing"),
+        QObject::tr("value")
+    };
+    const QCommandLineOption margin_top_option {
+        QStringList { "mt", "margin-top" },
+        QObject::tr("Margin top"),
+        QObject::tr("value")
+    };
+    const QCommandLineOption margin_left_option {
+        QStringList { "ml", "margin-left" },
+        QObject::tr("Margin left"),
+        QObject::tr("value")
+    };
+
+    const QList options = {
+        m_help_options,
+        texture_option,
+        output_option,
+        rows_option,
+        columns_option,
+        sprite_width_option,
+        sprite_height_option,
+        horizontal_spacing_option,
+        vertical_spacing_option,
+        margin_top_option,
+        margin_left_option
+    };
+
+    QCommandLineParser parser;
+    parser.addOptions(options);
+    parser.process(args);
+
+    if(parser.isSet(m_help_options.names().first()))
+    {
+        m_io.out << QObject::tr("Usage:") << " " << m_args[0] << " " << m_args[1] << " " << m_args[2] <<
+                " " << "[options]" << Qt::endl <<
             Qt::endl <<
             QObject::tr("Options:") << Qt::endl <<
-            options << Qt::endl
-                 << Qt::endl <<
-                QObject::tr("Grid description format:") << Qt::endl <<
-                " t:texture.png;r:5;c:5;w:48;h:48;hs:2;vs:2;mt:12;ml:14" << Qt::endl <<
-                QObject::tr(" where:") << Qt::endl <<
-                " t              " << QObject::tr("Texture filename") << Qt::endl <<
-                " r              " << QObject::tr("Row count") << Qt::endl <<
-                " c              " << QObject::tr("Column count") << Qt::endl <<
-                " w              " << QObject::tr("Sprite width") << Qt::endl <<
-                " h              " << QObject::tr("Sprite height") << Qt::endl <<
-                " hs (optional)  " << QObject::tr("Horizontal spacing") << Qt::endl <<
-                " vs (optional)  " << QObject::tr("Vertical spacing") << Qt::endl <<
-                " mt (optional)  " << QObject::tr("Margin top") << Qt::endl <<
-                " ml (optional)  " << QObject::tr("Margin left") << Qt::endl;
-        return std::unique_ptr<Application>(new NopApplication(m_io, ExitCodes::Success));
+            options << Qt::endl;
+        return noop(ExitCodes::Success);
     }
 
-    QString output =  parser.value(opt_name_output);
-    if(output.isEmpty())
-    {
-        m_io.err << QObject::tr("Output directory not specified") << Qt::endl;
-        return std::unique_ptr<Application>(new NopApplication(m_io, ExitCodes::RequiredArgumentNotSpecified));
-    }
-    if(parser.isSet(opt_name_atlas))
-    {
-        return std::unique_ptr<Application>(new UnpackApplication(m_io, parser.value(opt_name_grid), output));
-    }
-    if(parser.isSet(opt_name_grid))
-    {
-        UnpackApplication::GridOptions options = {};
-        if(tryParseGridOptions(parser.value(opt_name_grid), options))
-        {
-            return std::unique_ptr<Application>(new UnpackApplication(m_io, options, output));
-        }
-        else
-        {
-            m_io.err << QObject::tr("Invalid grid description") << Qt::endl;
-            return std::unique_ptr<Application>(new NopApplication(m_io, ExitCodes::InvalidDataFormat));
-        }
-    }
-    m_io.err << QObject::tr("Neither the atlas nor the grid are specified") << Qt::endl;
-    return std::unique_ptr<Application>(new NopApplication(m_io, ExitCodes::RequiredArgumentNotSpecified));
+    UnpackApplication::GridOptions grid_options = {};
+    QString out_directory;
+
+    if(parser.isSet(texture_option.names().first()))
+        grid_options.texture = parser.value(texture_option.names().first());
+    if(parser.isSet(output_option.names().first()))
+        out_directory = parser.value(output_option.names().first());
+    if(parser.isSet(rows_option.names().first()))
+        grid_options.splitter_options.row_count = parser.value(rows_option.names().first()).toInt();
+    if(parser.isSet(columns_option.names().first()))
+        grid_options.splitter_options.column_count = parser.value(columns_option.names().first()).toInt();
+    if(parser.isSet(sprite_height_option.names().first()))
+        grid_options.splitter_options.sprite_height = parser.value(sprite_height_option.names().first()).toInt();
+    if(parser.isSet(sprite_width_option.names().first()))
+        grid_options.splitter_options.sprite_width = parser.value(sprite_width_option.names().first()).toInt();
+    if(parser.isSet(vertical_spacing_option.names().first()))
+        grid_options.splitter_options.vertical_spacing = parser.value(vertical_spacing_option.names().first()).toInt();
+    if(parser.isSet(horizontal_spacing_option.names().first()))
+        grid_options.splitter_options.horizontal_spacing = parser.value(horizontal_spacing_option.names().first()).toInt();
+    if(parser.isSet(margin_top_option.names().first()))
+        grid_options.splitter_options.margin_top = parser.value(margin_top_option.names().first()).toInt();
+    if(parser.isSet(margin_left_option.names().first()))
+        grid_options.splitter_options.margin_left = parser.value(margin_left_option.names().first()).toInt();
+
+    if(grid_options.texture.isEmpty())
+        return noRequiredArgument(texture_option);
+    if(out_directory.isEmpty())
+        return noRequiredArgument(output_option);
+    if(grid_options.splitter_options.row_count <= 0)
+        return noRequiredArgument(rows_option);
+    if(grid_options.splitter_options.column_count <= 0)
+        return noRequiredArgument(columns_option);
+    if(grid_options.splitter_options.sprite_width <= 0)
+        return noRequiredArgument(sprite_width_option);
+    if(grid_options.splitter_options.sprite_height <= 0)
+        return noRequiredArgument(sprite_height_option);
+    if(grid_options.splitter_options.vertical_spacing < 0)
+        return invalidArgument(vertical_spacing_option);
+    if(grid_options.splitter_options.horizontal_spacing < 0)
+        return invalidArgument(horizontal_spacing_option);
+    if(grid_options.splitter_options.margin_top < 0)
+        return invalidArgument(margin_top_option);
+    if(grid_options.splitter_options.margin_left < 0)
+        return invalidArgument(margin_left_option);
+
+    return std::unique_ptr<Application>(new UnpackApplication(grid_options, out_directory));
 }
 
-bool AppRunner::tryParseGridOptions(const QString & _str, UnpackApplication::GridOptions & _options)
+std::unique_ptr<Application> AppRunner::parseUnpackAtlas() const
 {
-    GridSplitterOptions opts;
-    QString texture;
-    QStringList items = _str.split(';', Qt::SkipEmptyParts);
-    foreach(const QString & item, items)
+QStringList args = m_args;
+    args.removeAt(1); // remove the "unpack" argument to hide it from the parser
+    args.removeAt(1); // remove the "atlas" argument to hide it from the parser
+
+    const QCommandLineOption atlas_option {
+        QStringList { "at", "atlas" },
+        QObject::tr("Atlas filename"),
+        QObject::tr("filename")
+    };
+    const QCommandLineOption output_option {
+        QStringList { "out" },
+        QObject::tr("Output directory"),
+        QObject::tr("directory")
+    };
+
+    const QList options = {
+        m_help_options,
+        atlas_option,
+        output_option
+    };
+
+    QCommandLineParser parser;
+    parser.addOptions(options);
+    parser.process(args);
+
+    if(parser.isSet(m_help_options.names().first()))
     {
-        QStringList kv = item.split(':', Qt::SkipEmptyParts);
-        if(kv.length() != 2) return false;
-        if(kv[0] == "t") texture = kv[1];
-        else if(kv[0] == "r") opts.row_count = kv[1].toInt();
-        else if(kv[0] == "c") opts.column_count = kv[1].toInt();
-        else if(kv[0] == "w") opts.sprite_width = kv[1].toInt();
-        else if(kv[0] == "h") opts.sprite_height = kv[1].toInt();
-        else if(kv[0] == "hs") opts.horizontal_spacing = kv[1].toInt();
-        else if(kv[0] == "vs") opts.vertical_spacing = kv[1].toInt();
-        else if(kv[0] == "mt") opts.margin_top = kv[1].toInt();
-        else if(kv[0] == "ml") opts.margin_left = kv[1].toInt();
-        else return false;
+        m_io.out << QObject::tr("Usage:") << " " << m_args[0] << " " << m_args[1] << " " << m_args[2] <<
+                " " << "[options]" << Qt::endl <<
+            Qt::endl <<
+            QObject::tr("Options:") << Qt::endl <<
+            options << Qt::endl;
+        return noop(ExitCodes::Success);
     }
-    if(
-        texture.isEmpty() ||
-        opts.row_count <= 0 ||
-        opts.column_count <= 0 ||
-        opts.sprite_height <= 0 ||
-        opts.sprite_height <= 0 ||
-        opts.horizontal_spacing < 0 ||
-        opts.vertical_spacing < 0 ||
-        opts.margin_top < 0 ||
-        opts.margin_left < 0)
-    {
-        return false;
-    }
-    _options.texture = texture;
-    _options.splitter_options = opts;
-    return true;
+
+    QString atlas_filename;
+    QString out_directory;
+
+    if(parser.isSet(atlas_option.names().first()))
+        atlas_filename = parser.value(atlas_option.names().first());
+    if(parser.isSet(output_option.names().first()))
+        out_directory = parser.value(output_option.names().first());
+
+    if(atlas_filename.isEmpty())
+        return noRequiredArgument(atlas_option);
+    if(out_directory.isEmpty())
+        return noRequiredArgument(output_option);
+
+    return std::unique_ptr<Application>(new UnpackApplication(atlas_filename, out_directory));
 }
 
-} // namespace name
+} // namespace
 
 int main(int _argc, char * _argv[])
 {
     QCoreApplication app(_argc, _argv);
-    app.setApplicationName(__S2TP_BIN);
-    app.setApplicationVersion(__S2TP_VERSION);
-    app.setOrganizationName(__S2TP_ORG);
+    QCoreApplication::setApplicationName(__S2TP_BIN);
+    QCoreApplication::setApplicationVersion(__S2TP_VERSION);
+    QCoreApplication::setOrganizationName(__S2TP_ORG);
     IO io
     {
         .out = QTextStream(stdout, QIODevice::WriteOnly),
         .err = QTextStream(stderr, QIODevice::WriteOnly)
     };
-    return AppRunner::run(io, app.arguments())->exec();
+    try
+    {
+        return AppRunner::run(io, QCoreApplication::arguments())->exec();
+    }
+    catch(const Exception & e)
+    {
+        io.err << e.message() << Qt::endl;
+        return ExitCodes::Error;
+    }
 }

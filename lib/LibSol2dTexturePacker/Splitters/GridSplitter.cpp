@@ -20,7 +20,8 @@
 
 GridSplitter::GridSplitter(QObject * _parent) :
     Splitter(_parent),
-    m_options({})
+    m_options({}),
+    m_is_valid(false)
 {
 }
 

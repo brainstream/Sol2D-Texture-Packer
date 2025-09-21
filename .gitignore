@@ -6,6 +6,7 @@ CMakeLists.txt.user*
 *.qm
 /distr/
 /build*/
+/cmake-build*/
 /translations/*.qm
 /packages/*.deb
 /packages/*.rpm

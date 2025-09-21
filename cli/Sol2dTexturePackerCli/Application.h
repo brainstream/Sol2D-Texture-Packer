@@ -18,19 +18,9 @@
 
 #pragma once
 
-#include <Sol2dTexturePackerCli/IO.h>
-
 class Application
 {
 public:
-    explicit Application(IO & _io) :
-        m_io(_io)
-    {
-    }
-
-    virtual ~Application() { }
+    virtual ~Application() = default;
     virtual int exec() = 0;
-
-protected:
-    IO & m_io;
 };

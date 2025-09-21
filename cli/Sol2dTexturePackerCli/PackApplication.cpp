@@ -17,14 +17,10 @@
  **********************************************************************************************************/
 
 #include <Sol2dTexturePackerCli/PackApplication.h>
-
-PackApplication::PackApplication(IO & _io) :
-    Application(_io)
-{
-}
+#include <iostream>
 
 int PackApplication::exec()
 {
-    m_io.out << "PACKING..." << Qt::endl;
+    std::cout << "PACKING..." << std::endl;
     return 0;
 }

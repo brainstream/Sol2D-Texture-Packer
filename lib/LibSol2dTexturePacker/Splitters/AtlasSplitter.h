@@ -27,9 +27,9 @@ class S2TP_EXPORT AtlasSplitter : public Splitter
     Q_OBJECT
 
 public:
-    AtlasSplitter(QObject * _parent);
+    explicit AtlasSplitter(QObject * _parent);
     bool forEachFrame(std::function<void(const Frame &)> _cb) const override;
-    qsizetype frameCount() const override;
+    [[nodiscard]] qsizetype frameCount() const override;
     void reset() override;
 
 public slots:

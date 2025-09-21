@@ -18,47 +18,57 @@
 
 #include <Sol2dTexturePackerCli/UnpackApplication.h>
 #include <LibSol2dTexturePacker/Splitters/GridSplitter.h>
+#include <LibSol2dTexturePacker/Exception.h>
 #include <QImage>
+#include <utility>
 
-UnpackApplication::UnpackApplication(IO & _io, const GridOptions & _grid, const QString & _out_directory) :
-    Application(_io),
+UnpackApplication::UnpackApplication(const GridOptions & _grid, QString _out_directory) :
     m_input(_grid),
-    m_out_directory(_out_directory)
+    m_out_directory(std::move(_out_directory))
 {
 }
 
-UnpackApplication::UnpackApplication(IO & _io, const QString & _atlas, const QString & _out_directory) :
-    Application(_io),
+UnpackApplication::UnpackApplication(const QString & _atlas, QString _out_directory) :
     m_input(_atlas),
-    m_out_directory(_out_directory)
+    m_out_directory(std::move(_out_directory))
 {
 }
 
 int UnpackApplication::exec()
 {
-
     struct Visitor
     {
         const UnpackApplication * app;
 
-        void operator ()(const GridOptions & _grid)
+        void operator ()(const GridOptions & _grid) const
         {
             GridSplitter splitter(nullptr);
-            Texture texture
-            {
-                .path = _grid.texture.toStdString(),
-                .image = QImage(_grid.texture)
-            };
             splitter.reconfigure(_grid.splitter_options);
-            splitter.apply(texture, QDir(app->m_out_directory));
+            splitter.apply(
+                {
+                    .path = _grid.texture.toStdString(),
+                    .image = loadImage(_grid.texture)
+                },
+                QDir(app->m_out_directory)
+            );
         }
 
-        void operator ()(const QString & _atlas)
+        void operator ()(const QString & _atlas) const
         {
-            app->m_io.out << "UNPACKING ATLAS..." << Qt::endl;
+            // TODO: unpack atlas
         }
     };
     Visitor visitor { .app = this };
     std::visit(visitor, m_input);
     return 0;
+}
+
+QImage UnpackApplication::loadImage(const QString & _path)
+{
+    QImage image;
+    if(!image.load(_path))
+    {
+        throw ImageLoadingException(_path);
+    }
+    return image;
 }

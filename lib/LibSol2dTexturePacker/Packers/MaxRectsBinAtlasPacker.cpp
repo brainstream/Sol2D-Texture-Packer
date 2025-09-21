@@ -87,7 +87,7 @@ QList<QPixmap> FreeRectAtlasPacker::pack(const QList<Sprite> & _sprites) const
         m_options.max_atlas_size.width(),
         m_options.max_atlas_size.height(),
         m_options.allow_flip);
-    rbp::MaxRectsBinPack::FreeRectChoiceHeuristic heuristic = map(m_options.heuristic);
+    const rbp::MaxRectsBinPack::FreeRectChoiceHeuristic heuristic = map(m_options.heuristic);
     foreach(const Sprite & sprite, _sprites)
     {
         QRect pixmap_rect = sprite.pixmap.rect();

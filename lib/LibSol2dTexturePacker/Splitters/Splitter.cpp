@@ -23,14 +23,24 @@
 
 void Splitter::apply(const Texture & _texture, const QDir & _out_dir) const
 {
-    QFileInfo fi(_texture.path);
-    QString format = _out_dir.filePath(QString("%1_%2.png").arg(fi.baseName()).arg("%1"));
+    const QFileInfo fi(_texture.path);
+    const QString format = _out_dir.filePath(QString("%1_%2.png").arg(fi.baseName(), "%1"));
     quint32 index = 0;
-    forEachFrame([&](const Frame & __frame) {
-        QImage img(__frame.width, __frame.height, QImage::Format_ARGB32);
+    forEachFrame([&](const Frame & _frame) {
+        QImage img(
+            static_cast<int>(_frame.width),
+            static_cast<int>(_frame.height),
+            QImage::Format_ARGB32);
         img.fill(0);
         QPainter painter(&img);
-        painter.drawImage(0, 0, _texture.image, __frame.x, __frame.y, __frame.width, __frame.height);
+        painter.drawImage(
+            0,
+            0,
+            _texture.image,
+            _frame.x,
+            _frame.y,
+            static_cast<int>(_frame.width),
+            static_cast<int>(_frame.height));
         img.save(format.arg(++index, 4, 10, QChar('0')));
     });
 }

@@ -32,17 +32,17 @@ enum S2TP_EXPORT class MaxRectsBinAtlasPackerChoiceHeuristic
 struct S2TP_EXPORT MaxRectsBinAtlasPackerOptions
 {
     QSize max_atlas_size;
-    MaxRectsBinAtlasPackerChoiceHeuristic heuristic;
-    bool allow_flip;
+    MaxRectsBinAtlasPackerChoiceHeuristic heuristic = MaxRectsBinAtlasPackerChoiceHeuristic::BestAreaFit;
+    bool allow_flip = false;
 };
 
-class S2TP_EXPORT FreeRectAtlasPacker : public AtlasPacker
+class S2TP_EXPORT FreeRectAtlasPacker final : public AtlasPacker
 {
     Q_OBJECT
 
 public:
     explicit FreeRectAtlasPacker(const MaxRectsBinAtlasPackerOptions & _options, QObject * _parent);
-    QList<QPixmap> pack(const QList<Sprite> & _sprites) const override;
+    [[nodiscard]] QList<QPixmap> pack(const QList<Sprite> & _sprites) const override;
 
 private:
     const MaxRectsBinAtlasPackerOptions m_options;

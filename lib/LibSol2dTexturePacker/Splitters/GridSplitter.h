@@ -40,7 +40,7 @@ public:
     explicit GridSplitter(QObject * _parent);
     void reconfigure(const GridSplitterOptions & _options);
     bool forEachFrame(std::function<void(const Frame &)> _cb) const override;
-    qsizetype frameCount() const override;
+    [[nodiscard]] qsizetype frameCount() const override;
 
 public slots:
     void setColumnCount(int _count);

@@ -18,12 +18,21 @@
 
 #pragma once
 
-struct ExitCodes
+#include <Sol2dTexturePackerCli/Application.h>
+
+class NoopApplication : public Application
 {
-    enum Codes : int
+public:
+    explicit NoopApplication(int _exit_code) :
+        m_exit_code(_exit_code)
     {
-        Success = 0,
-        RequiredArgumentNotSpecified = 10,
-        InvalidDataFormat = 20
-    };
+    }
+
+    int exec() override
+    {
+        return m_exit_code;
+    }
+
+private:
+    int m_exit_code;
 };

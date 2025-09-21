@@ -23,6 +23,5 @@
 class PackApplication : public Application
 {
 public:
-    explicit PackApplication(IO & _io);
     int exec() override;
 };
