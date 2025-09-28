@@ -16,11 +16,30 @@
  *                                                                                                        *
  **********************************************************************************************************/
 
-#include <Sol2dTexturePackerGui/Settings.h>
+#include <Sol2dTexturePackerGui/Splitter/AtlasPropertyEditorWidget.h>
 
-const char * gc_settings_key_sheet_dir = "directory/sheet";
-const char * gc_settings_key_split_dir = "directory/split";
-const char * gc_settings_key_atlas_dir = "directory/atlas";
-const char * gc_settings_key_pack_input_dir = "directory/pack-input";
-const char * gc_settings_key_wnd_geom = "main-window/geometry";
-const char * gc_settings_key_wnd_state = "main-window/state";
+AtlasPropertyEditorWidget::AtlasPropertyEditorWidget(QWidget * _parent) :
+    QWidget(_parent),
+    m_pack(nullptr)
+{
+    setupUi(this);
+}
+
+void AtlasPropertyEditorWidget::setPack(AtlasPack * _pack)
+{
+    m_pack = _pack;
+    if(m_pack)
+    {
+        m_combo_format->setCurrentIndex(0); // TODO: format
+        m_edit_texture_size->setText(QString("%1x%2").arg(m_pack->texture().width()).arg(m_pack->texture().height()));
+        m_edit_texture_file->setText(m_pack->textureFilename());
+        m_edit_data_file->setText(_pack->atlas().datafile);
+    }
+    else
+    {
+        m_edit_texture_size->clear();
+        m_edit_texture_file->clear();
+        m_combo_format->clear();
+        m_edit_data_file->clear();
+    }
+}

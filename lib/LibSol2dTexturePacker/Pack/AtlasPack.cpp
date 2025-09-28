@@ -20,18 +20,18 @@
 
 AtlasPack::AtlasPack(const Atlas & _atlas, QObject * _parent) :
     Pack(_atlas.texture, _parent),
-    m_frames(_atlas.frames)
+    m_atlas(_atlas)
 {
 }
 
 qsizetype AtlasPack::frameCount() const
 {
-    return m_frames.count();
+    return m_atlas.frames.count();
 }
 
 bool AtlasPack::forEachFrame(std::function<void (const Frame &)> _cb) const
 {
-    foreach(const Frame & frame, m_frames)
+    foreach(const Frame & frame, m_atlas.frames)
         _cb(frame);
-    return !m_frames.empty();
+    return !m_atlas.frames.empty();
 }

@@ -18,42 +18,28 @@
 
 #pragma once
 
-#include "ui_SpriteSheetSplitterWidget.h"
+#include <QWidget>
 #include <LibSol2dTexturePacker/Pack/GridPack.h>
-#include <LibSol2dTexturePacker/Pack/AtlasPack.h>
+#include "ui_GridPropertyEditorWidget.h"
 
-class SpriteSheetSplitterWidget : public QWidget, private Ui::SpriteSheetSplitterWidget
+class GridPropertyEditorWidget : public QWidget, private Ui::GridPropertyEditorWidget
 {
     Q_OBJECT
 
 public:
-    explicit SpriteSheetSplitterWidget(QWidget *parent = nullptr);
-    ~SpriteSheetSplitterWidget() override;
-
-signals:
-    void sheetLoaded(const QString & _filename);
+    explicit GridPropertyEditorWidget(QWidget * _parent = nullptr);
+    void setPack(GridPack * _pack);
 
 private slots:
-    void openTexture();
-    void syncWithSplitter();
-    void exportSprites();
-    void exportToAtlas();
-    void openAtlas();
-    void showError(const QString & _message);
+    void onRowCountChanged(int _value);
+    void onColumnCountChanged(int _value);
+    void onSpriteWidthChanged(int _value);
+    void onSpriteHeightChanged(int _value);
+    void onMarginLeftChanged(int _value);
+    void onMarginTopChanged(int _value);
+    void onHorizontalSpacingChanged(int _value);
+    void onVerticalSpacingChanged(int _value);
 
 private:
-    void loadImage(const QString & _path);
-    void setExportControlsEnabled(bool _enabled);
-
-private:
-    QString m_open_image_dialog_filter;
-    QString m_last_atlas_export_file;
-    QPixmap * m_pixmap;
-    QBrush m_sheet_brush;
-    QPen m_sheet_pen;
-    QPen m_sprite_pen;
-    QBrush m_sprite_brush;
-    Pack * m_current_pack;
-    GridPack * m_grid_pack;
-    AtlasPack * m_atlas_pack;
+    GridPack * m_pack;
 };

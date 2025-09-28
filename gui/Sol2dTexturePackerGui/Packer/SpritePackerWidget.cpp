@@ -16,7 +16,7 @@
  *                                                                                                        *
  **********************************************************************************************************/
 
-#include <Sol2dTexturePackerGui/SpritePackerWidget.h>
+#include <Sol2dTexturePackerGui/Packer/SpritePackerWidget.h>
 #include <Sol2dTexturePackerGui/Settings.h>
 #include <LibSol2dTexturePacker/Packers/MaxRectsBinAtlasPacker.h>
 #include <QList>

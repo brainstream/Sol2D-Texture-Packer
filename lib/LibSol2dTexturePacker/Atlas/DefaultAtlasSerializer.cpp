@@ -19,6 +19,8 @@
 #include <LibSol2dTexturePacker/Atlas/DefaultAtlasSerializer.h>
 #include <LibSol2dTexturePacker/Exception.h>
 #include <QFile>
+#include <QFileInfo>
+#include <QDir>
 #include <QXmlStreamWriter>
 #include <QDomDocument>
 
@@ -127,7 +129,13 @@ void DefaultAtlasSerializer::deserialize(const QString & _file, Atlas & _atlas)
             QObject::tr("The XML root element must be \"%1\"").arg(g_xml_tag_atlas));
     }
     Atlas tmp_atlas;
+    tmp_atlas.datafile = _file;
     tmp_atlas.texture = xatlas.attribute(g_xml_attr_texture);
+    {
+        QFileInfo texture_fi(xatlas.attribute(g_xml_attr_texture));
+        if(!texture_fi.isAbsolute())
+            tmp_atlas.texture = QFileInfo(_file).dir().absoluteFilePath(tmp_atlas.texture);
+    }
     quint32 frame_position = 1;
     for(
         QDomElement xframe = xatlas.firstChildElement(g_xml_tag_frame);

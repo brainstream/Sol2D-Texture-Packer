@@ -16,8 +16,10 @@
  *                                                                                                        *
  **********************************************************************************************************/
 
-#include <Sol2dTexturePackerGui/SpriteSheetSplitterWidget.h>
+#include <Sol2dTexturePackerGui/Splitter/SpriteSheetSplitterWidget.h>
 #include <Sol2dTexturePackerGui/Settings.h>
+#include <LibSol2dTexturePacker/Pack/GridPack.h>
+#include <LibSol2dTexturePacker/Pack/AtlasPack.h>
 #include <LibSol2dTexturePacker/Exception.h>
 #include <LibSol2dTexturePacker/Atlas/DefaultAtlasSerializer.h>
 #include <QGraphicsPixmapItem>
@@ -32,7 +34,8 @@ SpriteSheetSplitterWidget::SpriteSheetSplitterWidget(QWidget *parent) :
     m_sheet_pen(QColor(0, 0, 0, 150)),
     m_sheet_brush(QColor(255, 255, 255, 180)),
     m_sprite_pen(QColor(255, 0, 0, 80)),
-    m_sprite_brush(QColor(255, 0, 0, 50))
+    m_sprite_brush(QColor(255, 0, 0, 50)),
+    m_pack(nullptr)
 {
     m_open_image_dialog_filter = QString(tr("All supported image formats (*.%1)"))
         .arg(QImageReader().supportedImageFormats().join(" *."));
@@ -40,39 +43,10 @@ SpriteSheetSplitterWidget::SpriteSheetSplitterWidget(QWidget *parent) :
     m_preview->setScene(new QGraphicsScene(this));
     m_preview->setZoomModel(&m_zoom_widget->model());
     setExportControlsEnabled(false);
-    m_grid_pack = new GridPack(this);
-    m_atlas_pack = new AtlasPack(this);
-    m_current_pack = m_grid_pack;
-
-    connect(m_btn_browse_texture_file, &QPushButton::clicked, this, &SpriteSheetSplitterWidget::openTexture);
+    connect(m_btn_open_texture, &QPushButton::clicked, this, &SpriteSheetSplitterWidget::openTexture);
+    connect(m_btn_open_atlas, &QPushButton::clicked, this, &SpriteSheetSplitterWidget::openAtlas);
     connect(m_btn_export_sprites, &QPushButton::clicked, this, &SpriteSheetSplitterWidget::exportSprites);
     connect(m_btn_export_to_atlas, &QPushButton::clicked, this, &SpriteSheetSplitterWidget::exportToAtlas);
-    connect(m_btn_brows_data_file, &QPushButton::clicked, this, &SpriteSheetSplitterWidget::openAtlas);
-    connect(m_spin_rows, &QSpinBox::valueChanged, m_grid_pack, &GridPack::setRowCount);
-    connect(m_spin_columns, &QSpinBox::valueChanged, m_grid_pack, &GridPack::setColumnCount);
-    connect(m_spin_sprite_width, &QSpinBox::valueChanged, m_grid_pack, &GridPack::setSpriteWidth);
-    connect(m_spin_sprite_height, &QSpinBox::valueChanged, m_grid_pack, &GridPack::setSpriteHeight);
-    connect(m_spin_margin_left, &QSpinBox::valueChanged, m_grid_pack, &GridPack::setMarginLeft);
-    connect(m_spin_margin_top, &QSpinBox::valueChanged, m_grid_pack, &GridPack::setMarginTop);
-    connect(m_spin_hspacing, &QSpinBox::valueChanged, m_grid_pack, &GridPack::setHorizontalSpacing);
-    connect(m_spin_vspacing, &QSpinBox::valueChanged, m_grid_pack, &GridPack::setVerticalSpacing);
-    connect(m_grid_pack, &GridPack::framesChanged, this, &SpriteSheetSplitterWidget::syncWithSplitter);
-    connect(m_grid_pack, &GridPack::framesChanged, this, &SpriteSheetSplitterWidget::syncWithSplitter);
-    connect(m_grid_pack, &AtlasSplitter::error, this, &SpriteSheetSplitterWidget::showError);
-    connect(m_tabs_source, &QTabWidget::currentChanged, this, [this](int __index) {
-        switch(__index)
-        {
-        case 0:
-            m_current_pack = m_grid_pack;
-            break;
-        case 1:
-            m_current_pack = m_atlas_pack;
-            break;
-        default:
-            return;
-        }
-        syncWithSplitter();
-    });
 }
 
 SpriteSheetSplitterWidget::~SpriteSheetSplitterWidget()
@@ -91,11 +65,18 @@ void SpriteSheetSplitterWidget::openTexture()
         m_open_image_dialog_filter);
     if(!filename.isEmpty())
     {
-        m_grid_pack->reset();
-        m_atlas_pack->reset();
         QFileInfo file_info(filename);
         settings.setValue(gc_settings_key_sheet_dir, file_info.absolutePath());
+        GridPack * grid_pack = new GridPack(filename, this);
+        connect(grid_pack, &GridPack::framesChanged, this, &SpriteSheetSplitterWidget::syncWithPack);
+        m_pack = QSharedPointer<Pack>(grid_pack, [this, grid_pack](Pack *) {
+            disconnect(grid_pack, &GridPack::framesChanged, this, &SpriteSheetSplitterWidget::syncWithPack);
+            grid_pack->deleteLater();
+        });
         loadImage(filename);
+        m_page_grid->setPack(grid_pack);
+        m_page_atlas->setPack(nullptr);
+        m_stacked_widget_properties->setCurrentWidget(m_page_grid);
     }
 }
 
@@ -104,19 +85,8 @@ void SpriteSheetSplitterWidget::loadImage(const QString & _path)
     if(m_pixmap->load(_path))
     {
         m_preview->scene()->setSceneRect(0, 0, m_pixmap->width(), m_pixmap->height());
-        m_edit_texture_size->setText(QString("%1x%2").arg(m_pixmap->width()).arg(m_pixmap->height()));
-        m_edit_texture_file->setText(_path);
-        m_spin_rows->setValue(0);
-        m_spin_columns->setValue(0);
-        m_spin_sprite_width->setValue(0);
-        m_spin_sprite_height->setValue(0);
-        m_spin_vspacing->setValue(0);
-        m_spin_hspacing->setValue(0);
-        m_spin_margin_left->setValue(0);
-        m_spin_margin_top->setValue(0);
-        m_tabs_source->setEnabled(true);
         m_zoom_widget->model().setZoom(100);
-        syncWithSplitter();
+        syncWithPack();
         emit sheetLoaded(_path);
     }
     else
@@ -125,20 +95,20 @@ void SpriteSheetSplitterWidget::loadImage(const QString & _path)
     }
 }
 
-void SpriteSheetSplitterWidget::setExportControlsEnabled(bool _enabled)
+void SpriteSheetSplitterWidget::setExportControlsEnabled(bool syncWithPack)
 {
-    m_btn_export_sprites->setEnabled(_enabled);
-    m_btn_export_to_atlas->setEnabled(_enabled);
+    m_btn_export_sprites->setEnabled(syncWithPack);
+    m_btn_export_to_atlas->setEnabled(syncWithPack);
 }
 
-void SpriteSheetSplitterWidget::syncWithSplitter()
+void SpriteSheetSplitterWidget::syncWithPack()
 {
     QGraphicsScene * scene = m_preview->scene();
     scene->clear();
     QGraphicsPixmapItem * pixmap_item = scene->addPixmap(*m_pixmap);
     scene->addRect({pixmap_item->pos(), m_pixmap->size()}, m_sheet_pen, m_sheet_brush);
     pixmap_item->setZValue(1);
-    bool is_valid = m_current_pack->forEachFrame([this, scene](const Frame & __frame) {
+    bool is_valid = m_pack->forEachFrame([this, scene](const Frame & __frame) {
         QGraphicsRectItem * item = scene->addRect(
             __frame.x,
             __frame.y,
@@ -159,13 +129,17 @@ void SpriteSheetSplitterWidget::exportSprites()
     if(dir_path.isEmpty())
         return;
     settings.setValue(gc_settings_key_split_dir, dir_path);
-    m_current_pack->unpack(dir_path);
+    m_pack->unpack(dir_path);
 }
 
 void SpriteSheetSplitterWidget::exportToAtlas()
 {
+    if(!m_pack)
+    {
+        return;
+    }
     DefaultAtlasSerializer serializer;
-    QString texture_file_path = m_edit_texture_file->text();
+    QString texture_file_path = m_pack->textureFilename(); // TODO: bad default!
     QString default_filename = m_last_atlas_export_file;
     if(default_filename.isEmpty())
     {
@@ -188,8 +162,8 @@ void SpriteSheetSplitterWidget::exportToAtlas()
             .texture = texture_file_path,
             .frames = QList<Frame>()
         };
-        atlas.frames.reserve(m_current_pack->frameCount());
-        m_current_pack->forEachFrame([&atlas](const Frame & __frame) {
+        atlas.frames.reserve(m_pack->frameCount());
+        m_pack->forEachFrame([&atlas](const Frame & __frame) {
             atlas.frames.append(__frame);
         });
         try
@@ -205,20 +179,29 @@ void SpriteSheetSplitterWidget::exportToAtlas()
 
 void SpriteSheetSplitterWidget::openAtlas()
 {
-    QString defatult_dir = m_edit_data_file->text();
-    if(defatult_dir.isEmpty())
-        defatult_dir = m_edit_texture_file->text();
-    if(!defatult_dir.isEmpty())
-        defatult_dir = QFileInfo(defatult_dir).path();
-    QString filename = QFileDialog::getOpenFileName(this, QString(), defatult_dir);
+    QSettings settings;
+    QString last_dir = settings.value(gc_settings_key_atlas_dir).toString();
+    QString filename = QFileDialog::getOpenFileName(this, QString(), last_dir);
     if(!filename.isEmpty())
     {
-        m_edit_data_file->setText(filename);
-        m_atlas_pack->setDataFile(filename);
+        try
+        {
+            QFileInfo file_info(filename);
+            filename = file_info.absoluteFilePath();
+            Atlas atlas;
+            DefaultAtlasSerializer serializer;
+            serializer.deserialize(filename, atlas);
+            AtlasPack * atlas_pack = new AtlasPack(atlas, this);
+            m_pack = QSharedPointer<Pack>(atlas_pack);
+            m_page_atlas->setPack(atlas_pack);
+            m_page_grid->setPack(nullptr);
+            m_stacked_widget_properties->setCurrentWidget(m_page_atlas);
+            settings.setValue(gc_settings_key_atlas_dir, file_info.absolutePath());
+            loadImage(atlas.texture);
+        }
+        catch(const Exception & exception)
+        {
+            QMessageBox::critical(this, nullptr, exception.message());
+        }
     }
-}
-
-void SpriteSheetSplitterWidget::showError(const QString & _message)
-{
-    QMessageBox::critical(this, nullptr, _message);
 }

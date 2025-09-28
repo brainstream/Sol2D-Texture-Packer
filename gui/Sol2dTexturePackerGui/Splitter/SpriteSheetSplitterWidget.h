@@ -16,11 +16,40 @@
  *                                                                                                        *
  **********************************************************************************************************/
 
-#include <Sol2dTexturePackerGui/Settings.h>
+#pragma once
 
-const char * gc_settings_key_sheet_dir = "directory/sheet";
-const char * gc_settings_key_split_dir = "directory/split";
-const char * gc_settings_key_atlas_dir = "directory/atlas";
-const char * gc_settings_key_pack_input_dir = "directory/pack-input";
-const char * gc_settings_key_wnd_geom = "main-window/geometry";
-const char * gc_settings_key_wnd_state = "main-window/state";
+#include "ui_SpriteSheetSplitterWidget.h"
+#include <LibSol2dTexturePacker/Pack/Pack.h>
+
+class SpriteSheetSplitterWidget : public QWidget, private Ui::SpriteSheetSplitterWidget
+{
+    Q_OBJECT
+
+public:
+    explicit SpriteSheetSplitterWidget(QWidget *parent = nullptr);
+    ~SpriteSheetSplitterWidget() override;
+
+signals:
+    void sheetLoaded(const QString & _filename);
+
+private slots:
+    void openTexture();
+    void syncWithPack();
+    void exportSprites();
+    void exportToAtlas();
+    void openAtlas();
+
+private:
+    void loadImage(const QString & _path);
+    void setExportControlsEnabled(bool _enabled);
+
+private:
+    QString m_open_image_dialog_filter;
+    QString m_last_atlas_export_file;
+    QPixmap * m_pixmap;
+    QBrush m_sheet_brush;
+    QPen m_sheet_pen;
+    QPen m_sprite_pen;
+    QBrush m_sprite_brush;
+    QSharedPointer<Pack> m_pack;
+};

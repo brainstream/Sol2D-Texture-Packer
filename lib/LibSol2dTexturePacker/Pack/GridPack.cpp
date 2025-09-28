@@ -21,6 +21,7 @@
 
 GridPack::GridPack(const QString & _texture_filename, QObject * _parent) :
     Pack(_texture_filename, _parent),
+    m_options {},
     m_is_valid(false)
 {
 }

@@ -43,6 +43,7 @@ public:
     void reconfigure(const GridOptions & _options);
     bool isValid() const { return m_is_valid; }
     bool forEachFrame(std::function<void (const Frame &)> _cb) const override;
+    const GridOptions options() const { return m_options; }
 
 public slots:
     void setColumnCount(int _count);

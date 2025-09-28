@@ -16,11 +16,19 @@
  *                                                                                                        *
  **********************************************************************************************************/
 
-#include <Sol2dTexturePackerGui/Settings.h>
+#pragma once
 
-const char * gc_settings_key_sheet_dir = "directory/sheet";
-const char * gc_settings_key_split_dir = "directory/split";
-const char * gc_settings_key_atlas_dir = "directory/atlas";
-const char * gc_settings_key_pack_input_dir = "directory/pack-input";
-const char * gc_settings_key_wnd_geom = "main-window/geometry";
-const char * gc_settings_key_wnd_state = "main-window/state";
+#include "ui_AtlasPropertyEditorWidget.h"
+#include <LibSol2dTexturePacker/Pack/AtlasPack.h>
+
+class AtlasPropertyEditorWidget : public QWidget, private Ui::AtlasPropertiesWidget
+{
+    Q_OBJECT
+
+public:
+    explicit AtlasPropertyEditorWidget(QWidget * _parent = nullptr);
+    void setPack(AtlasPack * _pack);
+
+private:
+    AtlasPack * m_pack;
+};

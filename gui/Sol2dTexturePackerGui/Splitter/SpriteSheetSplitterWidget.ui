@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SpriteSheetSplitterWidget</class>
+ <widget class="QWidget" name="SpriteSheetSplitterWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1536</width>
+    <height>916</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
+    <layout class="QVBoxLayout" name="m_layout_2">
+     <item>
+      <widget class="GraphicsView" name="m_preview">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>2</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>500</width>
+         <height>600</height>
+        </size>
+       </property>
+       <property name="dragMode">
+        <enum>QGraphicsView::DragMode::RubberBandDrag</enum>
+       </property>
+       <property name="transformationAnchor">
+        <enum>QGraphicsView::ViewportAnchor::AnchorUnderMouse</enum>
+       </property>
+      </widget>
+     </item>
+     <item alignment="Qt::AlignmentFlag::AlignRight">
+      <widget class="ZoomWidget" name="m_zoom_widget" native="true"/>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QFrame" name="m_sidebar">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>350</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>350</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Shape::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Shadow::Raised</enum>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <layout class="QHBoxLayout" name="m_layout">
+        <item>
+         <widget class="QPushButton" name="m_btn_open_texture">
+          <property name="text">
+           <string>Open Texture...</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="m_btn_open_atlas">
+          <property name="text">
+           <string>Open Atlas..</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QStackedWidget" name="m_stacked_widget_properties">
+        <widget class="QWidget" name="m_page_empty">
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QLabel" name="label">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Please open a texture or an atlas</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="GridPropertyEditorWidget" name="m_page_grid"/>
+        <widget class="AtlasPropertyEditorWidget" name="m_page_atlas"/>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="m_layout_3">
+        <item>
+         <widget class="QPushButton" name="m_btn_export_to_atlas">
+          <property name="text">
+           <string>Export to atlas...</string>
+          </property>
+          <property name="icon">
+           <iconset theme="QIcon::ThemeIcon::DocumentSave"/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="m_btn_export_sprites">
+          <property name="text">
+           <string>Export sprites...</string>
+          </property>
+          <property name="icon">
+           <iconset theme="QIcon::ThemeIcon::DocumentSave"/>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ZoomWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">Sol2dTexturePackerGui/ZoomWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>GraphicsView</class>
+   <extends>QGraphicsView</extends>
+   <header location="global">Sol2dTexturePackerGui/GraphicsView.h</header>
+  </customwidget>
+  <customwidget>
+   <class>GridPropertyEditorWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">Sol2dTexturePackerGui/Splitter/GridPropertyEditorWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>AtlasPropertyEditorWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">Sol2dTexturePackerGui/Splitter/AtlasPropertyEditorWidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <tabstops>
+  <tabstop>m_btn_open_texture</tabstop>
+  <tabstop>m_btn_open_atlas</tabstop>
+  <tabstop>m_btn_export_to_atlas</tabstop>
+  <tabstop>m_btn_export_sprites</tabstop>
+  <tabstop>m_preview</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

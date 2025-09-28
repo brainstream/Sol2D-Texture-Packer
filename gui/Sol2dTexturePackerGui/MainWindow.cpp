@@ -16,8 +16,8 @@
  *                                                                                                        *
  **********************************************************************************************************/
 
-#include <Sol2dTexturePackerGui/SpriteSheetSplitterWidget.h>
-#include <Sol2dTexturePackerGui/SpritePackerWidget.h>
+#include <Sol2dTexturePackerGui/Splitter/SpriteSheetSplitterWidget.h>
+#include <Sol2dTexturePackerGui/Packer/SpritePackerWidget.h>
 #include <Sol2dTexturePackerGui/MainWindow.h>
 #include <Sol2dTexturePackerGui/Settings.h>
 #include <QFileInfo>
