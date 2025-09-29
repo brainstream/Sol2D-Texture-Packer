@@ -26,8 +26,7 @@ class SpriteSheetSplitterWidget : public QWidget, private Ui::SpriteSheetSplitte
     Q_OBJECT
 
 public:
-    explicit SpriteSheetSplitterWidget(QWidget *parent = nullptr);
-    ~SpriteSheetSplitterWidget() override;
+    explicit SpriteSheetSplitterWidget(QWidget * _parent = nullptr);
 
 signals:
     void sheetLoaded(const QString & _filename);
@@ -40,13 +39,12 @@ private slots:
     void openAtlas();
 
 private:
-    void loadImage(const QString & _path);
+    void applyNewTexture();
     void setExportControlsEnabled(bool _enabled);
 
 private:
     QString m_open_image_dialog_filter;
     QString m_last_atlas_export_file;
-    QPixmap * m_pixmap;
     QBrush m_sheet_brush;
     QPen m_sheet_pen;
     QPen m_sprite_pen;

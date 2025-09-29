@@ -28,9 +28,8 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
-SpriteSheetSplitterWidget::SpriteSheetSplitterWidget(QWidget *parent) :
-    QWidget(parent),
-    m_pixmap(new QPixmap()),
+SpriteSheetSplitterWidget::SpriteSheetSplitterWidget(QWidget * _parent) :
+    QWidget(_parent),
     m_sheet_pen(QColor(0, 0, 0, 150)),
     m_sheet_brush(QColor(255, 255, 255, 180)),
     m_sprite_pen(QColor(255, 0, 0, 80)),
@@ -47,11 +46,6 @@ SpriteSheetSplitterWidget::SpriteSheetSplitterWidget(QWidget *parent) :
     connect(m_btn_open_atlas, &QPushButton::clicked, this, &SpriteSheetSplitterWidget::openAtlas);
     connect(m_btn_export_sprites, &QPushButton::clicked, this, &SpriteSheetSplitterWidget::exportSprites);
     connect(m_btn_export_to_atlas, &QPushButton::clicked, this, &SpriteSheetSplitterWidget::exportToAtlas);
-}
-
-SpriteSheetSplitterWidget::~SpriteSheetSplitterWidget()
-{
-    delete m_pixmap;
 }
 
 void SpriteSheetSplitterWidget::openTexture()
@@ -73,26 +67,19 @@ void SpriteSheetSplitterWidget::openTexture()
             disconnect(grid_pack, &GridPack::framesChanged, this, &SpriteSheetSplitterWidget::syncWithPack);
             grid_pack->deleteLater();
         });
-        loadImage(filename);
         m_page_grid->setPack(grid_pack);
         m_page_atlas->setPack(nullptr);
         m_stacked_widget_properties->setCurrentWidget(m_page_grid);
+        applyNewTexture();
     }
 }
 
-void SpriteSheetSplitterWidget::loadImage(const QString & _path)
+void SpriteSheetSplitterWidget::applyNewTexture()
 {
-    if(m_pixmap->load(_path))
-    {
-        m_preview->scene()->setSceneRect(0, 0, m_pixmap->width(), m_pixmap->height());
+        m_preview->scene()->setSceneRect(0, 0, m_pack->texture().width(), m_pack->texture().height());
         m_zoom_widget->model().setZoom(100);
         syncWithPack();
-        emit sheetLoaded(_path);
-    }
-    else
-    {
-        QMessageBox::critical(this, nullptr, tr("Unable to load texture"));
-    }
+        emit sheetLoaded(m_pack->textureFilename());
 }
 
 void SpriteSheetSplitterWidget::setExportControlsEnabled(bool syncWithPack)
@@ -105,8 +92,8 @@ void SpriteSheetSplitterWidget::syncWithPack()
 {
     QGraphicsScene * scene = m_preview->scene();
     scene->clear();
-    QGraphicsPixmapItem * pixmap_item = scene->addPixmap(*m_pixmap);
-    scene->addRect({pixmap_item->pos(), m_pixmap->size()}, m_sheet_pen, m_sheet_brush);
+    QGraphicsPixmapItem * pixmap_item = scene->addPixmap(QPixmap::fromImage(m_pack->texture()));
+    scene->addRect({pixmap_item->pos(), m_pack->texture().size()}, m_sheet_pen, m_sheet_brush);
     pixmap_item->setZValue(1);
     bool is_valid = m_pack->forEachFrame([this, scene](const Frame & __frame) {
         QGraphicsRectItem * item = scene->addRect(
@@ -197,7 +184,7 @@ void SpriteSheetSplitterWidget::openAtlas()
             m_page_grid->setPack(nullptr);
             m_stacked_widget_properties->setCurrentWidget(m_page_atlas);
             settings.setValue(gc_settings_key_atlas_dir, file_info.absolutePath());
-            loadImage(atlas.texture);
+            applyNewTexture();
         }
         catch(const Exception & exception)
         {
