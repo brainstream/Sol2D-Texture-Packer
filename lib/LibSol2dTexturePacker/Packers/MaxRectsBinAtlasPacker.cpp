@@ -43,10 +43,16 @@ QPixmap render(const QList<Item> & _items)
     QPixmap pixmap(max_x, max_y);
     pixmap.fill(Qt::transparent);
     QPainter painter(&pixmap);
+    QTransform rotation;
+    rotation.rotate(90);
     foreach(const Item & item, _items)
     {
-        // TODO: is_rotated
-        painter.drawPixmap(item.rect.x, item.rect.y, item.rect.width, item.rect.height, item.sprite.pixmap);
+        painter.drawPixmap(
+            item.rect.x,
+            item.rect.y,
+            item.rect.width,
+            item.rect.height,
+            item.is_rotated ? item.sprite.pixmap.transformed(rotation) : item.sprite.pixmap);
     }
     return pixmap;
 }
