@@ -29,21 +29,23 @@ enum S2TP_EXPORT class MaxRectsBinAtlasPackerChoiceHeuristic
     ContactPointRule
 };
 
-struct S2TP_EXPORT MaxRectsBinAtlasPackerOptions
-{
-    QSize max_atlas_size;
-    MaxRectsBinAtlasPackerChoiceHeuristic heuristic = MaxRectsBinAtlasPackerChoiceHeuristic::BestAreaFit;
-    bool allow_flip = false;
-};
-
-class S2TP_EXPORT FreeRectAtlasPacker final : public AtlasPacker
+class S2TP_EXPORT MaxRectsBinAtlasPacker final : public AtlasPacker
 {
     Q_OBJECT
 
 public:
-    explicit FreeRectAtlasPacker(const MaxRectsBinAtlasPackerOptions & _options, QObject * _parent);
+    explicit MaxRectsBinAtlasPacker(QObject * _parent = nullptr);
+    void setMaxAtlasSize(int _w, int _h) { m_max_atlas_size = { _w, _h }; }
+    void setMaxAtlasSize(const QSize & _size) { m_max_atlas_size = _size; }
+    const QSize & maxAtlasSize() const { return m_max_atlas_size; }
+    void allowFlip(bool _allow) { m_allow_flip = _allow; }
+    bool isFlipAllowed() const { return m_allow_flip; }
+    void setChoiceHeuristic(MaxRectsBinAtlasPackerChoiceHeuristic _heuristic) { m_heuristic = _heuristic; }
+    MaxRectsBinAtlasPackerChoiceHeuristic choiceHeuristic() const { return m_heuristic; }
     QList<QPixmap> pack(const QList<Sprite> & _sprites) const override;
 
 private:
-    const MaxRectsBinAtlasPackerOptions m_options;
+    QSize m_max_atlas_size;
+    MaxRectsBinAtlasPackerChoiceHeuristic m_heuristic;
+    bool m_allow_flip;
 };

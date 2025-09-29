@@ -25,14 +25,22 @@ class SpritePackerWidget : public QWidget, private Ui::SpritePackerWidget
     Q_OBJECT
 
 private:
+    struct Packers;
     class SpriteListModel;
 
 public:
     explicit SpritePackerWidget(QWidget * _parent = nullptr);
+    ~SpritePackerWidget() override;
 
 private slots:
     void addSprites();
+    void onAllowFlipChanged(Qt::CheckState _state);
+    void onMaxRectesBinHeuristicChanged(int _index);
+
+private:
+    void renderPack();
 
 private:
     SpriteListModel * m_sprites_model;
+    Packers * m_packers;
 };

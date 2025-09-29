@@ -23,7 +23,6 @@
 #include <QFileDialog>
 #include <QPixmap>
 #include <QAbstractListModel>
-#include <filesystem>
 
 namespace {
 
@@ -36,6 +35,12 @@ enum class PackAlgorithm
 };
 
 } // namespace name
+
+struct SpritePackerWidget::Packers
+{
+    MaxRectsBinAtlasPacker max_rects_bin;
+    AtlasPacker * current;
+};
 
 class SpritePackerWidget::SpriteListModel : public QAbstractListModel
 {
@@ -88,9 +93,15 @@ inline const QList<Sprite> & SpritePackerWidget::SpriteListModel::getSprites() c
 }
 
 SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
-    QWidget(_parent)
+    QWidget(_parent),
+    m_packers(new Packers)
 {
     setupUi(this);
+
+    m_packers->current = &m_packers->max_rects_bin;
+    m_packers->max_rects_bin.setMaxAtlasSize(256, 256);
+    m_packers->max_rects_bin.setChoiceHeuristic(MaxRectsBinAtlasPackerChoiceHeuristic::BestAreaFit);
+
     m_sprites_model = new SpriteListModel(m_tree_sprites);
     m_tree_sprites->setModel(m_sprites_model);
     m_preview->setScene(new QGraphicsScene(m_preview));
@@ -119,6 +130,17 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
         static_cast<int>(MaxRectsBinAtlasPackerChoiceHeuristic::ContactPointRule));
 
     connect(m_btn_add_sprites, &QPushButton::clicked, this, &SpritePackerWidget::addSprites);
+    connect(m_checkbox_allow_flip, &QCheckBox::checkStateChanged, this, &SpritePackerWidget::onAllowFlipChanged);
+    connect(
+        m_combo_mrb_heuristic,
+        &QComboBox::currentIndexChanged,
+        this,
+        &SpritePackerWidget::onMaxRectesBinHeuristicChanged);
+}
+
+SpritePackerWidget::~SpritePackerWidget()
+{
+    delete m_packers;
 }
 
 void SpritePackerWidget::addSprites()
@@ -148,20 +170,27 @@ void SpritePackerWidget::addSprites()
             }
         );
     }
+    renderPack();
+}
 
-
-    // TODO: move to another action
-    FreeRectAtlasPacker packer(
-        MaxRectsBinAtlasPackerOptions
-        {
-            .max_atlas_size = QSize { 256, 256 },
-            .heuristic = MaxRectsBinAtlasPackerChoiceHeuristic::BestAreaFit,
-            .allow_flip = true
-        },
-        this);
-    QList<QPixmap> atlases = packer.pack(m_sprites_model->getSprites());
+void SpritePackerWidget::renderPack()
+{
+    m_preview->scene()->clear();
+    QList<QPixmap> atlases = m_packers->current->pack(m_sprites_model->getSprites());
     foreach(const QPixmap & atlas, atlases)
-    {
         m_preview->scene()->addPixmap(atlas);
-    }
+}
+
+void SpritePackerWidget::onAllowFlipChanged(Qt::CheckState _state)
+{
+    // TODO: current
+    m_packers->max_rects_bin.allowFlip(_state == Qt::Checked);
+    renderPack();
+}
+
+void SpritePackerWidget::onMaxRectesBinHeuristicChanged(int _index)
+{
+    m_packers->max_rects_bin.setChoiceHeuristic(
+        static_cast<MaxRectsBinAtlasPackerChoiceHeuristic>(m_combo_mrb_heuristic->itemData(_index).toInt()));
+    renderPack();
 }

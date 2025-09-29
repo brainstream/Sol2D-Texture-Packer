@@ -78,22 +78,24 @@ inline rbp::MaxRectsBinPack::FreeRectChoiceHeuristic map(MaxRectsBinAtlasPackerC
 
 } // namespace name
 
-FreeRectAtlasPacker::FreeRectAtlasPacker(const MaxRectsBinAtlasPackerOptions & _options, QObject * _parent) :
+MaxRectsBinAtlasPacker::MaxRectsBinAtlasPacker(QObject * _parent) :
     AtlasPacker(_parent),
-    m_options(_options)
+    m_max_atlas_size{1024, 1024},
+    m_heuristic(MaxRectsBinAtlasPackerChoiceHeuristic::BestAreaFit),
+    m_allow_flip(false)
 {
 }
 
-QList<QPixmap> FreeRectAtlasPacker::pack(const QList<Sprite> & _sprites) const
+QList<QPixmap> MaxRectsBinAtlasPacker::pack(const QList<Sprite> & _sprites) const
 {
     QList<Item> items;
     QList<QPixmap> result;
     items.reserve(_sprites.size());
     rbp::MaxRectsBinPack algorithm(
-        m_options.max_atlas_size.width(),
-        m_options.max_atlas_size.height(),
-        m_options.allow_flip);
-    const rbp::MaxRectsBinPack::FreeRectChoiceHeuristic heuristic = map(m_options.heuristic);
+        m_max_atlas_size.width(),
+        m_max_atlas_size.height(),
+        m_allow_flip);
+    const rbp::MaxRectsBinPack::FreeRectChoiceHeuristic heuristic = map(m_heuristic);
     foreach(const Sprite & sprite, _sprites)
     {
         QRect pixmap_rect = sprite.pixmap.rect();
@@ -106,9 +108,9 @@ QList<QPixmap> FreeRectAtlasPacker::pack(const QList<Sprite> & _sprites) const
             result.append(render(items));
             items.clear();
             algorithm.Init(
-                m_options.max_atlas_size.width(),
-                m_options.max_atlas_size.height(),
-                m_options.allow_flip);
+                m_max_atlas_size.width(),
+                m_max_atlas_size.height(),
+                m_allow_flip);
         }
         items.append(
             Item
