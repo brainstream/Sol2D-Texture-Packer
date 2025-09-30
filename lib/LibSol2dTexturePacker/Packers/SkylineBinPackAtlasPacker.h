@@ -20,33 +20,38 @@
 
 #include <LibSol2dTexturePacker/Packers/AtlasPacker.h>
 
-enum S2TP_EXPORT class MaxRectsBinAtlasPackerChoiceHeuristic
+enum S2TP_EXPORT class SkylineBinPackAtlasPackerLevelChoiceHeuristic
 {
-    BestShortSideFit,
-    BestLongSideFit,
-    BestAreaFit,
-    BottomLeftRule,
-    ContactPointRule
+    LevelBottomLeft,
+    LevelMinWasteFit
 };
 
-class S2TP_EXPORT MaxRectsBinAtlasPacker final : public AtlasPacker
-{
-    Q_OBJECT
 
+class S2TP_EXPORT SkylineBinPackAtlasPacker : public AtlasPacker
+{
 private:
-    class MaxRectsBinPackAlgorithm;
+    class SkylineBinPackAlgorithm;
 
 public:
-    explicit MaxRectsBinAtlasPacker(QObject * _parent = nullptr);
-    void allowFlip(bool _allow) { m_allow_flip = _allow; }
-    bool isFlipAllowed() const { return m_allow_flip; }
-    void setChoiceHeuristic(MaxRectsBinAtlasPackerChoiceHeuristic _heuristic) { m_heuristic = _heuristic; }
-    MaxRectsBinAtlasPackerChoiceHeuristic choiceHeuristic() const { return m_heuristic; }
+    explicit SkylineBinPackAtlasPacker(QObject * _parent = nullptr);
+
+    void setLevelChoiceHeuristic(SkylineBinPackAtlasPackerLevelChoiceHeuristic _heuristic)
+    {
+        m_heuristic = _heuristic;
+    }
+
+    SkylineBinPackAtlasPackerLevelChoiceHeuristic levelChoiceHeuristic() const
+    {
+        return m_heuristic;
+    }
+
+    void enableWasteMap(bool _enable) { m_use_waste_map = _enable; }
+    bool isWasteMapEnabled() const { return m_use_waste_map; }
 
 protected:
     std::unique_ptr<Algorithm> createAlgorithm(int _width, int _height) const override;
 
 private:
-    MaxRectsBinAtlasPackerChoiceHeuristic m_heuristic;
-    bool m_allow_flip;
+    SkylineBinPackAtlasPackerLevelChoiceHeuristic m_heuristic;
+    bool m_use_waste_map;
 };

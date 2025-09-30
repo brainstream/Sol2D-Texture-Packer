@@ -16,37 +16,76 @@
  *                                                                                                        *
  **********************************************************************************************************/
 
-#pragma once
-
 #include <LibSol2dTexturePacker/Packers/AtlasPacker.h>
+#include <QPainter>
 
-enum S2TP_EXPORT class MaxRectsBinAtlasPackerChoiceHeuristic
+namespace {
+
+struct Item
 {
-    BestShortSideFit,
-    BestLongSideFit,
-    BestAreaFit,
-    BottomLeftRule,
-    ContactPointRule
+    const Sprite & sprite;
+    QRect rect;
+    bool is_rotated;
 };
 
-class S2TP_EXPORT MaxRectsBinAtlasPacker final : public AtlasPacker
+QPixmap render(const QList<Item> & _items)
 {
-    Q_OBJECT
+    int max_x = 0;
+    int max_y = 0;
+    foreach(const Item & item, _items)
+    {
+        int x = item.rect.x() + item.rect.width();
+        int y = item.rect.y() + item.rect.height();
+        if(x > max_x) max_x = x;
+        if(y > max_y) max_y = y;
+    }
+    QPixmap pixmap(max_x, max_y);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    QTransform rotation;
+    rotation.rotate(90);
+    foreach(const Item & item, _items)
+    {
+        painter.drawPixmap(
+            item.rect.x(),
+            item.rect.y(),
+            item.rect.width(),
+            item.rect.height(),
+            item.is_rotated ? item.sprite.pixmap.transformed(rotation) : item.sprite.pixmap);
+    }
+    return pixmap;
+}
 
-private:
-    class MaxRectsBinPackAlgorithm;
+} // namespace name
 
-public:
-    explicit MaxRectsBinAtlasPacker(QObject * _parent = nullptr);
-    void allowFlip(bool _allow) { m_allow_flip = _allow; }
-    bool isFlipAllowed() const { return m_allow_flip; }
-    void setChoiceHeuristic(MaxRectsBinAtlasPackerChoiceHeuristic _heuristic) { m_heuristic = _heuristic; }
-    MaxRectsBinAtlasPackerChoiceHeuristic choiceHeuristic() const { return m_heuristic; }
-
-protected:
-    std::unique_ptr<Algorithm> createAlgorithm(int _width, int _height) const override;
-
-private:
-    MaxRectsBinAtlasPackerChoiceHeuristic m_heuristic;
-    bool m_allow_flip;
-};
+QList<QPixmap> AtlasPacker::pack(const QList<Sprite> & _sprites) const
+{
+    QList<Item> items;
+    QList<QPixmap> result;
+    items.reserve(_sprites.size());
+    std::unique_ptr<Algorithm> algorithm = createAlgorithm(m_max_atlas_size.width(), m_max_atlas_size.height());
+    foreach(const Sprite & sprite, _sprites)
+    {
+        QRect pixmap_rect = sprite.pixmap.rect();
+        QRect rect = algorithm->insert(pixmap_rect.width(), pixmap_rect.height());
+        if(rect.isNull() && !items.empty())
+        {
+            result.append(render(items));
+            items.clear();
+            algorithm->init(m_max_atlas_size.width(), m_max_atlas_size.height());
+        }
+        items.append(
+            Item
+            {
+                .sprite = sprite,
+                .rect = rect,
+                .is_rotated = rect.width() == pixmap_rect.height()
+            }
+        );
+    }
+    if(!items.empty())
+    {
+        result.append(render(items));
+    }
+    return result;
+}

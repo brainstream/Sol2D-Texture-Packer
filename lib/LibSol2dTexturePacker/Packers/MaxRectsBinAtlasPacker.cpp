@@ -18,46 +18,54 @@
 
 #include <LibSol2dTexturePacker/Packers/MaxRectsBinAtlasPacker.h>
 #include <RectangleBinPack/MaxRectsBinPack.h>
-#include <QPainter>
 
-namespace {
-
-struct Item
+class MaxRectsBinAtlasPacker::MaxRectsBinPackAlgorithm : public AtlasPacker::Algorithm
 {
-    const Sprite & sprite;
-    rbp::Rect rect;
-    bool is_rotated;
+public:
+    MaxRectsBinPackAlgorithm(
+        int _max_bin_width,
+        int _max_bin_height,
+        MaxRectsBinAtlasPackerChoiceHeuristic _heuristic,
+        bool _allow_flip);
+    void init(int _width, int _height) override;
+    QRect insert(int _width, int _height) override;
+
+private:
+    static rbp::MaxRectsBinPack::FreeRectChoiceHeuristic map(MaxRectsBinAtlasPackerChoiceHeuristic _heuristic);
+
+private:
+    int m_max_bin_width;
+    int m_max_bin_height;
+    rbp::MaxRectsBinPack::FreeRectChoiceHeuristic m_heuristic;
+    rbp::MaxRectsBinPack m_pack;
+    bool m_allow_flip;
 };
 
-QPixmap render(const QList<Item> & _items)
+MaxRectsBinAtlasPacker::MaxRectsBinPackAlgorithm::MaxRectsBinPackAlgorithm(
+    int _max_bin_width,
+    int _max_bin_height,
+    MaxRectsBinAtlasPackerChoiceHeuristic _heuristic,
+    bool _allow_flip
+) :
+    m_heuristic(map(_heuristic)),
+    m_pack(_max_bin_width, _max_bin_height, _allow_flip),
+    m_allow_flip(_allow_flip)
 {
-    int max_x = 0;
-    int max_y = 0;
-    foreach(const Item & item, _items)
-    {
-        int x = item.rect.x + item.rect.width;
-        int y = item.rect.y + item.rect.height;
-        if(x > max_x) max_x = x;
-        if(y > max_y) max_y = y;
-    }
-    QPixmap pixmap(max_x, max_y);
-    pixmap.fill(Qt::transparent);
-    QPainter painter(&pixmap);
-    QTransform rotation;
-    rotation.rotate(90);
-    foreach(const Item & item, _items)
-    {
-        painter.drawPixmap(
-            item.rect.x,
-            item.rect.y,
-            item.rect.width,
-            item.rect.height,
-            item.is_rotated ? item.sprite.pixmap.transformed(rotation) : item.sprite.pixmap);
-    }
-    return pixmap;
 }
 
-inline rbp::MaxRectsBinPack::FreeRectChoiceHeuristic map(MaxRectsBinAtlasPackerChoiceHeuristic _heuristic)
+void MaxRectsBinAtlasPacker::MaxRectsBinPackAlgorithm::init(int _width, int _height)
+{
+    m_pack.Init(_width, _height, m_allow_flip);
+}
+
+QRect MaxRectsBinAtlasPacker::MaxRectsBinPackAlgorithm::insert(int _width, int _height)
+{
+    rbp::Rect rect = m_pack.Insert(_width, _height, m_heuristic);
+    return QRect(rect.x, rect.y, rect.width, rect.height);
+}
+
+rbp::MaxRectsBinPack::FreeRectChoiceHeuristic MaxRectsBinAtlasPacker::MaxRectsBinPackAlgorithm::map(
+    MaxRectsBinAtlasPackerChoiceHeuristic _heuristic)
 {
     switch(_heuristic)
     {
@@ -76,52 +84,14 @@ inline rbp::MaxRectsBinPack::FreeRectChoiceHeuristic map(MaxRectsBinAtlasPackerC
     }
 }
 
-} // namespace name
-
 MaxRectsBinAtlasPacker::MaxRectsBinAtlasPacker(QObject * _parent) :
     AtlasPacker(_parent),
-    m_max_atlas_size{1024, 1024},
     m_heuristic(MaxRectsBinAtlasPackerChoiceHeuristic::BestAreaFit),
     m_allow_flip(false)
 {
 }
 
-QList<QPixmap> MaxRectsBinAtlasPacker::pack(const QList<Sprite> & _sprites) const
+std::unique_ptr<AtlasPacker::Algorithm> MaxRectsBinAtlasPacker::createAlgorithm(int _width, int _height) const
 {
-    QList<Item> items;
-    QList<QPixmap> result;
-    items.reserve(_sprites.size());
-    rbp::MaxRectsBinPack algorithm(
-        m_max_atlas_size.width(),
-        m_max_atlas_size.height(),
-        m_allow_flip);
-    const rbp::MaxRectsBinPack::FreeRectChoiceHeuristic heuristic = map(m_heuristic);
-    foreach(const Sprite & sprite, _sprites)
-    {
-        QRect pixmap_rect = sprite.pixmap.rect();
-        rbp::Rect rect = algorithm.Insert(
-            pixmap_rect.width(),
-            pixmap_rect.height(),
-            heuristic);
-        if((rect.width == 0 || rect.height == 0) && !items.empty())
-        {
-            result.append(render(items));
-            items.clear();
-            algorithm.Init(
-                m_max_atlas_size.width(),
-                m_max_atlas_size.height(),
-                m_allow_flip);
-        }
-        items.append(
-            Item
-            {
-                .sprite = sprite,
-                .rect = rect,
-                .is_rotated = rect.width == pixmap_rect.height()
-            }
-        );
-    }
-    if(!items.empty())
-        result.append(render(items));
-    return result; // TODO: return atlas frames
+    return std::unique_ptr<Algorithm>(new MaxRectsBinPackAlgorithm(_width, _height, m_heuristic, m_allow_flip));
 }

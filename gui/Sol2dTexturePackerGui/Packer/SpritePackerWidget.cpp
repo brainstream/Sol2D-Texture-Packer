@@ -19,6 +19,7 @@
 #include <Sol2dTexturePackerGui/Packer/SpritePackerWidget.h>
 #include <Sol2dTexturePackerGui/Settings.h>
 #include <LibSol2dTexturePacker/Packers/MaxRectsBinAtlasPacker.h>
+#include <LibSol2dTexturePacker/Packers/SkylineBinPackAtlasPacker.h>
 #include <QList>
 #include <QFileDialog>
 #include <QPixmap>
@@ -39,6 +40,7 @@ enum class PackAlgorithm
 struct SpritePackerWidget::Packers
 {
     MaxRectsBinAtlasPacker max_rects_bin;
+    SkylineBinPackAtlasPacker skyline_bin;
     AtlasPacker * current;
 };
 
@@ -98,7 +100,7 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
 {
     setupUi(this);
 
-    m_packers->current = &m_packers->max_rects_bin;
+    m_packers->current = nullptr;
     m_packers->max_rects_bin.setMaxAtlasSize(256, 256);
     m_packers->max_rects_bin.setChoiceHeuristic(MaxRectsBinAtlasPackerChoiceHeuristic::BestAreaFit);
 
@@ -129,13 +131,47 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
         tr("Contact Point Rule"),
         static_cast<int>(MaxRectsBinAtlasPackerChoiceHeuristic::ContactPointRule));
 
+    m_combo_skyline_heuristic->addItem(
+        tr("Bottom Left"),
+        static_cast<int>(SkylineBinPackAtlasPackerLevelChoiceHeuristic::LevelBottomLeft));
+    m_combo_skyline_heuristic->addItem(
+        tr("Min Waste Fit"),
+        static_cast<int>(SkylineBinPackAtlasPackerLevelChoiceHeuristic::LevelMinWasteFit));
+
     connect(m_btn_add_sprites, &QPushButton::clicked, this, &SpritePackerWidget::addSprites);
-    connect(m_checkbox_allow_flip, &QCheckBox::checkStateChanged, this, &SpritePackerWidget::onAllowFlipChanged);
+    connect(
+        m_checkbox_mrb_allow_flip,
+        &QCheckBox::checkStateChanged,
+        this,
+        &SpritePackerWidget::onMaxRectesBiAllowFlipChanged);
     connect(
         m_combo_mrb_heuristic,
         &QComboBox::currentIndexChanged,
         this,
         &SpritePackerWidget::onMaxRectesBinHeuristicChanged);
+    connect(
+        m_combo_algorithm,
+        &QComboBox::currentIndexChanged,
+        this,
+        &SpritePackerWidget::onAlgorithmChanged);
+    connect(
+        m_combo_skyline_heuristic,
+        &QComboBox::currentIndexChanged,
+        this,
+        &SpritePackerWidget::onSkylineBinHeuristicChanged);
+    connect(
+        m_checkbox_skyline_use_waste_map,
+        &QCheckBox::checkStateChanged,
+        this,
+        &SpritePackerWidget::onSkylineUseWasteMapChanged);
+
+    m_packers->max_rects_bin.setChoiceHeuristic(
+        static_cast<MaxRectsBinAtlasPackerChoiceHeuristic>(m_combo_mrb_heuristic->currentData().toInt()));
+    m_packers->max_rects_bin.allowFlip(m_checkbox_mrb_allow_flip->isChecked());
+    m_packers->skyline_bin.setLevelChoiceHeuristic(
+        static_cast<SkylineBinPackAtlasPackerLevelChoiceHeuristic>(m_combo_skyline_heuristic->currentData().toInt()));
+    m_packers->skyline_bin.enableWasteMap(m_checkbox_skyline_use_waste_map->isChecked());
+    onAlgorithmChanged(0);
 }
 
 SpritePackerWidget::~SpritePackerWidget()
@@ -181,9 +217,39 @@ void SpritePackerWidget::renderPack()
         m_preview->scene()->addPixmap(atlas);
 }
 
-void SpritePackerWidget::onAllowFlipChanged(Qt::CheckState _state)
+void SpritePackerWidget::onAlgorithmChanged(int _index)
 {
-    // TODO: current
+    AtlasPacker * new_packer;
+    switch(static_cast<PackAlgorithm>(m_combo_algorithm->currentData().toInt()))
+    {
+    case PackAlgorithm::MaxRectsBin:
+        new_packer = &m_packers->max_rects_bin;
+        break;
+    case PackAlgorithm::SkylineBinPack:
+        new_packer = &m_packers->skyline_bin;
+        break;
+    default:
+        new_packer = m_packers->current;
+        break;
+    }
+    if(m_packers->current != new_packer)
+    {
+        m_label_mrb_heuristic->setVisible(new_packer == &m_packers->max_rects_bin);
+        m_combo_mrb_heuristic->setVisible(new_packer == &m_packers->max_rects_bin);
+        m_combo_mrb_heuristic->setVisible(new_packer == &m_packers->max_rects_bin);
+        m_checkbox_mrb_allow_flip->setVisible(new_packer == &m_packers->max_rects_bin);
+
+        m_label_skyline_heuristic->setVisible(new_packer == &m_packers->skyline_bin);
+        m_combo_skyline_heuristic->setVisible(new_packer == &m_packers->skyline_bin);
+        m_checkbox_skyline_use_waste_map->setVisible(new_packer == &m_packers->skyline_bin);
+
+        m_packers->current = new_packer;
+        renderPack();
+    }
+}
+
+void SpritePackerWidget::onMaxRectesBiAllowFlipChanged(Qt::CheckState _state)
+{
     m_packers->max_rects_bin.allowFlip(_state == Qt::Checked);
     renderPack();
 }
@@ -192,5 +258,18 @@ void SpritePackerWidget::onMaxRectesBinHeuristicChanged(int _index)
 {
     m_packers->max_rects_bin.setChoiceHeuristic(
         static_cast<MaxRectsBinAtlasPackerChoiceHeuristic>(m_combo_mrb_heuristic->itemData(_index).toInt()));
+    renderPack();
+}
+
+void SpritePackerWidget::onSkylineUseWasteMapChanged(Qt::CheckState _state)
+{
+    m_packers->skyline_bin.enableWasteMap(_state == Qt::Checked);
+    renderPack();
+}
+
+void SpritePackerWidget::onSkylineBinHeuristicChanged(int _index)
+{
+    m_packers->skyline_bin.setLevelChoiceHeuristic(
+        static_cast<SkylineBinPackAtlasPackerLevelChoiceHeuristic>(m_combo_skyline_heuristic->itemData(_index).toInt()));
     renderPack();
 }

@@ -24,11 +24,30 @@
 
 class S2TP_EXPORT AtlasPacker : public QObject
 {
+protected:
+    class Algorithm
+    {
+    public:
+        virtual ~Algorithm() { }
+        virtual QRect insert(int _width, int _height) = 0;
+        virtual void init(int _width, int _height) = 0;
+    };
+
 public:
     explicit AtlasPacker(QObject * _parent) :
-        QObject(_parent)
+        QObject(_parent),
+        m_max_atlas_size{1024, 1024}
     {
     }
 
-    virtual QList<QPixmap> pack(const QList<Sprite> & _sprites) const = 0;
+    void setMaxAtlasSize(int _w, int _h) { m_max_atlas_size = { _w, _h }; }
+    void setMaxAtlasSize(const QSize & _size) { m_max_atlas_size = _size; }
+    const QSize & maxAtlasSize() const { return m_max_atlas_size; }
+    QList<QPixmap> pack(const QList<Sprite> & _sprites) const;
+
+protected:
+    virtual std::unique_ptr<Algorithm> createAlgorithm(int _width, int _height) const = 0;
+
+protected:
+    QSize m_max_atlas_size;
 };
