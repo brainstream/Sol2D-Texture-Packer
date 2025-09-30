@@ -34,6 +34,7 @@ public:
 
 private slots:
     void addSprites();
+    void renderPack();
     void onAlgorithmChanged(int _index);
     void onMaxRectesBiAllowFlipChanged(Qt::CheckState _state);
     void onMaxRectesBinHeuristicChanged(int _index);
@@ -44,9 +45,6 @@ private slots:
     void onGuillotineBinAllowMergeChanged(Qt::CheckState _state);
     void onShelfBinSplitHeuristicChanged(int _index);
     void onShelfBinUseWasteMapChanged(Qt::CheckState _state);
-
-private:
-    void renderPack();
 
 private:
     SpriteListModel * m_sprites_model;

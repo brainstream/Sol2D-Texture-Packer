@@ -105,7 +105,6 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
     setupUi(this);
 
     m_packers->current = nullptr;
-    m_packers->max_rects_bin.setMaxAtlasSize(256, 256);
     m_packers->max_rects_bin.setChoiceHeuristic(MaxRectsBinAtlasPackerChoiceHeuristic::BestAreaFit);
 
     m_sprites_model = new SpriteListModel(m_tree_sprites);
@@ -203,6 +202,8 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
         static_cast<int>(ShelfBinAtlasPackerChoiceHeuristic::WorstWidthFit));
 
     connect(m_btn_add_sprites, &QPushButton::clicked, this, &SpritePackerWidget::addSprites);
+    connect(m_spin_max_width, &QSpinBox::valueChanged, this, &SpritePackerWidget::renderPack);
+    connect(m_spin_max_height, &QSpinBox::valueChanged, this, &SpritePackerWidget::renderPack);
     connect(
         m_checkbox_mrb_allow_flip,
         &QCheckBox::checkStateChanged,
@@ -309,7 +310,14 @@ void SpritePackerWidget::addSprites()
 void SpritePackerWidget::renderPack()
 {
     m_preview->scene()->clear();
-    QList<QPixmap> atlases = m_packers->current->pack(m_sprites_model->getSprites());
+    AtlasPackOptions options
+    {
+        .max_atlas_size = QSize(
+            m_spin_max_width->value(),
+            m_spin_max_height->value()
+        )
+    };
+    QList<QPixmap> atlases = m_packers->current->pack(m_sprites_model->getSprites(), options);
     foreach(const QPixmap & atlas, atlases)
         m_preview->scene()->addPixmap(atlas);
 }
@@ -354,7 +362,7 @@ void SpritePackerWidget::onAlgorithmChanged(int _index)
 
         m_label_shelf_choice_heuristic->setVisible(new_packer == &m_packers->shelf_bin);
         m_combo_shelf_choice_heuristic->setVisible(new_packer == &m_packers->shelf_bin);
-        m_combo_shelf_choice_heuristic->setVisible(new_packer == &m_packers->shelf_bin);
+        m_checkbox_shelf_use_waste_map->setVisible(new_packer == &m_packers->shelf_bin);
 
         m_packers->current = new_packer;
         renderPack();

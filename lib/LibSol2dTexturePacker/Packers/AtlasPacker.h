@@ -30,6 +30,11 @@ public:
     virtual void resetBin() = 0;
 };
 
+struct S2TP_EXPORT AtlasPackerOptions
+{
+    QSize max_atlas_size = QSize(1024, 1024);
+};
+
 class S2TP_EXPORT AtlasPacker : public QObject
 {
 public:
@@ -39,13 +44,10 @@ public:
     {
     }
 
-    void setMaxAtlasSize(int _w, int _h) { m_max_atlas_size = { _w, _h }; }
-    void setMaxAtlasSize(const QSize & _size) { m_max_atlas_size = _size; }
-    const QSize & maxAtlasSize() const { return m_max_atlas_size; }
-    QList<QPixmap> pack(const QList<Sprite> & _sprites) const;
+    QList<QPixmap> pack(const QList<Sprite> & _sprites, const AtlasPackerOptions & _options) const;
 
 protected:
-    virtual std::unique_ptr<AtlasPackerAlgorithm> createAlgorithm(int _width, int _height) const = 0;
+    virtual std::unique_ptr<AtlasPackerAlgorithm> createAlgorithm(const QSize & _max_atlas_size) const = 0;
 
 protected:
     QSize m_max_atlas_size;

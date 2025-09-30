@@ -25,8 +25,7 @@ class ShelfBinAtlasPackerAlgorithm : public AtlasPackerAlgorithm
 {
 public:
     ShelfBinAtlasPackerAlgorithm(
-        int _max_bin_width,
-        int _max_bin_height,
+        const QSize & _max_atlas_size,
         ShelfBinAtlasPackerChoiceHeuristic _heuristic,
         bool _use_waste_map);
     QRect insert(int _width, int _height) override;
@@ -36,22 +35,19 @@ private:
     static rbp::ShelfBinPack::ShelfChoiceHeuristic map(ShelfBinAtlasPackerChoiceHeuristic _heuristic);
 
 private:
-    int m_max_bin_width;
-    int m_max_bin_height;
+    QSize m_max_atlas_size;
     rbp::ShelfBinPack m_pack;
     rbp::ShelfBinPack::ShelfChoiceHeuristic m_heuristic;
     bool m_use_waste_map;
 };
 
 ShelfBinAtlasPackerAlgorithm::ShelfBinAtlasPackerAlgorithm(
-    int _max_bin_width,
-    int _max_bin_height,
+    const QSize & _max_atlas_size,
     ShelfBinAtlasPackerChoiceHeuristic _heuristic,
     bool _use_waste_map
 ) :
-    m_max_bin_width(_max_bin_width),
-    m_max_bin_height(_max_bin_height),
-    m_pack(_max_bin_width, _max_bin_height, _use_waste_map),
+    m_max_atlas_size(_max_atlas_size),
+    m_pack(_max_atlas_size.width(), _max_atlas_size.height(), _use_waste_map),
     m_heuristic(map(_heuristic)),
     m_use_waste_map(_use_waste_map)
 {
@@ -88,7 +84,7 @@ QRect ShelfBinAtlasPackerAlgorithm::insert(int _width, int _height)
 
 void ShelfBinAtlasPackerAlgorithm::resetBin()
 {
-    m_pack.Init(m_max_bin_width, m_max_bin_height, m_use_waste_map);
+    m_pack.Init(m_max_atlas_size.width(), m_max_atlas_size.height(), m_use_waste_map);
 }
 
 } // namespace
@@ -100,8 +96,8 @@ ShelfBinAtlasPacker::ShelfBinAtlasPacker(QObject * _parent) :
 {
 }
 
-std::unique_ptr<AtlasPackerAlgorithm> ShelfBinAtlasPacker::createAlgorithm(int _width, int _height) const
+std::unique_ptr<AtlasPackerAlgorithm> ShelfBinAtlasPacker::createAlgorithm(const QSize & _max_atlas_size) const
 {
     return std::unique_ptr<AtlasPackerAlgorithm>(
-        new ShelfBinAtlasPackerAlgorithm(_width, _height, m_heuristic, m_use_waste_map));
+        new ShelfBinAtlasPackerAlgorithm(_max_atlas_size, m_heuristic, m_use_waste_map));
 }

@@ -25,8 +25,7 @@ class MaxRectsBinPackAlgorithm : public AtlasPackerAlgorithm
 {
 public:
     MaxRectsBinPackAlgorithm(
-        int _max_bin_width,
-        int _max_bin_height,
+        const QSize & _max_atlas_size,
         MaxRectsBinAtlasPackerChoiceHeuristic _heuristic,
         bool _allow_flip);
     QRect insert(int _width, int _height) override;
@@ -36,22 +35,21 @@ private:
     static rbp::MaxRectsBinPack::FreeRectChoiceHeuristic map(MaxRectsBinAtlasPackerChoiceHeuristic _heuristic);
 
 private:
-    int m_max_bin_width;
-    int m_max_bin_height;
+    QSize m_max_atlas_size;
     rbp::MaxRectsBinPack::FreeRectChoiceHeuristic m_heuristic;
     rbp::MaxRectsBinPack m_pack;
     bool m_allow_flip;
 };
 
 MaxRectsBinPackAlgorithm::MaxRectsBinPackAlgorithm(
-    int _max_bin_width,
-    int _max_bin_height,
+    const QSize & _max_atlas_size,
     MaxRectsBinAtlasPackerChoiceHeuristic _heuristic,
     bool _allow_flip
 ) :
+    m_max_atlas_size(_max_atlas_size),
     m_heuristic(map(_heuristic)),
-    m_pack(_max_bin_width, _max_bin_height, _allow_flip),
-    m_allow_flip(_allow_flip)
+    m_allow_flip(_allow_flip),
+    m_pack(m_max_atlas_size.width(), m_max_atlas_size.height(), _allow_flip)
 {
 }
 
@@ -63,7 +61,7 @@ QRect MaxRectsBinPackAlgorithm::insert(int _width, int _height)
 
 void MaxRectsBinPackAlgorithm::resetBin()
 {
-    m_pack.Init(m_max_bin_width, m_max_bin_height, m_allow_flip);
+    m_pack.Init(m_max_atlas_size.width(), m_max_atlas_size.height(), m_allow_flip);
 }
 
 } // namespace
@@ -95,7 +93,8 @@ MaxRectsBinAtlasPacker::MaxRectsBinAtlasPacker(QObject * _parent) :
 {
 }
 
-std::unique_ptr<AtlasPackerAlgorithm> MaxRectsBinAtlasPacker::createAlgorithm(int _width, int _height) const
+std::unique_ptr<AtlasPackerAlgorithm> MaxRectsBinAtlasPacker::createAlgorithm(const QSize & _max_atlas_size) const
 {
-    return std::unique_ptr<AtlasPackerAlgorithm>(new MaxRectsBinPackAlgorithm(_width, _height, m_heuristic, m_allow_flip));
+    return std::unique_ptr<AtlasPackerAlgorithm>(
+        new MaxRectsBinPackAlgorithm(_max_atlas_size, m_heuristic, m_allow_flip));
 }

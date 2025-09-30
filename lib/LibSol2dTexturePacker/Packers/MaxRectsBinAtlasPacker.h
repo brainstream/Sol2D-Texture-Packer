@@ -39,7 +39,7 @@ public:
     MaxRectsBinAtlasPackerChoiceHeuristic choiceHeuristic() const { return m_heuristic; }
 
 protected:
-    std::unique_ptr<AtlasPackerAlgorithm> createAlgorithm(int _width, int _height) const override;
+    std::unique_ptr<AtlasPackerAlgorithm> createAlgorithm(const QSize & _max_atlas_size) const override;
 
 private:
     MaxRectsBinAtlasPackerChoiceHeuristic m_heuristic;

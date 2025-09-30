@@ -46,7 +46,7 @@ public:
     bool isWasteMapEnabled() const { return m_use_waste_map; }
 
 protected:
-    std::unique_ptr<AtlasPackerAlgorithm> createAlgorithm(int _width, int _height) const override;
+    std::unique_ptr<AtlasPackerAlgorithm> createAlgorithm(const QSize & _max_atlas_size) const override;
 
 private:
     SkylineBinAtlasPackerLevelChoiceHeuristic m_heuristic;

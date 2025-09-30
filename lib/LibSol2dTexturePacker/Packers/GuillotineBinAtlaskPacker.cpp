@@ -25,8 +25,7 @@ class GuillotineBinPackAlgorithm : public AtlasPackerAlgorithm
 {
 public:
     GuillotineBinPackAlgorithm(
-        int _max_bin_width,
-        int _max_bin_height,
+        const QSize & _max_atlas_size,
         GuillotineBinAtlasPackerChoiceHeuristic _choice_heuristic,
         GuillotineBinAtlasPackerSplitHeuristic _split_heuristic,
         bool _is_merge_enabled);
@@ -38,8 +37,7 @@ private:
     static rbp::GuillotineBinPack::GuillotineSplitHeuristic map(GuillotineBinAtlasPackerSplitHeuristic _heuristic);
 
 private:
-    int m_max_bin_width;
-    int m_max_bin_height;
+    QSize m_max_atlas_size;
     rbp::GuillotineBinPack::FreeRectChoiceHeuristic m_choice_heuristic;
     rbp::GuillotineBinPack::GuillotineSplitHeuristic m_split_heuristic;
     rbp::GuillotineBinPack m_pack;
@@ -47,17 +45,15 @@ private:
 };
 
 GuillotineBinPackAlgorithm::GuillotineBinPackAlgorithm(
-    int _max_bin_width,
-    int _max_bin_height,
+    const QSize & _max_atlas_size,
     GuillotineBinAtlasPackerChoiceHeuristic _choice_heuristic,
     GuillotineBinAtlasPackerSplitHeuristic _split_heuristic,
     bool _is_merge_enabled
 ) :
-    m_max_bin_width(_max_bin_width),
-    m_max_bin_height(_max_bin_height),
+    m_max_atlas_size(_max_atlas_size),
     m_choice_heuristic(map(_choice_heuristic)),
     m_split_heuristic(map(_split_heuristic)),
-    m_pack(_max_bin_width, _max_bin_height),
+    m_pack(_max_atlas_size.width(), _max_atlas_size.height()),
     m_is_merge_enabled(_is_merge_enabled)
 {
 }
@@ -114,7 +110,7 @@ QRect GuillotineBinPackAlgorithm::insert(int _width, int _height)
 
 void GuillotineBinPackAlgorithm::resetBin()
 {
-    m_pack.Init(m_max_bin_width, m_max_bin_height);
+    m_pack.Init(m_max_atlas_size.width(), m_max_atlas_size.height());
 }
 
 } // namespace
@@ -127,8 +123,8 @@ GuillotineBinAtlaskPacker::GuillotineBinAtlaskPacker(QObject * _parent) :
 {
 }
 
-std::unique_ptr<AtlasPackerAlgorithm> GuillotineBinAtlaskPacker::createAlgorithm(int _width, int _height) const
+std::unique_ptr<AtlasPackerAlgorithm> GuillotineBinAtlaskPacker::createAlgorithm(const QSize & _max_atlas_size) const
 {
     return std::unique_ptr<AtlasPackerAlgorithm>(
-        new GuillotineBinPackAlgorithm(_width, _height, m_choice_heuristic, m_split_heuristic, m_is_merge_enabled));
+        new GuillotineBinPackAlgorithm(_max_atlas_size, m_choice_heuristic, m_split_heuristic, m_is_merge_enabled));
 }

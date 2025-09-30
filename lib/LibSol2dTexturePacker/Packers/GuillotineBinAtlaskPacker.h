@@ -53,7 +53,7 @@ public:
     bool isMergeEnabled() const { return m_is_merge_enabled; }
 
 protected:
-    std::unique_ptr<AtlasPackerAlgorithm> createAlgorithm(int _width, int _height) const override;
+    std::unique_ptr<AtlasPackerAlgorithm> createAlgorithm(const QSize & _max_atlas_size) const override;
 
 private:
     GuillotineBinAtlasPackerChoiceHeuristic m_choice_heuristic;

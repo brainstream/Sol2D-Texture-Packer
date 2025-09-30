@@ -26,8 +26,7 @@ class SkylineBinPackAlgorithm : public AtlasPackerAlgorithm
 {
 public:
     SkylineBinPackAlgorithm(
-        int _max_bin_width,
-        int _max_bin_height,
+        const QSize & _max_atlas_size,
         SkylineBinAtlasPackerLevelChoiceHeuristic _heuristic,
         bool _use_waste_map);
     QRect insert(int _width, int _height) override;
@@ -37,21 +36,20 @@ private:
     static rbp::SkylineBinPack::LevelChoiceHeuristic map(SkylineBinAtlasPackerLevelChoiceHeuristic _heuristic);
 
 private:
-    int m_max_bin_width;
-    int m_max_bin_height;
+    QSize m_max_atlas_size;
     rbp::SkylineBinPack::LevelChoiceHeuristic m_heuristic;
     rbp::SkylineBinPack m_pack;
     bool m_use_waste_map;
 };
 
 SkylineBinPackAlgorithm::SkylineBinPackAlgorithm(
-    int _max_bin_width,
-    int _max_bin_height,
+    const QSize & _max_atlas_size,
     SkylineBinAtlasPackerLevelChoiceHeuristic _heuristic,
     bool _use_waste_map
 ) :
+    m_max_atlas_size(_max_atlas_size),
     m_heuristic(map(_heuristic)),
-    m_pack(_max_bin_width, _max_bin_height, _use_waste_map),
+    m_pack(_max_atlas_size.width(), _max_atlas_size.height(), _use_waste_map),
     m_use_waste_map(_use_waste_map)
 {
 }
@@ -80,7 +78,7 @@ QRect SkylineBinPackAlgorithm::insert(int _width, int _height)
 
 void SkylineBinPackAlgorithm::resetBin()
 {
-    m_pack.Init(m_max_bin_width, m_max_bin_height, m_use_waste_map);
+    m_pack.Init(m_max_atlas_size.width(), m_max_atlas_size.height(), m_use_waste_map);
 }
 
 SkylineBinAtlasPacker::SkylineBinAtlasPacker(QObject *_parent) :
@@ -90,8 +88,8 @@ SkylineBinAtlasPacker::SkylineBinAtlasPacker(QObject *_parent) :
 {
 }
 
-std::unique_ptr<AtlasPackerAlgorithm> SkylineBinAtlasPacker::createAlgorithm(
-    int _width, int _height) const
+std::unique_ptr<AtlasPackerAlgorithm> SkylineBinAtlasPacker::createAlgorithm(const QSize & _max_atlas_size) const
 {
-    return std::unique_ptr<AtlasPackerAlgorithm>(new SkylineBinPackAlgorithm(_width, _height, m_heuristic, m_use_waste_map));
+    return std::unique_ptr<AtlasPackerAlgorithm>(
+        new SkylineBinPackAlgorithm(_max_atlas_size, m_heuristic, m_use_waste_map));
 }
