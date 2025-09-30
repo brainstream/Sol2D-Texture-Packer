@@ -35,7 +35,7 @@ public:
 private slots:
     void addSprites();
     void renderPack();
-    void onAlgorithmChanged(int _index);
+    void onAlgorithmChanged();
     void onMaxRectesBiAllowFlipChanged(Qt::CheckState _state);
     void onMaxRectesBinHeuristicChanged(int _index);
     void onSkylineBinUseWasteMapChanged(Qt::CheckState _state);

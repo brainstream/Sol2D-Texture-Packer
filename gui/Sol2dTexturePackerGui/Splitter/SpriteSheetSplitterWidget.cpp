@@ -30,8 +30,8 @@
 
 SpriteSheetSplitterWidget::SpriteSheetSplitterWidget(QWidget * _parent) :
     QWidget(_parent),
-    m_sheet_pen(QColor(0, 0, 0, 150)),
     m_sheet_brush(QColor(255, 255, 255, 180)),
+    m_sheet_pen(QColor(0, 0, 0, 150)),
     m_sprite_pen(QColor(255, 0, 0, 80)),
     m_sprite_brush(QColor(255, 0, 0, 50)),
     m_pack(nullptr)
@@ -146,6 +146,7 @@ void SpriteSheetSplitterWidget::exportToAtlas()
         m_last_atlas_export_file = filename;
         Atlas atlas
         {
+            .datafile = QString(),
             .texture = texture_file_path,
             .frames = QList<Frame>()
         };

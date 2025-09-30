@@ -48,8 +48,8 @@ MaxRectsBinPackAlgorithm::MaxRectsBinPackAlgorithm(
 ) :
     m_max_atlas_size(_max_atlas_size),
     m_heuristic(map(_heuristic)),
-    m_allow_flip(_allow_flip),
-    m_pack(m_max_atlas_size.width(), m_max_atlas_size.height(), _allow_flip)
+    m_pack(m_max_atlas_size.width(), m_max_atlas_size.height(), _allow_flip),
+    m_allow_flip(_allow_flip)
 {
 }
 

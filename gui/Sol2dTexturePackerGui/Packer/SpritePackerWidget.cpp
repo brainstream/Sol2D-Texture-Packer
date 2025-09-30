@@ -269,7 +269,7 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
     m_packers->shelf_bin.setChoiceHeuristic(
         static_cast<ShelfBinAtlasPackerChoiceHeuristic>(m_combo_shelf_choice_heuristic->currentData().toInt()));
     m_packers->shelf_bin.enableWasteMap(m_checkbox_shelf_use_waste_map->isChecked());
-    onAlgorithmChanged(0);
+    onAlgorithmChanged();
 }
 
 SpritePackerWidget::~SpritePackerWidget()
@@ -310,7 +310,7 @@ void SpritePackerWidget::addSprites()
 void SpritePackerWidget::renderPack()
 {
     m_preview->scene()->clear();
-    AtlasPackOptions options
+    AtlasPackerOptions options
     {
         .max_atlas_size = QSize(
             m_spin_max_width->value(),
@@ -322,7 +322,7 @@ void SpritePackerWidget::renderPack()
         m_preview->scene()->addPixmap(atlas);
 }
 
-void SpritePackerWidget::onAlgorithmChanged(int _index)
+void SpritePackerWidget::onAlgorithmChanged()
 {
     AtlasPacker * new_packer;
     switch(static_cast<PackAlgorithm>(m_combo_algorithm->currentData().toInt()))

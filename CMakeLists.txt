@@ -71,6 +71,15 @@ qt_add_executable(
     ${S2TP_GUI_SRC}
 )
 
+if(MSVC)
+    set(S2TP_COMPILE_DEFINOTIONS /W4 /WX)
+else()
+    set(S2TP_COMPILE_DEFINOTIONS -Wall -Wextra -Wpedantic -Werror)
+endif()
+target_compile_options(${S2TP_LIB_TARGET} PRIVATE ${S2TP_COMPILE_DEFINOTIONS})
+target_compile_options(${S2TP_CLI_TARGET} PRIVATE ${S2TP_COMPILE_DEFINOTIONS})
+target_compile_options(${S2TP_GUI_TARGET} PRIVATE ${S2TP_COMPILE_DEFINOTIONS})
+
 target_link_libraries(
     ${S2TP_LIB_TARGET}
     PRIVATE

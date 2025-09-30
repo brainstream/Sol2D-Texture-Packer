@@ -40,6 +40,7 @@ MainWindow::MainWindow(QWidget *_parent) :
 
 void MainWindow::closeEvent(QCloseEvent * _event)
 {
+    Q_UNUSED(_event)
     QSettings settings;
     settings.setValue(gc_settings_key_wnd_geom, saveGeometry());
     settings.setValue(gc_settings_key_wnd_state, saveState());
