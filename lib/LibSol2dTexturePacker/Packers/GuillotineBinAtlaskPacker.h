@@ -20,38 +20,43 @@
 
 #include <LibSol2dTexturePacker/Packers/AtlasPacker.h>
 
-enum S2TP_EXPORT class SkylineBinPackAtlasPackerLevelChoiceHeuristic
+enum class S2TP_EXPORT GuillotineBinAtlasPackerChoiceHeuristic
 {
-    LevelBottomLeft,
-    LevelMinWasteFit
+    BestAreaFit,
+    BestShortSideFit,
+    BestLongSideFit,
+    WorstAreaFit,
+    WorstShortSideFit,
+    WorstLongSideFit
 };
 
-
-class S2TP_EXPORT SkylineBinPackAtlasPacker : public AtlasPacker
+enum class S2TP_EXPORT GuillotineBinAtlasPackerSplitHeuristic
 {
-private:
-    class SkylineBinPackAlgorithm;
+    ShorterLeftoverAxis,
+    LongerLeftoverAxis,
+    MinimizeArea,
+    MaximizeArea,
+    ShorterAxis,
+    LongerAxis
+};
 
+class S2TP_EXPORT GuillotineBinAtlaskPacker : public AtlasPacker
+{
 public:
-    explicit SkylineBinPackAtlasPacker(QObject * _parent = nullptr);
+    explicit GuillotineBinAtlaskPacker(QObject * _parent = nullptr);
 
-    void setLevelChoiceHeuristic(SkylineBinPackAtlasPackerLevelChoiceHeuristic _heuristic)
-    {
-        m_heuristic = _heuristic;
-    }
-
-    SkylineBinPackAtlasPackerLevelChoiceHeuristic levelChoiceHeuristic() const
-    {
-        return m_heuristic;
-    }
-
-    void enableWasteMap(bool _enable) { m_use_waste_map = _enable; }
-    bool isWasteMapEnabled() const { return m_use_waste_map; }
+    void setChoiceHeuristic(GuillotineBinAtlasPackerChoiceHeuristic _heuristic) { m_choice_heuristic = _heuristic; }
+    GuillotineBinAtlasPackerChoiceHeuristic ChoiceHeuristic() const { return m_choice_heuristic; }
+    void setSplitHeuristic(GuillotineBinAtlasPackerSplitHeuristic _heuristic) { m_split_heuristic = _heuristic; }
+    GuillotineBinAtlasPackerSplitHeuristic splitHeuristic() const { return m_split_heuristic; }
+    void enableMerge(bool _enabled) { m_is_merge_enabled = _enabled; }
+    bool isMergeEnabled() const { return m_is_merge_enabled; }
 
 protected:
-    std::unique_ptr<Algorithm> createAlgorithm(int _width, int _height) const override;
+    std::unique_ptr<AtlasPackerAlgorithm> createAlgorithm(int _width, int _height) const override;
 
 private:
-    SkylineBinPackAtlasPackerLevelChoiceHeuristic m_heuristic;
-    bool m_use_waste_map;
+    GuillotineBinAtlasPackerChoiceHeuristic m_choice_heuristic;
+    GuillotineBinAtlasPackerSplitHeuristic m_split_heuristic;
+    bool m_is_merge_enabled;
 };

@@ -22,17 +22,16 @@
 #include <QObject>
 #include <QList>
 
+class S2TP_EXPORT AtlasPackerAlgorithm
+{
+public:
+    virtual ~AtlasPackerAlgorithm() { }
+    virtual QRect insert(int _width, int _height) = 0;
+    virtual void resetBin() = 0;
+};
+
 class S2TP_EXPORT AtlasPacker : public QObject
 {
-protected:
-    class Algorithm
-    {
-    public:
-        virtual ~Algorithm() { }
-        virtual QRect insert(int _width, int _height) = 0;
-        virtual void init(int _width, int _height) = 0;
-    };
-
 public:
     explicit AtlasPacker(QObject * _parent) :
         QObject(_parent),
@@ -46,7 +45,7 @@ public:
     QList<QPixmap> pack(const QList<Sprite> & _sprites) const;
 
 protected:
-    virtual std::unique_ptr<Algorithm> createAlgorithm(int _width, int _height) const = 0;
+    virtual std::unique_ptr<AtlasPackerAlgorithm> createAlgorithm(int _width, int _height) const = 0;
 
 protected:
     QSize m_max_atlas_size;

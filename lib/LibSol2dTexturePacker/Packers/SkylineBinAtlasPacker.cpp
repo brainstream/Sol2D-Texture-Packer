@@ -16,23 +16,25 @@
  *                                                                                                        *
  **********************************************************************************************************/
 
-#include <LibSol2dTexturePacker/Packers/SkylineBinPackAtlasPacker.h>
+#include <LibSol2dTexturePacker/Packers/SkylineBinAtlasPacker.h>
 #include <RectangleBinPack/SkylineBinPack.h>
 #include <QPainter>
 
-class SkylineBinPackAtlasPacker::SkylineBinPackAlgorithm : public AtlasPacker::Algorithm
+namespace {
+
+class SkylineBinPackAlgorithm : public AtlasPackerAlgorithm
 {
 public:
     SkylineBinPackAlgorithm(
         int _max_bin_width,
         int _max_bin_height,
-        SkylineBinPackAtlasPackerLevelChoiceHeuristic _heuristic,
+        SkylineBinAtlasPackerLevelChoiceHeuristic _heuristic,
         bool _use_waste_map);
-    void init(int _width, int _height) override;
     QRect insert(int _width, int _height) override;
+    void resetBin() override;
 
 private:
-    static rbp::SkylineBinPack::LevelChoiceHeuristic map(SkylineBinPackAtlasPackerLevelChoiceHeuristic _heuristic);
+    static rbp::SkylineBinPack::LevelChoiceHeuristic map(SkylineBinAtlasPackerLevelChoiceHeuristic _heuristic);
 
 private:
     int m_max_bin_width;
@@ -42,10 +44,10 @@ private:
     bool m_use_waste_map;
 };
 
-SkylineBinPackAtlasPacker::SkylineBinPackAlgorithm::SkylineBinPackAlgorithm(
+SkylineBinPackAlgorithm::SkylineBinPackAlgorithm(
     int _max_bin_width,
     int _max_bin_height,
-    SkylineBinPackAtlasPackerLevelChoiceHeuristic _heuristic,
+    SkylineBinAtlasPackerLevelChoiceHeuristic _heuristic,
     bool _use_waste_map
 ) :
     m_heuristic(map(_heuristic)),
@@ -54,40 +56,42 @@ SkylineBinPackAtlasPacker::SkylineBinPackAlgorithm::SkylineBinPackAlgorithm(
 {
 }
 
-rbp::SkylineBinPack::LevelChoiceHeuristic SkylineBinPackAtlasPacker::SkylineBinPackAlgorithm::map(
-    SkylineBinPackAtlasPackerLevelChoiceHeuristic _heuristic)
+rbp::SkylineBinPack::LevelChoiceHeuristic SkylineBinPackAlgorithm::map(
+    SkylineBinAtlasPackerLevelChoiceHeuristic _heuristic)
 {
     switch(_heuristic)
     {
-    case SkylineBinPackAtlasPackerLevelChoiceHeuristic::LevelBottomLeft:
+    case SkylineBinAtlasPackerLevelChoiceHeuristic::BottomLeft:
         return rbp::SkylineBinPack::LevelChoiceHeuristic::LevelBottomLeft;
-    case SkylineBinPackAtlasPackerLevelChoiceHeuristic::LevelMinWasteFit:
+    case SkylineBinAtlasPackerLevelChoiceHeuristic::MinWasteFit:
         return rbp::SkylineBinPack::LevelChoiceHeuristic::LevelMinWasteFit;
     default:
-        throw std::runtime_error("Unknown SkylineBinPackAtlasPackerLevelChoiceHeuristic");
+        throw std::runtime_error("Unknown SkylineBinAtlasPackerLevelChoiceHeuristic");
     }
 }
 
-void SkylineBinPackAtlasPacker::SkylineBinPackAlgorithm::init(int _width, int _height)
-{
-    m_pack.Init(_width, _height, m_use_waste_map);
-}
+} // namespace
 
-QRect SkylineBinPackAtlasPacker::SkylineBinPackAlgorithm::insert(int _width, int _height)
+QRect SkylineBinPackAlgorithm::insert(int _width, int _height)
 {
     rbp::Rect rect = m_pack.Insert(_width, _height, m_heuristic);
     return QRect(rect.x, rect.y, rect.width, rect.height);
 }
 
-SkylineBinPackAtlasPacker::SkylineBinPackAtlasPacker(QObject *_parent) :
+void SkylineBinPackAlgorithm::resetBin()
+{
+    m_pack.Init(m_max_bin_width, m_max_bin_height, m_use_waste_map);
+}
+
+SkylineBinAtlasPacker::SkylineBinAtlasPacker(QObject *_parent) :
     AtlasPacker(_parent),
-    m_heuristic(SkylineBinPackAtlasPackerLevelChoiceHeuristic::LevelBottomLeft),
+    m_heuristic(SkylineBinAtlasPackerLevelChoiceHeuristic::BottomLeft),
     m_use_waste_map(false)
 {
 }
 
-std::unique_ptr<SkylineBinPackAtlasPacker::Algorithm> SkylineBinPackAtlasPacker::createAlgorithm(
+std::unique_ptr<AtlasPackerAlgorithm> SkylineBinAtlasPacker::createAlgorithm(
     int _width, int _height) const
 {
-    return std::unique_ptr<Algorithm>(new SkylineBinPackAlgorithm(_width, _height, m_heuristic, m_use_waste_map));
+    return std::unique_ptr<AtlasPackerAlgorithm>(new SkylineBinPackAlgorithm(_width, _height, m_heuristic, m_use_waste_map));
 }

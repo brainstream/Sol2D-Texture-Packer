@@ -19,7 +19,9 @@
 #include <LibSol2dTexturePacker/Packers/MaxRectsBinAtlasPacker.h>
 #include <RectangleBinPack/MaxRectsBinPack.h>
 
-class MaxRectsBinAtlasPacker::MaxRectsBinPackAlgorithm : public AtlasPacker::Algorithm
+namespace {
+
+class MaxRectsBinPackAlgorithm : public AtlasPackerAlgorithm
 {
 public:
     MaxRectsBinPackAlgorithm(
@@ -27,8 +29,8 @@ public:
         int _max_bin_height,
         MaxRectsBinAtlasPackerChoiceHeuristic _heuristic,
         bool _allow_flip);
-    void init(int _width, int _height) override;
     QRect insert(int _width, int _height) override;
+    void resetBin() override;
 
 private:
     static rbp::MaxRectsBinPack::FreeRectChoiceHeuristic map(MaxRectsBinAtlasPackerChoiceHeuristic _heuristic);
@@ -41,7 +43,7 @@ private:
     bool m_allow_flip;
 };
 
-MaxRectsBinAtlasPacker::MaxRectsBinPackAlgorithm::MaxRectsBinPackAlgorithm(
+MaxRectsBinPackAlgorithm::MaxRectsBinPackAlgorithm(
     int _max_bin_width,
     int _max_bin_height,
     MaxRectsBinAtlasPackerChoiceHeuristic _heuristic,
@@ -53,18 +55,20 @@ MaxRectsBinAtlasPacker::MaxRectsBinPackAlgorithm::MaxRectsBinPackAlgorithm(
 {
 }
 
-void MaxRectsBinAtlasPacker::MaxRectsBinPackAlgorithm::init(int _width, int _height)
-{
-    m_pack.Init(_width, _height, m_allow_flip);
-}
-
-QRect MaxRectsBinAtlasPacker::MaxRectsBinPackAlgorithm::insert(int _width, int _height)
+QRect MaxRectsBinPackAlgorithm::insert(int _width, int _height)
 {
     rbp::Rect rect = m_pack.Insert(_width, _height, m_heuristic);
     return QRect(rect.x, rect.y, rect.width, rect.height);
 }
 
-rbp::MaxRectsBinPack::FreeRectChoiceHeuristic MaxRectsBinAtlasPacker::MaxRectsBinPackAlgorithm::map(
+void MaxRectsBinPackAlgorithm::resetBin()
+{
+    m_pack.Init(m_max_bin_width, m_max_bin_height, m_allow_flip);
+}
+
+} // namespace
+
+rbp::MaxRectsBinPack::FreeRectChoiceHeuristic MaxRectsBinPackAlgorithm::map(
     MaxRectsBinAtlasPackerChoiceHeuristic _heuristic)
 {
     switch(_heuristic)
@@ -91,7 +95,7 @@ MaxRectsBinAtlasPacker::MaxRectsBinAtlasPacker(QObject * _parent) :
 {
 }
 
-std::unique_ptr<AtlasPacker::Algorithm> MaxRectsBinAtlasPacker::createAlgorithm(int _width, int _height) const
+std::unique_ptr<AtlasPackerAlgorithm> MaxRectsBinAtlasPacker::createAlgorithm(int _width, int _height) const
 {
-    return std::unique_ptr<Algorithm>(new MaxRectsBinPackAlgorithm(_width, _height, m_heuristic, m_allow_flip));
+    return std::unique_ptr<AtlasPackerAlgorithm>(new MaxRectsBinPackAlgorithm(_width, _height, m_heuristic, m_allow_flip));
 }

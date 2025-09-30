@@ -19,7 +19,8 @@
 #include <Sol2dTexturePackerGui/Packer/SpritePackerWidget.h>
 #include <Sol2dTexturePackerGui/Settings.h>
 #include <LibSol2dTexturePacker/Packers/MaxRectsBinAtlasPacker.h>
-#include <LibSol2dTexturePacker/Packers/SkylineBinPackAtlasPacker.h>
+#include <LibSol2dTexturePacker/Packers/SkylineBinAtlasPacker.h>
+#include <LibSol2dTexturePacker/Packers/GuillotineBinAtlaskPacker.h>
 #include <QList>
 #include <QFileDialog>
 #include <QPixmap>
@@ -40,7 +41,8 @@ enum class PackAlgorithm
 struct SpritePackerWidget::Packers
 {
     MaxRectsBinAtlasPacker max_rects_bin;
-    SkylineBinPackAtlasPacker skyline_bin;
+    SkylineBinAtlasPacker skyline_bin;
+    GuillotineBinAtlaskPacker guillotine_bin;
     AtlasPacker * current;
 };
 
@@ -133,10 +135,48 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
 
     m_combo_skyline_heuristic->addItem(
         tr("Bottom Left"),
-        static_cast<int>(SkylineBinPackAtlasPackerLevelChoiceHeuristic::LevelBottomLeft));
+        static_cast<int>(SkylineBinAtlasPackerLevelChoiceHeuristic::BottomLeft));
     m_combo_skyline_heuristic->addItem(
         tr("Min Waste Fit"),
-        static_cast<int>(SkylineBinPackAtlasPackerLevelChoiceHeuristic::LevelMinWasteFit));
+        static_cast<int>(SkylineBinAtlasPackerLevelChoiceHeuristic::MinWasteFit));
+
+    m_combo_guillotine_choice_heuristic->addItem(
+        tr("Best Area Fit"),
+        static_cast<int>(GuillotineBinAtlasPackerChoiceHeuristic::BestAreaFit));
+    m_combo_guillotine_choice_heuristic->addItem(
+        tr("Best Long Side Fit"),
+        static_cast<int>(GuillotineBinAtlasPackerChoiceHeuristic::BestLongSideFit));
+    m_combo_guillotine_choice_heuristic->addItem(
+        tr("Best Short Side Fit"),
+        static_cast<int>(GuillotineBinAtlasPackerChoiceHeuristic::BestShortSideFit));
+    m_combo_guillotine_choice_heuristic->addItem(
+        tr("Worst Area Fit"),
+        static_cast<int>(GuillotineBinAtlasPackerChoiceHeuristic::WorstAreaFit));
+    m_combo_guillotine_choice_heuristic->addItem(
+        tr("Worst Short Side Fit"),
+        static_cast<int>(GuillotineBinAtlasPackerChoiceHeuristic::WorstShortSideFit));
+    m_combo_guillotine_choice_heuristic->addItem(
+        tr("Worst Long Side Fit"),
+        static_cast<int>(GuillotineBinAtlasPackerChoiceHeuristic::WorstLongSideFit));
+
+    m_combo_guillotine_split_heuristic->addItem(
+        tr("Shorter Leftover Axis)"),
+        static_cast<int>(GuillotineBinAtlasPackerSplitHeuristic::ShorterLeftoverAxis));
+    m_combo_guillotine_split_heuristic->addItem(
+        tr("Longer Leftover Axis"),
+        static_cast<int>(GuillotineBinAtlasPackerSplitHeuristic::LongerLeftoverAxis));
+    m_combo_guillotine_split_heuristic->addItem(
+        tr("Minimize Area"),
+        static_cast<int>(GuillotineBinAtlasPackerSplitHeuristic::MinimizeArea));
+    m_combo_guillotine_split_heuristic->addItem(
+        tr("Maximize Area"),
+        static_cast<int>(GuillotineBinAtlasPackerSplitHeuristic::MaximizeArea));
+    m_combo_guillotine_split_heuristic->addItem(
+        tr("ShorterA xis"),
+        static_cast<int>(GuillotineBinAtlasPackerSplitHeuristic::ShorterAxis));
+    m_combo_guillotine_split_heuristic->addItem(
+        tr("Longer Axis"),
+        static_cast<int>(GuillotineBinAtlasPackerSplitHeuristic::LongerAxis));
 
     connect(m_btn_add_sprites, &QPushButton::clicked, this, &SpritePackerWidget::addSprites);
     connect(
@@ -163,14 +203,34 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
         m_checkbox_skyline_use_waste_map,
         &QCheckBox::checkStateChanged,
         this,
-        &SpritePackerWidget::onSkylineUseWasteMapChanged);
+        &SpritePackerWidget::onSkylineBinUseWasteMapChanged);
+    connect(
+        m_combo_guillotine_choice_heuristic,
+        &QComboBox::currentIndexChanged,
+        this,
+        &SpritePackerWidget::onGuillotineBinChoiceHeuristicChanged);
+    connect(
+        m_combo_guillotine_split_heuristic,
+        &QComboBox::currentIndexChanged,
+        this,
+        &SpritePackerWidget::onGuillotineBinSplitHeuristicChanged);
+    connect(
+        m_checkbox_guillotine_allow_merge,
+        &QCheckBox::checkStateChanged,
+        this,
+        &SpritePackerWidget::onGuillotineBinAllowMergeChanged);
 
     m_packers->max_rects_bin.setChoiceHeuristic(
         static_cast<MaxRectsBinAtlasPackerChoiceHeuristic>(m_combo_mrb_heuristic->currentData().toInt()));
     m_packers->max_rects_bin.allowFlip(m_checkbox_mrb_allow_flip->isChecked());
     m_packers->skyline_bin.setLevelChoiceHeuristic(
-        static_cast<SkylineBinPackAtlasPackerLevelChoiceHeuristic>(m_combo_skyline_heuristic->currentData().toInt()));
+        static_cast<SkylineBinAtlasPackerLevelChoiceHeuristic>(m_combo_skyline_heuristic->currentData().toInt()));
     m_packers->skyline_bin.enableWasteMap(m_checkbox_skyline_use_waste_map->isChecked());
+    m_packers->guillotine_bin.setChoiceHeuristic(
+        static_cast<GuillotineBinAtlasPackerChoiceHeuristic>(m_combo_guillotine_choice_heuristic->currentData().toInt()));
+    m_packers->guillotine_bin.setSplitHeuristic(
+        static_cast<GuillotineBinAtlasPackerSplitHeuristic>(m_combo_guillotine_split_heuristic->currentData().toInt()));
+    m_packers->guillotine_bin.enableMerge(m_checkbox_guillotine_allow_merge->isChecked());
     onAlgorithmChanged(0);
 }
 
@@ -228,6 +288,9 @@ void SpritePackerWidget::onAlgorithmChanged(int _index)
     case PackAlgorithm::SkylineBinPack:
         new_packer = &m_packers->skyline_bin;
         break;
+    case PackAlgorithm::GuillotineBinPack:
+        new_packer = &m_packers->guillotine_bin;
+        break;
     default:
         new_packer = m_packers->current;
         break;
@@ -243,6 +306,12 @@ void SpritePackerWidget::onAlgorithmChanged(int _index)
         m_combo_skyline_heuristic->setVisible(new_packer == &m_packers->skyline_bin);
         m_checkbox_skyline_use_waste_map->setVisible(new_packer == &m_packers->skyline_bin);
 
+        m_label_guillotine_choice_heuristic->setVisible(new_packer == &m_packers->guillotine_bin);
+        m_combo_guillotine_choice_heuristic->setVisible(new_packer == &m_packers->guillotine_bin);
+        m_label_guillotine_split_heuristic->setVisible(new_packer == &m_packers->guillotine_bin);
+        m_combo_guillotine_split_heuristic->setVisible(new_packer == &m_packers->guillotine_bin);
+        m_checkbox_guillotine_allow_merge->setVisible(new_packer == &m_packers->guillotine_bin);
+
         m_packers->current = new_packer;
         renderPack();
     }
@@ -256,12 +325,12 @@ void SpritePackerWidget::onMaxRectesBiAllowFlipChanged(Qt::CheckState _state)
 
 void SpritePackerWidget::onMaxRectesBinHeuristicChanged(int _index)
 {
-    m_packers->max_rects_bin.setChoiceHeuristic(
-        static_cast<MaxRectsBinAtlasPackerChoiceHeuristic>(m_combo_mrb_heuristic->itemData(_index).toInt()));
+    int heuristic = m_combo_mrb_heuristic->itemData(_index).toInt();
+    m_packers->max_rects_bin.setChoiceHeuristic(static_cast<MaxRectsBinAtlasPackerChoiceHeuristic>(heuristic));
     renderPack();
 }
 
-void SpritePackerWidget::onSkylineUseWasteMapChanged(Qt::CheckState _state)
+void SpritePackerWidget::onSkylineBinUseWasteMapChanged(Qt::CheckState _state)
 {
     m_packers->skyline_bin.enableWasteMap(_state == Qt::Checked);
     renderPack();
@@ -269,7 +338,27 @@ void SpritePackerWidget::onSkylineUseWasteMapChanged(Qt::CheckState _state)
 
 void SpritePackerWidget::onSkylineBinHeuristicChanged(int _index)
 {
-    m_packers->skyline_bin.setLevelChoiceHeuristic(
-        static_cast<SkylineBinPackAtlasPackerLevelChoiceHeuristic>(m_combo_skyline_heuristic->itemData(_index).toInt()));
+    int heuristic = m_combo_skyline_heuristic->itemData(_index).toInt();
+    m_packers->skyline_bin.setLevelChoiceHeuristic(static_cast<SkylineBinAtlasPackerLevelChoiceHeuristic>(heuristic));
+    renderPack();
+}
+
+void SpritePackerWidget::onGuillotineBinChoiceHeuristicChanged(int _index)
+{
+    int heuristic = m_combo_guillotine_choice_heuristic->itemData(_index).toInt();
+    m_packers->guillotine_bin.setChoiceHeuristic(static_cast<GuillotineBinAtlasPackerChoiceHeuristic>(heuristic));
+    renderPack();
+}
+
+void SpritePackerWidget::onGuillotineBinSplitHeuristicChanged(int _index)
+{
+    int heuristic = m_combo_guillotine_split_heuristic->itemData(_index).toInt();
+    m_packers->guillotine_bin.setSplitHeuristic(static_cast<GuillotineBinAtlasPackerSplitHeuristic>(heuristic));
+    renderPack();
+}
+
+void SpritePackerWidget::onGuillotineBinAllowMergeChanged(Qt::CheckState _state)
+{
+    m_packers->guillotine_bin.enableMerge(_state == Qt::Checked);
     renderPack();
 }

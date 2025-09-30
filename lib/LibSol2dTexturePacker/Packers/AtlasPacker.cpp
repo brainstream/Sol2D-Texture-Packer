@@ -63,7 +63,9 @@ QList<QPixmap> AtlasPacker::pack(const QList<Sprite> & _sprites) const
     QList<Item> items;
     QList<QPixmap> result;
     items.reserve(_sprites.size());
-    std::unique_ptr<Algorithm> algorithm = createAlgorithm(m_max_atlas_size.width(), m_max_atlas_size.height());
+    std::unique_ptr<AtlasPackerAlgorithm> algorithm = createAlgorithm(
+        m_max_atlas_size.width(),
+        m_max_atlas_size.height());
     foreach(const Sprite & sprite, _sprites)
     {
         QRect pixmap_rect = sprite.pixmap.rect();
@@ -72,7 +74,7 @@ QList<QPixmap> AtlasPacker::pack(const QList<Sprite> & _sprites) const
         {
             result.append(render(items));
             items.clear();
-            algorithm->init(m_max_atlas_size.width(), m_max_atlas_size.height());
+            algorithm->resetBin();
         }
         items.append(
             Item

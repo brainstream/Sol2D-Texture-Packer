@@ -100,7 +100,7 @@
       <item row="1" column="0">
        <widget class="QLabel" name="m_label_mrb_heuristic">
         <property name="text">
-         <string>Heuristic</string>
+         <string>Choice heuristic</string>
         </property>
        </widget>
       </item>
@@ -124,12 +124,19 @@
       <item row="3" column="0">
        <widget class="QLabel" name="m_label_skyline_heuristic">
         <property name="text">
-         <string>Heuristic</string>
+         <string>Choice heuristic</string>
         </property>
        </widget>
       </item>
       <item row="3" column="1">
-       <widget class="QComboBox" name="m_combo_skyline_heuristic"/>
+       <widget class="QComboBox" name="m_combo_skyline_heuristic">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
       </item>
       <item row="4" column="1">
        <widget class="QCheckBox" name="m_checkbox_skyline_use_waste_map">
@@ -138,8 +145,49 @@
         </property>
        </widget>
       </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="m_label_guillotine_choice_heuristic">
+        <property name="text">
+         <string>Choice heuristic</string>
+        </property>
+       </widget>
+      </item>
       <item row="5" column="1">
-       <spacer name="verticalSpacer">
+       <widget class="QComboBox" name="m_combo_guillotine_choice_heuristic">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QComboBox" name="m_combo_guillotine_split_heuristic">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="m_label_guillotine_split_heuristic">
+        <property name="text">
+         <string>Split heuristic</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="1">
+       <widget class="QCheckBox" name="m_checkbox_guillotine_allow_merge">
+        <property name="text">
+         <string>Allow merge</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="0" colspan="2">
+       <spacer name="m_spacer">
         <property name="orientation">
          <enum>Qt::Orientation::Vertical</enum>
         </property>

@@ -37,8 +37,11 @@ private slots:
     void onAlgorithmChanged(int _index);
     void onMaxRectesBiAllowFlipChanged(Qt::CheckState _state);
     void onMaxRectesBinHeuristicChanged(int _index);
-    void onSkylineUseWasteMapChanged(Qt::CheckState _state);
+    void onSkylineBinUseWasteMapChanged(Qt::CheckState _state);
     void onSkylineBinHeuristicChanged(int _index);
+    void onGuillotineBinChoiceHeuristicChanged(int _index);
+    void onGuillotineBinSplitHeuristicChanged(int _index);
+    void onGuillotineBinAllowMergeChanged(Qt::CheckState _state);
 
 private:
     void renderPack();
