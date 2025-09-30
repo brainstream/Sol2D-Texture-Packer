@@ -42,8 +42,8 @@ private:
     int m_max_bin_height;
     rbp::GuillotineBinPack::FreeRectChoiceHeuristic m_choice_heuristic;
     rbp::GuillotineBinPack::GuillotineSplitHeuristic m_split_heuristic;
-    bool m_is_merge_enabled;
     rbp::GuillotineBinPack m_pack;
+    bool m_is_merge_enabled;
 };
 
 GuillotineBinPackAlgorithm::GuillotineBinPackAlgorithm(
@@ -57,8 +57,8 @@ GuillotineBinPackAlgorithm::GuillotineBinPackAlgorithm(
     m_max_bin_height(_max_bin_height),
     m_choice_heuristic(map(_choice_heuristic)),
     m_split_heuristic(map(_split_heuristic)),
-    m_is_merge_enabled(_is_merge_enabled),
-    m_pack(_max_bin_width, _max_bin_height)
+    m_pack(_max_bin_width, _max_bin_height),
+    m_is_merge_enabled(_is_merge_enabled)
 {
 }
 

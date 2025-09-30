@@ -18,37 +18,32 @@
 
 #pragma once
 
-#include "ui_SpritePackerWidget.h"
+#include <LibSol2dTexturePacker/Packers/AtlasPacker.h>
 
-class SpritePackerWidget : public QWidget, private Ui::SpritePackerWidget
+enum class S2TP_EXPORT ShelfBinAtlasPackerChoiceHeuristic
 {
-    Q_OBJECT
+    NextFit,
+    FirstFit,
+    BestAreaFit,
+    WorstAreaFit,
+    BestHeightFit,
+    BestWidthFit,
+    WorstWidthFit
+};
 
-private:
-    struct Packers;
-    class SpriteListModel;
-
+class S2TP_EXPORT ShelfBinAtlasPacker : public AtlasPacker
+{
 public:
-    explicit SpritePackerWidget(QWidget * _parent = nullptr);
-    ~SpritePackerWidget() override;
+    explicit ShelfBinAtlasPacker(QObject * _parent = nullptr);
+    void setChoiceHeuristic(ShelfBinAtlasPackerChoiceHeuristic _heuristic) { m_heuristic = _heuristic; }
+    ShelfBinAtlasPackerChoiceHeuristic choiceHeuristic() const { return m_heuristic; }
+    void enableWasteMap(bool _enable) { m_use_waste_map = _enable; }
+    bool isWasteMapEnabled() const { return m_use_waste_map; }
 
-private slots:
-    void addSprites();
-    void onAlgorithmChanged(int _index);
-    void onMaxRectesBiAllowFlipChanged(Qt::CheckState _state);
-    void onMaxRectesBinHeuristicChanged(int _index);
-    void onSkylineBinUseWasteMapChanged(Qt::CheckState _state);
-    void onSkylineBinHeuristicChanged(int _index);
-    void onGuillotineBinChoiceHeuristicChanged(int _index);
-    void onGuillotineBinSplitHeuristicChanged(int _index);
-    void onGuillotineBinAllowMergeChanged(Qt::CheckState _state);
-    void onShelfBinSplitHeuristicChanged(int _index);
-    void onShelfBinUseWasteMapChanged(Qt::CheckState _state);
+protected:
+    std::unique_ptr<AtlasPackerAlgorithm> createAlgorithm(int _width, int _height) const override;
 
 private:
-    void renderPack();
-
-private:
-    SpriteListModel * m_sprites_model;
-    Packers * m_packers;
+    ShelfBinAtlasPackerChoiceHeuristic m_heuristic;
+    bool m_use_waste_map;
 };

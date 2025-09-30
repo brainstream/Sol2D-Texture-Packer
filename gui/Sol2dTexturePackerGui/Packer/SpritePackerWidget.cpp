@@ -21,6 +21,7 @@
 #include <LibSol2dTexturePacker/Packers/MaxRectsBinAtlasPacker.h>
 #include <LibSol2dTexturePacker/Packers/SkylineBinAtlasPacker.h>
 #include <LibSol2dTexturePacker/Packers/GuillotineBinAtlaskPacker.h>
+#include <LibSol2dTexturePacker/Packers/ShelfBinAtlasPacker.h>
 #include <QList>
 #include <QFileDialog>
 #include <QPixmap>
@@ -43,6 +44,7 @@ struct SpritePackerWidget::Packers
     MaxRectsBinAtlasPacker max_rects_bin;
     SkylineBinAtlasPacker skyline_bin;
     GuillotineBinAtlaskPacker guillotine_bin;
+    ShelfBinAtlasPacker shelf_bin;
     AtlasPacker * current;
 };
 
@@ -178,6 +180,28 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
         tr("Longer Axis"),
         static_cast<int>(GuillotineBinAtlasPackerSplitHeuristic::LongerAxis));
 
+    m_combo_shelf_choice_heuristic->addItem(
+        tr("Next Fit"),
+        static_cast<int>(ShelfBinAtlasPackerChoiceHeuristic::NextFit));
+    m_combo_shelf_choice_heuristic->addItem(
+        tr("First Fit"),
+        static_cast<int>(ShelfBinAtlasPackerChoiceHeuristic::FirstFit));
+    m_combo_shelf_choice_heuristic->addItem(
+        tr("Best Area Fit"),
+        static_cast<int>(ShelfBinAtlasPackerChoiceHeuristic::BestAreaFit));
+    m_combo_shelf_choice_heuristic->addItem(
+        tr("Worst Area Fit"),
+        static_cast<int>(ShelfBinAtlasPackerChoiceHeuristic::WorstAreaFit));
+    m_combo_shelf_choice_heuristic->addItem(
+        tr("Best Height Fit"),
+        static_cast<int>(ShelfBinAtlasPackerChoiceHeuristic::BestHeightFit));
+    m_combo_shelf_choice_heuristic->addItem(
+        tr("Best Width Fit"),
+        static_cast<int>(ShelfBinAtlasPackerChoiceHeuristic::BestWidthFit));
+    m_combo_shelf_choice_heuristic->addItem(
+        tr("Worst Width Fit"),
+        static_cast<int>(ShelfBinAtlasPackerChoiceHeuristic::WorstWidthFit));
+
     connect(m_btn_add_sprites, &QPushButton::clicked, this, &SpritePackerWidget::addSprites);
     connect(
         m_checkbox_mrb_allow_flip,
@@ -219,6 +243,16 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
         &QCheckBox::checkStateChanged,
         this,
         &SpritePackerWidget::onGuillotineBinAllowMergeChanged);
+    connect(
+        m_combo_shelf_choice_heuristic,
+        &QComboBox::currentIndexChanged,
+        this,
+        &SpritePackerWidget::onShelfBinSplitHeuristicChanged);
+    connect(
+        m_checkbox_shelf_use_waste_map,
+        &QCheckBox::checkStateChanged,
+        this,
+        &SpritePackerWidget::onShelfBinUseWasteMapChanged);
 
     m_packers->max_rects_bin.setChoiceHeuristic(
         static_cast<MaxRectsBinAtlasPackerChoiceHeuristic>(m_combo_mrb_heuristic->currentData().toInt()));
@@ -231,6 +265,9 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
     m_packers->guillotine_bin.setSplitHeuristic(
         static_cast<GuillotineBinAtlasPackerSplitHeuristic>(m_combo_guillotine_split_heuristic->currentData().toInt()));
     m_packers->guillotine_bin.enableMerge(m_checkbox_guillotine_allow_merge->isChecked());
+    m_packers->shelf_bin.setChoiceHeuristic(
+        static_cast<ShelfBinAtlasPackerChoiceHeuristic>(m_combo_shelf_choice_heuristic->currentData().toInt()));
+    m_packers->shelf_bin.enableWasteMap(m_checkbox_shelf_use_waste_map->isChecked());
     onAlgorithmChanged(0);
 }
 
@@ -291,6 +328,9 @@ void SpritePackerWidget::onAlgorithmChanged(int _index)
     case PackAlgorithm::GuillotineBinPack:
         new_packer = &m_packers->guillotine_bin;
         break;
+    case PackAlgorithm::ShelfBinPack:
+        new_packer = &m_packers->shelf_bin;
+        break;
     default:
         new_packer = m_packers->current;
         break;
@@ -311,6 +351,10 @@ void SpritePackerWidget::onAlgorithmChanged(int _index)
         m_label_guillotine_split_heuristic->setVisible(new_packer == &m_packers->guillotine_bin);
         m_combo_guillotine_split_heuristic->setVisible(new_packer == &m_packers->guillotine_bin);
         m_checkbox_guillotine_allow_merge->setVisible(new_packer == &m_packers->guillotine_bin);
+
+        m_label_shelf_choice_heuristic->setVisible(new_packer == &m_packers->shelf_bin);
+        m_combo_shelf_choice_heuristic->setVisible(new_packer == &m_packers->shelf_bin);
+        m_combo_shelf_choice_heuristic->setVisible(new_packer == &m_packers->shelf_bin);
 
         m_packers->current = new_packer;
         renderPack();
@@ -360,5 +404,18 @@ void SpritePackerWidget::onGuillotineBinSplitHeuristicChanged(int _index)
 void SpritePackerWidget::onGuillotineBinAllowMergeChanged(Qt::CheckState _state)
 {
     m_packers->guillotine_bin.enableMerge(_state == Qt::Checked);
+    renderPack();
+}
+
+void SpritePackerWidget::onShelfBinSplitHeuristicChanged(int _index)
+{
+    int heuristic = m_combo_shelf_choice_heuristic->itemData(_index).toInt();
+    m_packers->shelf_bin.setChoiceHeuristic(static_cast<ShelfBinAtlasPackerChoiceHeuristic>(heuristic));
+    renderPack();
+}
+
+void SpritePackerWidget::onShelfBinUseWasteMapChanged(Qt::CheckState _state)
+{
+    m_packers->shelf_bin.enableWasteMap(_state == Qt::Checked);
     renderPack();
 }

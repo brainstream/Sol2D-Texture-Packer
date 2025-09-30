@@ -16,82 +16,92 @@
  *                                                                                                        *
  **********************************************************************************************************/
 
-#include <LibSol2dTexturePacker/Packers/SkylineBinAtlasPacker.h>
-#include <RectangleBinPack/SkylineBinPack.h>
-#include <QPainter>
+#include <LibSol2dTexturePacker/Packers/ShelfBinAtlasPacker.h>
+#include <RectangleBinPack/ShelfBinPack.h>
 
 namespace {
 
-class SkylineBinPackAlgorithm : public AtlasPackerAlgorithm
+class ShelfBinAtlasPackerAlgorithm : public AtlasPackerAlgorithm
 {
 public:
-    SkylineBinPackAlgorithm(
+    ShelfBinAtlasPackerAlgorithm(
         int _max_bin_width,
         int _max_bin_height,
-        SkylineBinAtlasPackerLevelChoiceHeuristic _heuristic,
+        ShelfBinAtlasPackerChoiceHeuristic _heuristic,
         bool _use_waste_map);
     QRect insert(int _width, int _height) override;
     void resetBin() override;
 
 private:
-    static rbp::SkylineBinPack::LevelChoiceHeuristic map(SkylineBinAtlasPackerLevelChoiceHeuristic _heuristic);
+    static rbp::ShelfBinPack::ShelfChoiceHeuristic map(ShelfBinAtlasPackerChoiceHeuristic _heuristic);
 
 private:
     int m_max_bin_width;
     int m_max_bin_height;
-    rbp::SkylineBinPack::LevelChoiceHeuristic m_heuristic;
-    rbp::SkylineBinPack m_pack;
+    rbp::ShelfBinPack m_pack;
+    rbp::ShelfBinPack::ShelfChoiceHeuristic m_heuristic;
     bool m_use_waste_map;
 };
 
-SkylineBinPackAlgorithm::SkylineBinPackAlgorithm(
+ShelfBinAtlasPackerAlgorithm::ShelfBinAtlasPackerAlgorithm(
     int _max_bin_width,
     int _max_bin_height,
-    SkylineBinAtlasPackerLevelChoiceHeuristic _heuristic,
+    ShelfBinAtlasPackerChoiceHeuristic _heuristic,
     bool _use_waste_map
 ) :
-    m_heuristic(map(_heuristic)),
+    m_max_bin_width(_max_bin_width),
+    m_max_bin_height(_max_bin_height),
     m_pack(_max_bin_width, _max_bin_height, _use_waste_map),
+    m_heuristic(map(_heuristic)),
     m_use_waste_map(_use_waste_map)
 {
 }
 
-rbp::SkylineBinPack::LevelChoiceHeuristic SkylineBinPackAlgorithm::map(
-    SkylineBinAtlasPackerLevelChoiceHeuristic _heuristic)
+rbp::ShelfBinPack::ShelfChoiceHeuristic ShelfBinAtlasPackerAlgorithm::map(ShelfBinAtlasPackerChoiceHeuristic _heuristic)
 {
     switch(_heuristic)
     {
-    case SkylineBinAtlasPackerLevelChoiceHeuristic::BottomLeft:
-        return rbp::SkylineBinPack::LevelBottomLeft;
-    case SkylineBinAtlasPackerLevelChoiceHeuristic::MinWasteFit:
-        return rbp::SkylineBinPack::LevelMinWasteFit;
+    case ShelfBinAtlasPackerChoiceHeuristic::NextFit:
+        return rbp::ShelfBinPack::ShelfNextFit;
+    case ShelfBinAtlasPackerChoiceHeuristic::FirstFit:
+        return rbp::ShelfBinPack::ShelfFirstFit;
+    case ShelfBinAtlasPackerChoiceHeuristic::BestAreaFit:
+        return rbp::ShelfBinPack::ShelfBestAreaFit;
+    case ShelfBinAtlasPackerChoiceHeuristic::WorstAreaFit:
+        return rbp::ShelfBinPack::ShelfWorstAreaFit;
+    case ShelfBinAtlasPackerChoiceHeuristic::BestHeightFit:
+        return rbp::ShelfBinPack::ShelfBestHeightFit;
+    case ShelfBinAtlasPackerChoiceHeuristic::BestWidthFit:
+        return rbp::ShelfBinPack::ShelfBestWidthFit;
+    case ShelfBinAtlasPackerChoiceHeuristic::WorstWidthFit:
+        return rbp::ShelfBinPack::ShelfWorstWidthFit;
     default:
-        throw std::runtime_error("Unknown SkylineBinAtlasPackerLevelChoiceHeuristic");
+        throw std::runtime_error("Unknown ShelfBinAtlasPackerChoiceHeuristic");
     }
 }
 
-} // namespace
-
-QRect SkylineBinPackAlgorithm::insert(int _width, int _height)
+QRect ShelfBinAtlasPackerAlgorithm::insert(int _width, int _height)
 {
     rbp::Rect rect = m_pack.Insert(_width, _height, m_heuristic);
     return QRect(rect.x, rect.y, rect.width, rect.height);
 }
 
-void SkylineBinPackAlgorithm::resetBin()
+void ShelfBinAtlasPackerAlgorithm::resetBin()
 {
     m_pack.Init(m_max_bin_width, m_max_bin_height, m_use_waste_map);
 }
 
-SkylineBinAtlasPacker::SkylineBinAtlasPacker(QObject *_parent) :
+} // namespace
+
+ShelfBinAtlasPacker::ShelfBinAtlasPacker(QObject * _parent) :
     AtlasPacker(_parent),
-    m_heuristic(SkylineBinAtlasPackerLevelChoiceHeuristic::BottomLeft),
+    m_heuristic(ShelfBinAtlasPackerChoiceHeuristic::NextFit),
     m_use_waste_map(false)
 {
 }
 
-std::unique_ptr<AtlasPackerAlgorithm> SkylineBinAtlasPacker::createAlgorithm(
-    int _width, int _height) const
+std::unique_ptr<AtlasPackerAlgorithm> ShelfBinAtlasPacker::createAlgorithm(int _width, int _height) const
 {
-    return std::unique_ptr<AtlasPackerAlgorithm>(new SkylineBinPackAlgorithm(_width, _height, m_heuristic, m_use_waste_map));
+    return std::unique_ptr<AtlasPackerAlgorithm>(
+        new ShelfBinAtlasPackerAlgorithm(_width, _height, m_heuristic, m_use_waste_map));
 }

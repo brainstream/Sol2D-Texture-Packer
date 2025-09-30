@@ -91,7 +91,7 @@ rbp::MaxRectsBinPack::FreeRectChoiceHeuristic MaxRectsBinPackAlgorithm::map(
 MaxRectsBinAtlasPacker::MaxRectsBinAtlasPacker(QObject * _parent) :
     AtlasPacker(_parent),
     m_heuristic(MaxRectsBinAtlasPackerChoiceHeuristic::BestAreaFit),
-    m_allow_flip(false)
+    m_allow_flip(true)
 {
 }
 
