@@ -27,6 +27,7 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
 
 public:
     MainWindow(QWidget * _parent = nullptr);
+    ~MainWindow() override;
 
 protected:
     void closeEvent(QCloseEvent * _event) override;
@@ -35,4 +36,8 @@ private slots:
     void showSheetSplitter();
     void showSpritePacker();
     void closeTab(int _index);
+
+private:
+    QIcon * m_split_icon;
+    QIcon * m_pack_icon;
 };

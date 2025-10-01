@@ -23,7 +23,9 @@
 #include <QFileInfo>
 
 MainWindow::MainWindow(QWidget *_parent) :
-    QMainWindow(_parent)
+    QMainWindow(_parent),
+    m_split_icon(new QIcon(":/icons/image-x-generic")),
+    m_pack_icon(new QIcon(":/icons/package-x-generic"))
 {
     setupUi(this);
     QSettings settings;
@@ -38,6 +40,12 @@ MainWindow::MainWindow(QWidget *_parent) :
     connect(m_action_pack_sprites, &QAction::triggered, this, &MainWindow::showSpritePacker);
 }
 
+MainWindow::~MainWindow()
+{
+    delete m_split_icon;
+    delete m_pack_icon;
+}
+
 void MainWindow::closeEvent(QCloseEvent * _event)
 {
     Q_UNUSED(_event)
@@ -49,7 +57,7 @@ void MainWindow::closeEvent(QCloseEvent * _event)
 void MainWindow::showSheetSplitter()
 {
     SpriteSheetSplitterWidget * widget = new SpriteSheetSplitterWidget(this);
-    m_tabs->setCurrentIndex(m_tabs->addTab(widget, tr("Split Sprite Sheet")));
+    m_tabs->setCurrentIndex(m_tabs->addTab(widget, *m_split_icon, tr("Split Sprite Sheet")));
     connect(widget, &SpriteSheetSplitterWidget::sheetLoaded, this, [this, widget](const QString & _filename) {
         int index = m_tabs->indexOf(widget);
         if(index >= 0)
@@ -63,8 +71,7 @@ void MainWindow::showSheetSplitter()
 void MainWindow::showSpritePacker()
 {
     SpritePackerWidget * widget = new SpritePackerWidget(this);
-    int tab = m_tabs->addTab(widget, tr("Pack Sprites"));
-    m_tabs->setCurrentIndex(tab);
+    m_tabs->setCurrentIndex(m_tabs->addTab(widget, *m_pack_icon, tr("Pack Sprites")));
 }
 
 void MainWindow::closeTab(int _index)

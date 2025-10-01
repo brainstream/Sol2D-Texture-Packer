@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1263</width>
-    <height>844</height>
+    <width>1564</width>
+    <height>920</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -41,6 +41,10 @@
         <widget class="QPushButton" name="m_btn_add_sprites">
          <property name="text">
           <string>Add Sprites</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../Resources/Resources.qrc">
+           <normaloff>:/icons/list-add</normaloff>:/icons/list-add</iconset>
          </property>
         </widget>
        </item>
@@ -79,63 +83,92 @@
        <height>0</height>
       </size>
      </property>
-     <layout class="QFormLayout" name="formLayout">
-      <item row="0" column="0">
-       <widget class="QLabel" name="m_label_max_width">
-        <property name="text">
-         <string>Max width</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QSpinBox" name="m_spin_max_width">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimum">
-         <number>128</number>
-        </property>
-        <property name="maximum">
-         <number>65536</number>
-        </property>
-        <property name="value">
-         <number>1024</number>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="m_label_max_height">
-        <property name="text">
-         <string>Max height</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QSpinBox" name="m_spin_max_height">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimum">
-         <number>128</number>
-        </property>
-        <property name="maximum">
-         <number>65536</number>
-        </property>
-        <property name="value">
-         <number>1024</number>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0" colspan="2">
-       <widget class="QGroupBox" name="groupBox">
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QGroupBox" name="m_groupbox_main_settings">
         <property name="title">
-         <string>Packer</string>
+         <string>Main settings</string>
+        </property>
+        <layout class="QFormLayout" name="formLayout_4">
+         <item row="0" column="0">
+          <widget class="QLabel" name="m_label_max_width">
+           <property name="text">
+            <string>Max width</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QSpinBox" name="m_spin_max_width">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimum">
+            <number>128</number>
+           </property>
+           <property name="maximum">
+            <number>65536</number>
+           </property>
+           <property name="value">
+            <number>1024</number>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="m_label_max_height">
+           <property name="text">
+            <string>Max height</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QSpinBox" name="m_spin_max_height">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimum">
+            <number>128</number>
+           </property>
+           <property name="maximum">
+            <number>65536</number>
+           </property>
+           <property name="value">
+            <number>1024</number>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QCheckBox" name="m_checkbox_detect_duplicates">
+           <property name="text">
+            <string>Detect duplicates</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QCheckBox" name="m_checkbox_crop">
+           <property name="text">
+            <string>Crop</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="m_groupbox_packer_settings">
+        <property name="title">
+         <string>Packer settings</string>
         </property>
         <layout class="QFormLayout" name="formLayout_2">
          <item row="0" column="0">
@@ -271,21 +304,143 @@
            </property>
           </widget>
          </item>
+         <item row="10" column="0" colspan="2">
+          <spacer name="m_spacer">
+           <property name="orientation">
+            <enum>Qt::Orientation::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
         </layout>
        </widget>
       </item>
-      <item row="3" column="0" colspan="2">
-       <spacer name="verticalSpacer">
-        <property name="orientation">
-         <enum>Qt::Orientation::Vertical</enum>
+      <item>
+       <widget class="QGroupBox" name="m_groupbox_export">
+        <property name="title">
+         <string>Export</string>
         </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
-        </property>
-       </spacer>
+        <layout class="QFormLayout" name="formLayout_3">
+         <item row="0" column="0">
+          <widget class="QLabel" name="m_label_export_directory">
+           <property name="text">
+            <string>Directory</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <layout class="QHBoxLayout" name="m_layout_3">
+           <property name="spacing">
+            <number>2</number>
+           </property>
+           <item>
+            <widget class="QLineEdit" name="m_edit_export_directory"/>
+           </item>
+           <item>
+            <widget class="QPushButton" name="m_btn_browse_export_directory">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>35</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="toolTip">
+              <string>Browse...</string>
+             </property>
+             <property name="text">
+              <string notr="true">…</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="m_label_export_name">
+           <property name="text">
+            <string>Name</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="m_edit_export_name"/>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="m_label_atlas_format">
+           <property name="text">
+            <string>Atlas format</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QComboBox" name="m_combo_atlas_forma">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QCheckBox" name="m_checkbox_remove_file_ext">
+           <property name="text">
+            <string>Remove file extensions</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="m_label_texture_format">
+           <property name="text">
+            <string>Texture format</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QComboBox" name="m_combo_texture_format">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QPushButton" name="m_btn_export">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Export</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../Resources/Resources.qrc">
+             <normaloff>:/icons/document-save</normaloff>:/icons/document-save</iconset>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -319,9 +474,18 @@
   <tabstop>m_checkbox_guillotine_allow_merge</tabstop>
   <tabstop>m_combo_shelf_choice_heuristic</tabstop>
   <tabstop>m_checkbox_shelf_use_waste_map</tabstop>
+  <tabstop>m_edit_export_directory</tabstop>
+  <tabstop>m_btn_browse_export_directory</tabstop>
+  <tabstop>m_edit_export_name</tabstop>
+  <tabstop>m_combo_atlas_forma</tabstop>
+  <tabstop>m_checkbox_remove_file_ext</tabstop>
+  <tabstop>m_combo_texture_format</tabstop>
+  <tabstop>m_btn_export</tabstop>
   <tabstop>m_tree_sprites</tabstop>
   <tabstop>m_preview</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../Resources/Resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

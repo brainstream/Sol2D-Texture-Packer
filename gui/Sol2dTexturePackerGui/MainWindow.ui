@@ -115,10 +115,10 @@
   <action name="m_action_split_sheet">
    <property name="icon">
     <iconset resource="Resources/Resources.qrc">
-     <normaloff>:/image/grid-view</normaloff>:/image/grid-view</iconset>
+     <normaloff>:/icons/image-x-generic</normaloff>:/icons/image-x-generic</iconset>
    </property>
    <property name="text">
-    <string>Split Sheet...</string>
+    <string>Split</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -127,10 +127,10 @@
   <action name="m_action_pack_sprites">
    <property name="icon">
     <iconset resource="Resources/Resources.qrc">
-     <normaloff>:/image/box</normaloff>:/image/box</iconset>
+     <normaloff>:/icons/package-x-generic</normaloff>:/icons/package-x-generic</iconset>
    </property>
    <property name="text">
-    <string>Pack Sprites...</string>
+    <string>Pack</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

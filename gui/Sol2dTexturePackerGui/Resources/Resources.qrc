@@ -3,7 +3,15 @@
         <file alias="icon">icon.png</file>
         <file alias="transparent_dark">transparent_dark.png</file>
         <file alias="transparent_light">transparent_light.png</file>
-        <file alias="box">Reshot/Box/box.svg</file>
-        <file alias="grid-view">Reshot/GridView/grid-view.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="document-new">Icons/document-new.svg</file>
+        <file alias="document-save">Icons/document-save.svg</file>
+        <file alias="edit-clear">Icons/edit-clear.svg</file>
+        <file alias="list-add">Icons/list-add.svg</file>
+        <file alias="list-remove">Icons/list-remove.svg</file>
+        <file alias="document-open">Icons/document-open.svg</file>
+        <file alias="image-x-generic">Icons/image-x-generic.svg</file>
+        <file alias="package-x-generic">Icons/package-x-generic.svg</file>
     </qresource>
 </RCC>

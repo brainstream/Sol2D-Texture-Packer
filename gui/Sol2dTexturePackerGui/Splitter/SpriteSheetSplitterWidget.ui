@@ -89,12 +89,20 @@
           <property name="text">
            <string>Open Texture...</string>
           </property>
+          <property name="icon">
+           <iconset resource="../Resources/Resources.qrc">
+            <normaloff>:/icons/image-x-generic</normaloff>:/icons/image-x-generic</iconset>
+          </property>
          </widget>
         </item>
         <item>
          <widget class="QPushButton" name="m_btn_open_atlas">
           <property name="text">
            <string>Open Atlas..</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../Resources/Resources.qrc">
+            <normaloff>:/icons/document-open</normaloff>:/icons/document-open</iconset>
           </property>
          </widget>
         </item>
@@ -131,7 +139,8 @@
            <string>Export to atlas...</string>
           </property>
           <property name="icon">
-           <iconset theme="QIcon::ThemeIcon::DocumentSave"/>
+           <iconset resource="../Resources/Resources.qrc">
+            <normaloff>:/icons/document-new</normaloff>:/icons/document-new</iconset>
           </property>
          </widget>
         </item>
@@ -141,7 +150,8 @@
            <string>Export sprites...</string>
           </property>
           <property name="icon">
-           <iconset theme="QIcon::ThemeIcon::DocumentSave"/>
+           <iconset resource="../Resources/Resources.qrc">
+            <normaloff>:/icons/document-save</normaloff>:/icons/document-save</iconset>
           </property>
          </widget>
         </item>
@@ -184,6 +194,8 @@
   <tabstop>m_btn_export_sprites</tabstop>
   <tabstop>m_preview</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../Resources/Resources.qrc"/>
+ </resources>
  <connections/>
 </ui>
