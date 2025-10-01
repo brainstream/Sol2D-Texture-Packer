@@ -22,29 +22,40 @@
 
 void Pack::unpack(const QDir & _output_dir) const
 {
-    const QFileInfo fi(textureFilename());
-    const QString format = _output_dir.filePath(QString("%1_%2.png").arg(fi.baseName()));
-    quint32 index = 0;
     QImage texture = this->texture();
-    forEachFrame([&](const Frame & _frame) {
-        QImage img(
-            static_cast<int>(_frame.width),
-            static_cast<int>(_frame.height),
-            QImage::Format_ARGB32);
+    QTransform rotation;
+    rotation.rotate(90);
+    forEachFrame([&](const Frame & __frame) {
+        QImage img(__frame.sprite_rect.width(), __frame.sprite_rect.height(), QImage::Format_ARGB32);
         img.fill(0);
         QPainter painter(&img);
+        if(__frame.is_rotated)
+            painter.setTransform(rotation);
         painter.drawImage(
-            0,
-            0,
+            __frame.sprite_rect.topLeft(),
             texture,
-            _frame.x,
-            _frame.y,
-            static_cast<int>(_frame.width),
-            static_cast<int>(_frame.height));
-        const QString filename = format.arg(++index, 4, 10, QChar('0'));
+            __frame.texture_rect);
+        const QString filename = makeUnpackFilename(_output_dir, __frame);
         if(!img.save(filename))
             throw FileOpenException(filename, FileOpenException::Write);
     });
+}
+
+QString Pack::makeUnpackFilename(const QDir & _output_dir, const Frame & _frame) const
+{
+    const QString base_name = _frame.name.isEmpty() ? "sprite" : QFileInfo(_frame.name).baseName();
+    {
+        const QFileInfo fi(_output_dir.filePath(base_name + ".png")); // TODO: Other image formats
+        if(!fi.exists())
+            return fi.absoluteFilePath();
+    }
+    const QString name_format = QString("%1 (%2).png").arg(base_name); // TODO: Other image formats
+    for(int i = 1; ; ++i)
+    {
+        const QFileInfo fi(_output_dir.filePath(name_format.arg(i)));
+        if(!fi.exists())
+            return fi.absoluteFilePath();
+    }
 }
 
 const QImage & Pack::texture() const

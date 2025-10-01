@@ -19,13 +19,12 @@
 #pragma once
 
 #include <LibSol2dTexturePacker/Def.h>
-#include <filesystem>
 #include <QString>
 #include <QPixmap>
 
 struct S2TP_EXPORT Sprite
 {
-    std::filesystem::path path;
+    QString path;
     QString name;
     QPixmap pixmap;
 };

@@ -68,7 +68,7 @@ void SpriteSheetSplitterWidget::openTexture()
             grid_pack->deleteLater();
         });
         m_page_grid->setPack(grid_pack);
-        m_page_atlas->setPack(nullptr);
+        m_page_atlas->unsetPack();
         m_stacked_widget_properties->setCurrentWidget(m_page_grid);
         applyNewTexture();
     }
@@ -95,14 +95,11 @@ void SpriteSheetSplitterWidget::syncWithPack()
     QGraphicsPixmapItem * pixmap_item = scene->addPixmap(QPixmap::fromImage(m_pack->texture()));
     scene->addRect({pixmap_item->pos(), m_pack->texture().size()}, m_sheet_pen, m_sheet_brush);
     pixmap_item->setZValue(1);
-    bool is_valid = m_pack->forEachFrame([this, scene](const Frame & __frame) {
-        QGraphicsRectItem * item = scene->addRect(
-            __frame.x,
-            __frame.y,
-            __frame.width,
-            __frame.height,
-            m_sprite_pen,
-            m_sprite_brush);
+    qreal border_half_width = m_sheet_pen.widthF() / 2;
+    bool is_valid = m_pack->forEachFrame([this, scene, border_half_width](const Frame & __frame) {
+        QRectF rect = __frame.texture_rect.toRectF();
+        rect.adjust(border_half_width, border_half_width, -border_half_width, -border_half_width);
+        QGraphicsRectItem * item = scene->addRect(rect, m_sprite_pen, m_sprite_brush);
         item->setFlag(QGraphicsItem::ItemIsSelectable);
     });
     setExportControlsEnabled(is_valid);
@@ -146,7 +143,6 @@ void SpriteSheetSplitterWidget::exportToAtlas()
         m_last_atlas_export_file = filename;
         Atlas atlas
         {
-            .datafile = QString(),
             .texture = texture_file_path,
             .frames = QList<Frame>()
         };
@@ -181,8 +177,8 @@ void SpriteSheetSplitterWidget::openAtlas()
             serializer.deserialize(filename, atlas);
             AtlasPack * atlas_pack = new AtlasPack(atlas, this);
             m_pack = QSharedPointer<Pack>(atlas_pack);
-            m_page_atlas->setPack(atlas_pack);
-            m_page_grid->setPack(nullptr);
+            m_page_atlas->setPack(filename, atlas_pack);
+            m_page_grid->unsetPack();
             m_stacked_widget_properties->setCurrentWidget(m_page_atlas);
             settings.setValue(gc_settings_key_atlas_dir, file_info.absolutePath());
             applyNewTexture();

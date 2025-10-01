@@ -24,7 +24,7 @@
 
 MainWindow::MainWindow(QWidget *_parent) :
     QMainWindow(_parent),
-    m_split_icon(new QIcon(":/icons/image-x-generic")),
+    m_split_icon(new QIcon(":/icons/edit-cut")),
     m_pack_icon(new QIcon(":/icons/package-x-generic"))
 {
     setupUi(this);

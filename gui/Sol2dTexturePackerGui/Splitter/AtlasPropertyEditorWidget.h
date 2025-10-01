@@ -27,7 +27,8 @@ class AtlasPropertyEditorWidget : public QWidget, private Ui::AtlasPropertiesWid
 
 public:
     explicit AtlasPropertyEditorWidget(QWidget * _parent = nullptr);
-    void setPack(AtlasPack * _pack);
+    void unsetPack();
+    void setPack(const QString & _data_file, AtlasPack * _pack);
 
 private:
     AtlasPack * m_pack;

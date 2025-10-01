@@ -25,7 +25,12 @@ AtlasPropertyEditorWidget::AtlasPropertyEditorWidget(QWidget * _parent) :
     setupUi(this);
 }
 
-void AtlasPropertyEditorWidget::setPack(AtlasPack * _pack)
+void AtlasPropertyEditorWidget::unsetPack()
+{
+    setPack(QString(), nullptr);
+}
+
+void AtlasPropertyEditorWidget::setPack(const QString & _data_file, AtlasPack * _pack)
 {
     m_pack = _pack;
     if(m_pack)
@@ -33,7 +38,7 @@ void AtlasPropertyEditorWidget::setPack(AtlasPack * _pack)
         m_combo_format->setCurrentIndex(0); // TODO: format
         m_edit_texture_size->setText(QString("%1x%2").arg(m_pack->texture().width()).arg(m_pack->texture().height()));
         m_edit_texture_file->setText(m_pack->textureFilename());
-        m_edit_data_file->setText(_pack->atlas().datafile);
+        m_edit_data_file->setText(_data_file);
     }
     else
     {

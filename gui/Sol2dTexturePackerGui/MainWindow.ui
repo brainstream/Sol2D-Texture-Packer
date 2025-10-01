@@ -115,7 +115,7 @@
   <action name="m_action_split_sheet">
    <property name="icon">
     <iconset resource="Resources/Resources.qrc">
-     <normaloff>:/icons/image-x-generic</normaloff>:/icons/image-x-generic</iconset>
+     <normaloff>:/icons/edit-cut</normaloff>:/icons/edit-cut</iconset>
    </property>
    <property name="text">
     <string>Split</string>

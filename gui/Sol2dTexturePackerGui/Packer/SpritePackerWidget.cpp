@@ -119,14 +119,14 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
     m_combo_algorithm->addItem("Shelf", static_cast<int>(PackAlgorithm::ShelfBinPack));
 
     m_combo_mrb_heuristic->addItem(
-        tr("Best Area Fit"),
-        static_cast<int>(MaxRectsBinAtlasPackerChoiceHeuristic::BestAreaFit));
-    m_combo_mrb_heuristic->addItem(
         tr("Best Long Side Fit"),
         static_cast<int>(MaxRectsBinAtlasPackerChoiceHeuristic::BestLongSideFit));
     m_combo_mrb_heuristic->addItem(
         tr("Best Short Side Fit"),
         static_cast<int>(MaxRectsBinAtlasPackerChoiceHeuristic::BestShortSideFit));
+    m_combo_mrb_heuristic->addItem(
+        tr("Best Area Fit"),
+        static_cast<int>(MaxRectsBinAtlasPackerChoiceHeuristic::BestAreaFit));
     m_combo_mrb_heuristic->addItem(
         tr("Bottom Left Rule"),
         static_cast<int>(MaxRectsBinAtlasPackerChoiceHeuristic::BottomLeftRule));
@@ -294,12 +294,12 @@ void SpritePackerWidget::addSprites()
     foreach(const QString & file, files) {
         QPixmap pixmap;
         if(!pixmap.load(file)) continue;
-        std::filesystem::path file_path = file.toStdString();
+        QFileInfo fi(file);
         m_sprites_model->addSprite(
             Sprite
             {
-                .path = file_path,
-                .name = file_path.filename().c_str(),
+                .path = fi.absoluteFilePath(),
+                .name = fi.fileName(),
                 .pixmap = pixmap
             }
         );
@@ -315,7 +315,9 @@ void SpritePackerWidget::renderPack()
         .max_atlas_size = QSize(
             m_spin_max_width->value(),
             m_spin_max_height->value()
-        )
+        ),
+        .detect_duplicates = m_checkbox_detect_duplicates->isChecked(),
+        .crop = m_checkbox_crop->isChecked()
     };
     QList<QPixmap> atlases = m_packers->current->pack(m_sprites_model->getSprites(), options);
     foreach(const QPixmap & atlas, atlases)

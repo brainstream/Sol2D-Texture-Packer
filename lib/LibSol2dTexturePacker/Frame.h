@@ -20,12 +20,12 @@
 
 #include <LibSol2dTexturePacker/Def.h>
 #include <QString>
+#include <QRect>
 
 struct S2TP_EXPORT Frame
 {
+    QRect texture_rect;
+    QRect sprite_rect;
     QString name;
-    qint32 x;
-    qint32 y;
-    quint32 width;
-    quint32 height;
+    bool is_rotated;
 };

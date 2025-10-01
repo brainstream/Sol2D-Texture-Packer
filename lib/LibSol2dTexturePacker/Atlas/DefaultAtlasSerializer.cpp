@@ -30,10 +30,15 @@ const char * g_xml_tag_atlas = "atlas";
 const char * g_xml_tag_frame = "frame";
 const char * g_xml_attr_texture = "texture";
 const char * g_xml_attr_name = "name";
-const char * g_xml_attr_x = "x";
-const char * g_xml_attr_y = "y";
-const char * g_xml_attr_width = "width";
-const char * g_xml_attr_height = "height";
+const char * g_xml_attr_rotated = "rotated";
+const char * g_xml_attr_texture_x = "tx";
+const char * g_xml_attr_texture_y = "ty";
+const char * g_xml_attr_texture_width = "tw";
+const char * g_xml_attr_texture_height = "th";
+const char * g_xml_attr_sprite_x = "sx";
+const char * g_xml_attr_sprite_y = "sy";
+const char * g_xml_attr_sprite_width = "sw";
+const char * g_xml_attr_sprite_height = "sh";
 
 void validateXmlFrameAttribute(
     const QString & _file,
@@ -99,10 +104,16 @@ void DefaultAtlasSerializer::serialize(const Atlas & _atlas, const QString & _fi
             xml.writeAttribute(g_xml_attr_name, makeDefaultFrameName(_atlas, i + 1));
         else
             xml.writeAttribute(g_xml_attr_name, frame.name);
-        xml.writeAttribute(g_xml_attr_x, QString::number(frame.x));
-        xml.writeAttribute(g_xml_attr_y, QString::number(frame.y));
-        xml.writeAttribute(g_xml_attr_width, QString::number(frame.width));
-        xml.writeAttribute(g_xml_attr_height, QString::number(frame.height));
+        xml.writeAttribute(g_xml_attr_texture_x, QString::number(frame.texture_rect.x()));
+        xml.writeAttribute(g_xml_attr_texture_y, QString::number(frame.texture_rect.y()));
+        xml.writeAttribute(g_xml_attr_texture_width, QString::number(frame.texture_rect.width()));
+        xml.writeAttribute(g_xml_attr_texture_height, QString::number(frame.texture_rect.height()));
+        xml.writeAttribute(g_xml_attr_sprite_x, QString::number(frame.sprite_rect.x()));
+        xml.writeAttribute(g_xml_attr_sprite_y, QString::number(frame.sprite_rect.y()));
+        xml.writeAttribute(g_xml_attr_sprite_width, QString::number(frame.sprite_rect.width()));
+        xml.writeAttribute(g_xml_attr_sprite_height, QString::number(frame.sprite_rect.height()));
+        if(frame.is_rotated)
+            xml.writeAttribute(g_xml_attr_rotated, "true");
         xml.writeEndElement();
     }
     xml.writeEndElement();
@@ -129,7 +140,6 @@ void DefaultAtlasSerializer::deserialize(const QString & _file, Atlas & _atlas)
             QObject::tr("The XML root element must be \"%1\"").arg(g_xml_tag_atlas));
     }
     Atlas tmp_atlas;
-    tmp_atlas.datafile = _file;
     tmp_atlas.texture = xatlas.attribute(g_xml_attr_texture);
     {
         QFileInfo texture_fi(xatlas.attribute(g_xml_attr_texture));
@@ -143,11 +153,20 @@ void DefaultAtlasSerializer::deserialize(const QString & _file, Atlas & _atlas)
         xframe = xframe.nextSiblingElement(g_xml_tag_frame))
     {
         tmp_atlas.frames.append({
+            .texture_rect = QRect(
+                getXmlFrameIntAttribute<qint32>(_file, xframe, g_xml_attr_texture_x, frame_position),
+                getXmlFrameIntAttribute<qint32>(_file, xframe, g_xml_attr_texture_y, frame_position),
+                getXmlFrameIntAttribute<qint32>(_file, xframe, g_xml_attr_texture_width, frame_position),
+                getXmlFrameIntAttribute<qint32>(_file, xframe, g_xml_attr_texture_height, frame_position)
+            ),
+            .sprite_rect = QRect(
+                getXmlFrameIntAttribute<qint32>(_file, xframe, g_xml_attr_sprite_x, frame_position),
+                getXmlFrameIntAttribute<qint32>(_file, xframe, g_xml_attr_sprite_y, frame_position),
+                getXmlFrameIntAttribute<qint32>(_file, xframe, g_xml_attr_sprite_width, frame_position),
+                getXmlFrameIntAttribute<qint32>(_file, xframe, g_xml_attr_sprite_height, frame_position)
+            ),
             .name = xframe.attribute(g_xml_attr_name),
-            .x = getXmlFrameIntAttribute<qint32>(_file, xframe, g_xml_attr_x, frame_position),
-            .y = getXmlFrameIntAttribute<qint32>(_file, xframe, g_xml_attr_y, frame_position),
-            .width = getXmlFrameIntAttribute<quint32>(_file, xframe, g_xml_attr_width, frame_position),
-            .height = getXmlFrameIntAttribute<quint32>(_file, xframe, g_xml_attr_height, frame_position)
+            .is_rotated = xframe.attribute(g_xml_attr_rotated).compare("true", Qt::CaseInsensitive) == 0
         });
         ++frame_position;
     }

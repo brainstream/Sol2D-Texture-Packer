@@ -33,6 +33,9 @@ public:
 struct S2TP_EXPORT AtlasPackerOptions
 {
     QSize max_atlas_size = QSize(1024, 1024);
+    bool detect_duplicates = false;
+    bool crop = false;
+    bool remove_file_extensions = true;
 };
 
 class S2TP_EXPORT AtlasPacker : public QObject

@@ -42,6 +42,9 @@ public:
     virtual bool forEachFrame(std::function<void(const Frame &)> _cb) const = 0;
 
 private:
+    QString makeUnpackFilename(const QDir & _output_dir, const Frame & _frame) const;
+
+private:
     const QString m_texture_filename;
     mutable QImage m_texture;
 };

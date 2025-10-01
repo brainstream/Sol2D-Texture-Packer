@@ -13,5 +13,6 @@
         <file alias="document-open">Icons/document-open.svg</file>
         <file alias="image-x-generic">Icons/image-x-generic.svg</file>
         <file alias="package-x-generic">Icons/package-x-generic.svg</file>
+        <file alias="edit-cut">Icons/edit-cut.svg</file>
     </qresource>
 </RCC>

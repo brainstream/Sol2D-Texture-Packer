@@ -118,15 +118,23 @@ bool GridPack::forEachFrame(std::function<void (const Frame &)> _cb) const
     {
         return false;
     }
-    Frame frame;
-    frame.width = m_options.sprite_width;
-    frame.height = m_options.sprite_height;
+    const QString frame_name_format = QString("%1_%2").arg(QFileInfo(textureFilename()).baseName());
+    Frame frame
+    {
+        .texture_rect = QRect(0, 0, m_options.sprite_width, m_options.sprite_height),
+        .sprite_rect = QRect(0, 0, m_options.sprite_width, m_options.sprite_height),
+        .name = QString(),
+        .is_rotated = false
+    };
+    int index = 0;
     for(qint32 row = 0; row < m_options.row_count; ++row)
     {
-        frame.y = m_options.margin_top + row * m_options.sprite_height + row * m_options.vertical_spacing;
+        const int y = m_options.margin_top + row * m_options.sprite_height + row * m_options.vertical_spacing;
         for(qint32 col = 0; col < m_options.column_count; ++col)
         {
-            frame.x = m_options.margin_left + col * m_options.sprite_width + col * m_options.horizontal_spacing;
+            const int x = m_options.margin_left + col * m_options.sprite_width + col * m_options.horizontal_spacing;
+            frame.texture_rect.moveTo(x, y);
+            frame.name = frame_name_format.arg(++index, 4, 10, QChar('0'));
             _cb(frame);
         }
     }

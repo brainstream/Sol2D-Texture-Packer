@@ -23,7 +23,6 @@
 
 struct S2TP_EXPORT Atlas
 {
-    QString datafile;
     QString texture;
     QList<Frame> frames;
 };

@@ -29,6 +29,7 @@ class GridPropertyEditorWidget : public QWidget, private Ui::GridPropertyEditorW
 public:
     explicit GridPropertyEditorWidget(QWidget * _parent = nullptr);
     void setPack(GridPack * _pack);
+    void unsetPack() { setPack(nullptr); }
 
 private slots:
     void onRowCountChanged(int _value);
