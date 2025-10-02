@@ -18,41 +18,12 @@
 
 #pragma once
 
-#include <LibSol2dTexturePacker/Atlas/RawAtlas.h>
-#include <LibSol2dTexturePacker/Sprite.h>
-#include <QObject>
+#include <LibSol2dTexturePacker/Frame.h>
 #include <QList>
+#include <QImage>
 
-class S2TP_EXPORT AtlasPackerAlgorithm
+struct S2TP_EXPORT RawAtlas
 {
-public:
-    virtual ~AtlasPackerAlgorithm() { }
-    virtual QRect insert(int _width, int _height) = 0;
-    virtual void resetBin() = 0;
-};
-
-struct S2TP_EXPORT AtlasPackerOptions
-{
-    QSize max_atlas_size = QSize(1024, 1024);
-    bool detect_duplicates = false;
-    bool crop = false;
-    bool remove_file_extensions = true;
-};
-
-class S2TP_EXPORT AtlasPacker : public QObject
-{
-public:
-    explicit AtlasPacker(QObject * _parent) :
-        QObject(_parent),
-        m_max_atlas_size{1024, 1024}
-    {
-    }
-
-    QList<RawAtlas> pack(const QList<Sprite> & _sprites, const AtlasPackerOptions & _options) const;
-
-protected:
-    virtual std::unique_ptr<AtlasPackerAlgorithm> createAlgorithm(const QSize & _max_atlas_size) const = 0;
-
-protected:
-    QSize m_max_atlas_size;
+    QImage image;
+    QList<Frame> frames;
 };

@@ -24,8 +24,15 @@ namespace {
 
 struct Item
 {
-    Item(const QImage & _image, const QRect & _source_rect, const QRect & _destination_rect, bool _is_rotated) :
+    Item(
+        const QImage & _image,
+        const QString & _name,
+        const QRect & _source_rect,
+        const QRect & _destination_rect,
+        bool _is_rotated
+    ) :
         image(_image),
+        name(_name),
         source_rect(_source_rect),
         destination_rect(_destination_rect),
         is_rotated(_is_rotated)
@@ -33,6 +40,7 @@ struct Item
     }
 
     const QImage & image;
+    const QString name;
     QRect source_rect;
     QRect destination_rect;
     bool is_rotated;
@@ -133,12 +141,28 @@ QRect crop(const QImage & _image)
     return QRect(left, top, _image.width() - left - right, _image.height() - top - bottom);
 }
 
+QList<Frame> itemsToFrames(std::list<Item> _items)
+{
+    QList<Frame> frames;
+    frames.reserve(_items.size());
+    for(const Item & item : _items)
+    {
+        frames.append({
+            .texture_rect = item.destination_rect,
+            .sprite_rect = item.source_rect,
+            .name = item.name,
+            .is_rotated = item.is_rotated
+        });
+    }
+    return frames;
+}
+
 } // namespace name
 
-QList<QImage> AtlasPacker::pack(const QList<Sprite> & _sprites, const AtlasPackerOptions & _options) const
+QList<RawAtlas> AtlasPacker::pack(const QList<Sprite> & _sprites, const AtlasPackerOptions & _options) const
 {
     std::list<Item> items;
-    QList<QImage> result;
+    QList<RawAtlas> result;
     std::unique_ptr<AtlasPackerAlgorithm> algorithm = createAlgorithm(_options.max_atlas_size);
     foreach(const Sprite & sprite, _sprites)
     {
@@ -146,15 +170,26 @@ QList<QImage> AtlasPacker::pack(const QList<Sprite> & _sprites, const AtlasPacke
         QRect dest_rect = algorithm->insert(sprite_rect.width(), sprite_rect.height());
         if(dest_rect.isNull() && !items.empty())
         {
-            result.append(render(items));
+            result.append({
+                .image = render(items),
+                .frames = itemsToFrames(items)
+            });
             items.clear();
             algorithm->resetBin();
         }
-        items.emplace_back(std::ref(sprite.image), sprite_rect, dest_rect, dest_rect.width() == sprite_rect.height());
+        items.emplace_back(
+            std::ref(sprite.image),
+            sprite.name,
+            sprite_rect,
+            dest_rect,
+            dest_rect.width() == sprite_rect.height());
     }
     if(!items.empty())
     {
-        result.append(render(items));
+        result.append({
+            .image = render(items),
+            .frames = itemsToFrames(items)
+        });
     }
     return result;
 }

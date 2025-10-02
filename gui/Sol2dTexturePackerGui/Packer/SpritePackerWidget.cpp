@@ -319,9 +319,9 @@ void SpritePackerWidget::renderPack()
         .detect_duplicates = m_checkbox_detect_duplicates->isChecked(),
         .crop = m_checkbox_crop->isChecked()
     };
-    QList<QImage> atlases = m_packers->current->pack(m_sprites_model->getSprites(), options);
-    foreach(const QImage & atlas, atlases)
-        m_preview->scene()->addPixmap(QPixmap::fromImage(atlas));
+    QList<RawAtlas> atlases = m_packers->current->pack(m_sprites_model->getSprites(), options);
+    foreach(const RawAtlas & atlas, atlases)
+        m_preview->scene()->addPixmap(QPixmap::fromImage(atlas.image));
 }
 
 void SpritePackerWidget::onAlgorithmChanged()
