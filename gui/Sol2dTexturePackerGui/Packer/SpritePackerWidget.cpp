@@ -203,6 +203,7 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
     connect(m_btn_add_sprites, &QPushButton::clicked, this, &SpritePackerWidget::addSprites);
     connect(m_spin_max_width, &QSpinBox::valueChanged, this, &SpritePackerWidget::renderPack);
     connect(m_spin_max_height, &QSpinBox::valueChanged, this, &SpritePackerWidget::renderPack);
+    connect(m_checkbox_crop, &QCheckBox::checkStateChanged, this, &SpritePackerWidget::renderPack);
     connect(
         m_checkbox_mrb_allow_flip,
         &QCheckBox::checkStateChanged,

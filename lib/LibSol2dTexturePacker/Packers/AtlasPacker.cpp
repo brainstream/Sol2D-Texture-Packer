@@ -18,24 +18,34 @@
 
 #include <LibSol2dTexturePacker/Packers/AtlasPacker.h>
 #include <QPainter>
+#include <list>
 
 namespace {
 
 struct Item
 {
-    const Sprite & sprite;
-    QRect rect;
+    Item(const QImage & _image, const QRect & _source_rect, const QRect & _destination_rect, bool _is_rotated) :
+        image(_image),
+        source_rect(_source_rect),
+        destination_rect(_destination_rect),
+        is_rotated(_is_rotated)
+    {
+    }
+
+    const QImage & image;
+    QRect source_rect;
+    QRect destination_rect;
     bool is_rotated;
 };
 
-QImage render(const QList<Item> & _items)
+QImage render(const std::list<Item> & _items)
 {
     int max_x = 0;
     int max_y = 0;
     foreach(const Item & item, _items)
     {
-        int x = item.rect.x() + item.rect.width();
-        int y = item.rect.y() + item.rect.height();
+        int x = item.destination_rect.x() + item.destination_rect.width();
+        int y = item.destination_rect.y() + item.destination_rect.height();
         if(x > max_x) max_x = x;
         if(y > max_y) max_y = y;
     }
@@ -44,37 +54,103 @@ QImage render(const QList<Item> & _items)
     QPainter painter(&image);
     QTransform rotation;
     rotation.rotate(90);
-    foreach(const Item & item, _items)
-        painter.drawImage(item.rect, item.is_rotated ? item.sprite.image.transformed(rotation) : item.sprite.image);
+    for(const Item & item : _items)
+    {
+        painter.drawImage(
+            item.destination_rect.topLeft(),
+            item.is_rotated ? item.image.transformed(rotation) : item.image,
+            item.is_rotated
+                ? QRect(item.source_rect.y(), item.source_rect.x(), item.source_rect.height(), item.source_rect.width())
+                : item.source_rect);
+    }
     return image;
+}
+
+QRect crop(const QImage & _image)
+{
+    int top = 0, bottom = 0, left = 0, right = 0;
+
+    for(int y = 0; y < _image.height(); ++y)
+    {
+        bool exit = false;
+        for(int x = 0; x < _image.width(); ++x)
+        {
+            if(qAlpha(_image.pixel(x, y)) != 0)
+            {
+                exit = true;
+                break;
+            }
+        }
+        if(exit) break;
+        ++top;
+    }
+
+    for(int y = _image.height() - 1; y >= 0; --y)
+    {
+        bool exit = false;
+        for(int x = 0; x < _image.width(); ++x)
+        {
+            if(qAlpha(_image.pixel(x, y)) != 0)
+            {
+                exit = true;
+                break;
+            }
+        }
+        if(exit) break;
+        ++bottom;
+    }
+
+    for(int x = 0; x < _image.width(); ++x)
+    {
+        bool exit = false;
+        for(int y = _image.height() - bottom - 1; y > top; --y)
+        {
+            if(qAlpha(_image.pixel(x, y)) != 0)
+            {
+                exit = true;
+                break;
+            }
+        }
+        if(exit) break;
+        ++left;
+    }
+
+    for(int x = _image.width() - 1; x >= 0; --x)
+    {
+        bool exit = false;
+        for(int y = _image.height() - bottom - 1; y > top; --y)
+        {
+            if(qAlpha(_image.pixel(x, y)) != 0)
+            {
+                exit = true;
+                break;
+            }
+        }
+        if(exit) break;
+        ++right;
+    }
+
+    return QRect(left, top, _image.width() - left - right, _image.height() - top - bottom);
 }
 
 } // namespace name
 
 QList<QImage> AtlasPacker::pack(const QList<Sprite> & _sprites, const AtlasPackerOptions & _options) const
 {
-    QList<Item> items;
+    std::list<Item> items;
     QList<QImage> result;
-    items.reserve(_sprites.size());
     std::unique_ptr<AtlasPackerAlgorithm> algorithm = createAlgorithm(_options.max_atlas_size);
     foreach(const Sprite & sprite, _sprites)
     {
-        QRect sprite_rect = sprite.image.rect();
-        QRect rect = algorithm->insert(sprite_rect.width(), sprite_rect.height());
-        if(rect.isNull() && !items.empty())
+        QRect sprite_rect = _options.crop ? crop(sprite.image) : sprite.image.rect();
+        QRect dest_rect = algorithm->insert(sprite_rect.width(), sprite_rect.height());
+        if(dest_rect.isNull() && !items.empty())
         {
             result.append(render(items));
             items.clear();
             algorithm->resetBin();
         }
-        items.append(
-            Item
-            {
-                .sprite = sprite,
-                .rect = rect,
-                .is_rotated = rect.width() == sprite_rect.height()
-            }
-        );
+        items.emplace_back(std::ref(sprite.image), sprite_rect, dest_rect, dest_rect.width() == sprite_rect.height());
     }
     if(!items.empty())
     {
