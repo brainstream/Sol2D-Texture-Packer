@@ -24,7 +24,6 @@
 #include <LibSol2dTexturePacker/Packers/ShelfBinAtlasPacker.h>
 #include <QList>
 #include <QFileDialog>
-#include <QPixmap>
 #include <QAbstractListModel>
 
 namespace {
@@ -80,7 +79,7 @@ QVariant SpritePackerWidget::SpriteListModel::data(const QModelIndex & _index, i
     case Qt::DisplayRole:
         return m_sprites[_index.row()].name;
     case Qt::DecorationRole:
-        return m_sprites[_index.row()].pixmap;
+        return m_sprites[_index.row()].image;
     default:
         return QVariant();
     }
@@ -292,15 +291,15 @@ void SpritePackerWidget::addSprites()
         std::filesystem::absolute(std::filesystem::path(files[0].toStdString()).parent_path()).c_str()
     );
     foreach(const QString & file, files) {
-        QPixmap pixmap;
-        if(!pixmap.load(file)) continue;
+        QImage image;
+        if(!image.load(file)) continue;
         QFileInfo fi(file);
         m_sprites_model->addSprite(
             Sprite
             {
                 .path = fi.absoluteFilePath(),
                 .name = fi.fileName(),
-                .pixmap = pixmap
+                .image = image
             }
         );
     }
@@ -319,9 +318,9 @@ void SpritePackerWidget::renderPack()
         .detect_duplicates = m_checkbox_detect_duplicates->isChecked(),
         .crop = m_checkbox_crop->isChecked()
     };
-    QList<QPixmap> atlases = m_packers->current->pack(m_sprites_model->getSprites(), options);
-    foreach(const QPixmap & atlas, atlases)
-        m_preview->scene()->addPixmap(atlas);
+    QList<QImage> atlases = m_packers->current->pack(m_sprites_model->getSprites(), options);
+    foreach(const QImage & atlas, atlases)
+        m_preview->scene()->addPixmap(QPixmap::fromImage(atlas));
 }
 
 void SpritePackerWidget::onAlgorithmChanged()

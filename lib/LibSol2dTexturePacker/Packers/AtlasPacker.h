@@ -47,7 +47,7 @@ public:
     {
     }
 
-    QList<QPixmap> pack(const QList<Sprite> & _sprites, const AtlasPackerOptions & _options) const;
+    QList<QImage> pack(const QList<Sprite> & _sprites, const AtlasPackerOptions & _options) const;
 
 protected:
     virtual std::unique_ptr<AtlasPackerAlgorithm> createAlgorithm(const QSize & _max_atlas_size) const = 0;

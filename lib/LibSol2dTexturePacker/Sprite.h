@@ -20,11 +20,11 @@
 
 #include <LibSol2dTexturePacker/Def.h>
 #include <QString>
-#include <QPixmap>
+#include <QImage>
 
 struct S2TP_EXPORT Sprite
 {
     QString path;
     QString name;
-    QPixmap pixmap;
+    QImage image;
 };

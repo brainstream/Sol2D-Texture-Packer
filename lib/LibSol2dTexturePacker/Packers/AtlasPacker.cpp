@@ -28,7 +28,7 @@ struct Item
     bool is_rotated;
 };
 
-QPixmap render(const QList<Item> & _items)
+QImage render(const QList<Item> & _items)
 {
     int max_x = 0;
     int max_y = 0;
@@ -39,35 +39,28 @@ QPixmap render(const QList<Item> & _items)
         if(x > max_x) max_x = x;
         if(y > max_y) max_y = y;
     }
-    QPixmap pixmap(max_x, max_y);
-    pixmap.fill(Qt::transparent);
-    QPainter painter(&pixmap);
+    QImage image(max_x, max_y, QImage::Format_RGBA8888);
+    image.fill(Qt::transparent);
+    QPainter painter(&image);
     QTransform rotation;
     rotation.rotate(90);
     foreach(const Item & item, _items)
-    {
-        painter.drawPixmap(
-            item.rect.x(),
-            item.rect.y(),
-            item.rect.width(),
-            item.rect.height(),
-            item.is_rotated ? item.sprite.pixmap.transformed(rotation) : item.sprite.pixmap);
-    }
-    return pixmap;
+        painter.drawImage(item.rect, item.is_rotated ? item.sprite.image.transformed(rotation) : item.sprite.image);
+    return image;
 }
 
 } // namespace name
 
-QList<QPixmap> AtlasPacker::pack(const QList<Sprite> & _sprites, const AtlasPackerOptions & _options) const
+QList<QImage> AtlasPacker::pack(const QList<Sprite> & _sprites, const AtlasPackerOptions & _options) const
 {
     QList<Item> items;
-    QList<QPixmap> result;
+    QList<QImage> result;
     items.reserve(_sprites.size());
     std::unique_ptr<AtlasPackerAlgorithm> algorithm = createAlgorithm(_options.max_atlas_size);
     foreach(const Sprite & sprite, _sprites)
     {
-        QRect pixmap_rect = sprite.pixmap.rect();
-        QRect rect = algorithm->insert(pixmap_rect.width(), pixmap_rect.height());
+        QRect sprite_rect = sprite.image.rect();
+        QRect rect = algorithm->insert(sprite_rect.width(), sprite_rect.height());
         if(rect.isNull() && !items.empty())
         {
             result.append(render(items));
@@ -79,7 +72,7 @@ QList<QPixmap> AtlasPacker::pack(const QList<Sprite> & _sprites, const AtlasPack
             {
                 .sprite = sprite,
                 .rect = rect,
-                .is_rotated = rect.width() == pixmap_rect.height()
+                .is_rotated = rect.width() == sprite_rect.height()
             }
         );
     }
