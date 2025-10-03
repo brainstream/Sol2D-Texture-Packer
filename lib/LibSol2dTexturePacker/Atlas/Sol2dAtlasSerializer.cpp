@@ -16,7 +16,7 @@
  *                                                                                                        *
  **********************************************************************************************************/
 
-#include <LibSol2dTexturePacker/Atlas/DefaultAtlasSerializer.h>
+#include <LibSol2dTexturePacker/Atlas/Sol2dAtlasSerializer.h>
 #include <LibSol2dTexturePacker/Exception.h>
 #include <QFile>
 #include <QFileInfo>
@@ -84,7 +84,7 @@ Int getXmlFrameIntAttribute(
 
 } // namespace
 
-void DefaultAtlasSerializer::serialize(const Atlas & _atlas, const QString & _file)
+void Sol2dAtlasSerializer::serialize(const Atlas & _atlas, const QString & _file)
 {
     QFile file(_file);
     if(!file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
@@ -120,7 +120,7 @@ void DefaultAtlasSerializer::serialize(const Atlas & _atlas, const QString & _fi
     xml.writeEndDocument();
 }
 
-void DefaultAtlasSerializer::deserialize(const QString & _file, Atlas & _atlas)
+void Sol2dAtlasSerializer::deserialize(const QString & _file, Atlas & _atlas)
 {
     QFile file(_file);
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text))

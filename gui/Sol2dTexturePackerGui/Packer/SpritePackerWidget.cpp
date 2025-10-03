@@ -23,8 +23,10 @@
 #include <LibSol2dTexturePacker/Packers/SkylineBinAtlasPacker.h>
 #include <LibSol2dTexturePacker/Packers/GuillotineBinAtlaskPacker.h>
 #include <LibSol2dTexturePacker/Packers/ShelfBinAtlasPacker.h>
+#include <LibSol2dTexturePacker/Exception.h>
 #include <QList>
 #include <QFileDialog>
+#include <QMessageBox>
 #include <QAbstractListModel>
 #include <QImageWriter>
 
@@ -221,6 +223,10 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
     connect(m_spin_max_width, &QSpinBox::valueChanged, this, &SpritePackerWidget::renderPack);
     connect(m_spin_max_height, &QSpinBox::valueChanged, this, &SpritePackerWidget::renderPack);
     connect(m_checkbox_crop, &QCheckBox::checkStateChanged, this, &SpritePackerWidget::renderPack);
+    connect(m_btn_export, &QPushButton::clicked, this, &SpritePackerWidget::exportPack);
+    connect(m_edit_export_directory, &QLineEdit::textChanged, this, &SpritePackerWidget::validateExportPackRequirements);
+    connect(m_edit_export_name, &QLineEdit::textChanged, this, &SpritePackerWidget::validateExportPackRequirements);
+    connect(m_btn_browse_export_directory, &QPushButton::clicked, this, &SpritePackerWidget::browseForExportDir);
     connect(
         m_checkbox_mrb_allow_flip,
         &QCheckBox::checkStateChanged,
@@ -286,7 +292,9 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
     m_packers->shelf_bin.setChoiceHeuristic(
         static_cast<ShelfBinAtlasPackerChoiceHeuristic>(m_combo_shelf_choice_heuristic->currentData().toInt()));
     m_packers->shelf_bin.enableWasteMap(m_checkbox_shelf_use_waste_map->isChecked());
+
     onAlgorithmChanged();
+    validateExportPackRequirements();
 }
 
 SpritePackerWidget::~SpritePackerWidget()
@@ -337,9 +345,42 @@ void SpritePackerWidget::renderPack()
         .detect_duplicates = m_checkbox_detect_duplicates->isChecked(),
         .crop = m_checkbox_crop->isChecked()
     };
-    QList<RawAtlas> atlases = m_packers->current->pack(m_sprites_model->getSprites(), options);
-    foreach(const RawAtlas & atlas, atlases)
+    m_atlases = m_packers->current->pack(m_sprites_model->getSprites(), options);
+    for(const RawAtlas & atlas : *m_atlases)
         m_preview->scene()->addPixmap(QPixmap::fromImage(atlas.image));
+    validateExportPackRequirements();
+}
+
+void SpritePackerWidget::exportPack()
+{
+    try
+    {
+        m_atlases->save(
+            m_edit_export_directory->text(),
+            m_edit_export_name->text(),
+            m_combo_texture_format->currentText());
+    }
+    catch(const Exception & _exception)
+    {
+        QMessageBox::critical(this, QString(), _exception.message());
+    }
+}
+
+void SpritePackerWidget::validateExportPackRequirements()
+{
+    bool valid =
+        m_atlases != nullptr &&
+        m_atlases->count() > 0 &&
+        !m_edit_export_directory->text().isEmpty() &&
+        !m_edit_export_name->text().isEmpty();
+    m_btn_export->setEnabled(valid);
+}
+
+void SpritePackerWidget::browseForExportDir()
+{
+    QString dir = QFileDialog::getExistingDirectory(this, tr("Select directory to save atlases")); // TODO: default dir
+    if(!dir.isEmpty())
+        m_edit_export_directory->setText(dir);
 }
 
 void SpritePackerWidget::onAlgorithmChanged()

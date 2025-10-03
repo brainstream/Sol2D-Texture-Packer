@@ -18,7 +18,7 @@
 
 #include <LibSol2dTexturePacker/Packers/AtlasPacker.h>
 #include <QPainter>
-#include <list>
+#include <QRect>
 
 namespace {
 
@@ -159,10 +159,12 @@ QList<Frame> itemsToFrames(std::list<Item> _items)
 
 } // namespace name
 
-QList<RawAtlas> AtlasPacker::pack(const QList<Sprite> & _sprites, const AtlasPackerOptions & _options) const
+std::unique_ptr<RawAtlasPack> AtlasPacker::pack(
+    const QList<Sprite> & _sprites,
+    const AtlasPackerOptions & _options) const
 {
     std::list<Item> items;
-    QList<RawAtlas> result;
+    std::unique_ptr<RawAtlasPack> result = std::make_unique<RawAtlasPack>();
     std::unique_ptr<AtlasPackerAlgorithm> algorithm = createAlgorithm(_options.max_atlas_size);
     foreach(const Sprite & sprite, _sprites)
     {
@@ -170,7 +172,7 @@ QList<RawAtlas> AtlasPacker::pack(const QList<Sprite> & _sprites, const AtlasPac
         QRect dest_rect = algorithm->insert(sprite_rect.width(), sprite_rect.height());
         if(dest_rect.isNull() && !items.empty())
         {
-            result.append({
+            result->add({
                 .image = render(items),
                 .frames = itemsToFrames(items)
             });
@@ -186,7 +188,7 @@ QList<RawAtlas> AtlasPacker::pack(const QList<Sprite> & _sprites, const AtlasPac
     }
     if(!items.empty())
     {
-        result.append({
+        result->add({
             .image = render(items),
             .frames = itemsToFrames(items)
         });

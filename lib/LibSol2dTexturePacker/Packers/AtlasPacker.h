@@ -18,10 +18,9 @@
 
 #pragma once
 
-#include <LibSol2dTexturePacker/Atlas/RawAtlas.h>
+#include <LibSol2dTexturePacker/Packers/RawAtlasPack.h>
 #include <LibSol2dTexturePacker/Sprite.h>
 #include <QObject>
-#include <QList>
 
 class S2TP_EXPORT AtlasPackerAlgorithm
 {
@@ -48,7 +47,7 @@ public:
     {
     }
 
-    QList<RawAtlas> pack(const QList<Sprite> & _sprites, const AtlasPackerOptions & _options) const;
+    std::unique_ptr<RawAtlasPack> pack(const QList<Sprite> & _sprites, const AtlasPackerOptions & _options) const;
 
 protected:
     virtual std::unique_ptr<AtlasPackerAlgorithm> createAlgorithm(const QSize & _max_atlas_size) const = 0;

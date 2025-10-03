@@ -39,7 +39,16 @@ private:
     const QString m_message;
 };
 
-class S2TP_EXPORT FileOpenException : public Exception
+class S2TP_EXPORT IOExeption : public Exception
+{
+public:
+    explicit IOExeption(QString _message) :
+        Exception(std::move(_message))
+    {
+    }
+};
+
+class S2TP_EXPORT FileOpenException : public IOExeption
 {
 public:
     enum Mode
@@ -49,7 +58,7 @@ public:
     };
 
     FileOpenException(const QString & _filename, Mode _mode) :
-        Exception(getMessage(_filename, _mode))
+        IOExeption(getMessage(_filename, _mode))
     {
     }
 
@@ -98,11 +107,11 @@ private:
     }
 };
 
-class S2TP_EXPORT ImageLoadingException : public Exception
+class S2TP_EXPORT ImageLoadingException : public IOExeption
 {
 public:
     explicit ImageLoadingException(const QString & _filename) :
-        Exception(getMessage(_filename))
+        IOExeption(getMessage(_filename))
     {
     }
 
@@ -110,5 +119,20 @@ private:
     static QString getMessage(const QString & _filename)
     {
         return QObject::tr("Unable to load image from file \"%1\"").arg(_filename);
+    }
+};
+
+class S2TP_EXPORT ImageSavingException : public IOExeption
+{
+public:
+    explicit ImageSavingException(const QString & _filename) :
+        IOExeption(getMessage(_filename))
+    {
+    }
+
+private:
+    static QString getMessage(const QString & _filename)
+    {
+        return QObject::tr("Unable to save image to file \"%1\"").arg(_filename);
     }
 };

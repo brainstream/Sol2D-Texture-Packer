@@ -20,7 +20,7 @@
 
 #include <LibSol2dTexturePacker/Atlas/AtlasSerializer.h>
 
-class S2TP_EXPORT DefaultAtlasSerializer final : public AtlasSerializer
+class S2TP_EXPORT Sol2dAtlasSerializer final : public AtlasSerializer
 {
 public:
     void serialize(const Atlas & _atlas, const QString & _file) override;

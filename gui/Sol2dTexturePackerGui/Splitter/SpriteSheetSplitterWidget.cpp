@@ -22,7 +22,7 @@
 #include <LibSol2dTexturePacker/Pack/GridPack.h>
 #include <LibSol2dTexturePacker/Pack/AtlasPack.h>
 #include <LibSol2dTexturePacker/Exception.h>
-#include <LibSol2dTexturePacker/Atlas/DefaultAtlasSerializer.h>
+#include <LibSol2dTexturePacker/Atlas/Sol2dAtlasSerializer.h>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
 #include <QFileDialog>
@@ -122,7 +122,7 @@ void SpriteSheetSplitterWidget::exportToAtlas()
     {
         return;
     }
-    DefaultAtlasSerializer serializer;
+    Sol2dAtlasSerializer serializer;
     QString texture_file_path = m_pack->textureFilename(); // TODO: bad default!
     QString default_filename = m_last_atlas_export_file;
     if(default_filename.isEmpty())
@@ -173,7 +173,7 @@ void SpriteSheetSplitterWidget::openAtlas()
             QFileInfo file_info(filename);
             filename = file_info.absoluteFilePath();
             Atlas atlas;
-            DefaultAtlasSerializer serializer;
+            Sol2dAtlasSerializer serializer;
             serializer.deserialize(filename, atlas);
             AtlasPack * atlas_pack = new AtlasPack(atlas, this);
             m_pack = QSharedPointer<Pack>(atlas_pack);

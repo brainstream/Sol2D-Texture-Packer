@@ -18,7 +18,7 @@
 
 #include <Sol2dTexturePackerCli/UnpackApplication.h>
 #include <LibSol2dTexturePacker/Pack/AtlasPack.h>
-#include <LibSol2dTexturePacker/Atlas/DefaultAtlasSerializer.h>
+#include <LibSol2dTexturePacker/Atlas/Sol2dAtlasSerializer.h>
 #include <LibSol2dTexturePacker/Exception.h>
 #include <QImage>
 
@@ -80,7 +80,7 @@ void UnpackApplication::AtlasRunner::run()
 {
     Atlas atlas;
     {
-        DefaultAtlasSerializer serializer;
+        Sol2dAtlasSerializer serializer;
         serializer.deserialize(m_atlas, atlas);
     }
     AtlasPack pack(atlas);

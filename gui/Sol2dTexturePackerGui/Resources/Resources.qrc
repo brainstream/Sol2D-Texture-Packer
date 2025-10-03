@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/image">
-        <file alias="icon">icon.png</file>
         <file alias="transparent_dark">transparent_dark.png</file>
         <file alias="transparent_light">transparent_light.png</file>
     </qresource>

@@ -16,44 +16,35 @@
  *                                                                                                        *
  **********************************************************************************************************/
 
-#pragma once
-
-#include "ui_SpritePackerWidget.h"
 #include <LibSol2dTexturePacker/Packers/RawAtlasPack.h>
-#include <memory>
+#include <LibSol2dTexturePacker/Atlas/Sol2dAtlasSerializer.h>
+#include <LibSol2dTexturePacker/Exception.h>
 
-class SpritePackerWidget : public QWidget, private Ui::SpritePackerWidget
+void RawAtlasPack::save(
+    const QDir & _directory,
+    const QString & _atlas_name,
+    const QString & _image_format)
 {
-    Q_OBJECT
+    if(m_atlases.empty())
+        return;
 
-private:
-    struct Packers;
-    class SpriteListModel;
+    Sol2dAtlasSerializer serializer;
 
-public:
-    explicit SpritePackerWidget(QWidget * _parent = nullptr);
-    ~SpritePackerWidget() override;
-
-private slots:
-    void addSprites();
-    void renderPack();
-    void exportPack();
-    void browseForExportDir();
-    void validateExportPackRequirements();
-    void onAlgorithmChanged();
-    void onMaxRectesBiAllowFlipChanged(Qt::CheckState _state);
-    void onMaxRectesBinHeuristicChanged(int _index);
-    void onSkylineBinUseWasteMapChanged(Qt::CheckState _state);
-    void onSkylineBinHeuristicChanged(int _index);
-    void onGuillotineBinChoiceHeuristicChanged(int _index);
-    void onGuillotineBinSplitHeuristicChanged(int _index);
-    void onGuillotineBinAllowMergeChanged(Qt::CheckState _state);
-    void onShelfBinSplitHeuristicChanged(int _index);
-    void onShelfBinUseWasteMapChanged(Qt::CheckState _state);
-
-private:
-    SpriteListModel * m_sprites_model;
-    Packers * m_packers;
-    const QString m_open_image_dialog_filter;
-    std::unique_ptr<RawAtlasPack> m_atlases;
-};
+    size_t index = m_atlases.size() == 1 ? 0 : 1;
+    for(const RawAtlas & ra : m_atlases)
+    {
+        const QString base_filename = _directory.absoluteFilePath(index == 0
+            ? _atlas_name
+            : QString("%1-%2").arg(_atlas_name).arg(index));
+        QString filename = QString("%1.%2").arg(base_filename, _image_format);
+        ++index;
+        if(!ra.image.save(filename))
+            throw ImageSavingException(filename);
+        serializer.serialize(
+            {
+                .texture = filename,
+                .frames = ra.frames
+            },
+            _directory.absoluteFilePath(QString("%1.%2").arg(base_filename, serializer.defaultFileExtenstion())));
+    }
+}
