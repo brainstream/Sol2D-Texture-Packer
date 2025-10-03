@@ -18,26 +18,26 @@
 
 #include <Sol2dTexturePackerGui/Splitter/SpriteSheetSplitterWidget.h>
 #include <Sol2dTexturePackerGui/Settings.h>
+#include <Sol2dTexturePackerGui/ImageFormat.h>
 #include <LibSol2dTexturePacker/Pack/GridPack.h>
 #include <LibSol2dTexturePacker/Pack/AtlasPack.h>
 #include <LibSol2dTexturePacker/Exception.h>
 #include <LibSol2dTexturePacker/Atlas/DefaultAtlasSerializer.h>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
-#include <QImageReader>
 #include <QFileDialog>
 #include <QMessageBox>
 
 SpriteSheetSplitterWidget::SpriteSheetSplitterWidget(QWidget * _parent) :
     QWidget(_parent),
+    m_open_image_dialog_filter(makeAllReadSupportedImageFormatsFilterString()),
     m_sheet_brush(QColor(255, 255, 255, 180)),
     m_sheet_pen(QColor(0, 0, 0, 150)),
     m_sprite_pen(QColor(255, 0, 0, 80)),
     m_sprite_brush(QColor(255, 0, 0, 50)),
     m_pack(nullptr)
 {
-    m_open_image_dialog_filter = QString(tr("All supported image formats (*.%1)"))
-        .arg(QImageReader().supportedImageFormats().join(" *."));
+
     setupUi(this);
     m_preview->setScene(new QGraphicsScene(this));
     m_preview->setZoomModel(&m_zoom_widget->model());

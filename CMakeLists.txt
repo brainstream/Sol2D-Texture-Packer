@@ -138,7 +138,7 @@ target_include_directories(
 add_compile_definitions(
     __S2TP_VERSION="${CMAKE_PROJECT_VERSION}"
     __S2TP_ORG="sol2d"
-    __S2TP_APP="Sol2d Texture Packer"
+    __S2TP_APP="Sol2D Texture Packer"
 )
 target_compile_definitions(
     ${S2TP_LIB_TARGET}

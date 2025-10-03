@@ -43,7 +43,7 @@ private:
     void setExportControlsEnabled(bool _enabled);
 
 private:
-    QString m_open_image_dialog_filter;
+    const QString m_open_image_dialog_filter;
     QString m_last_atlas_export_file;
     QBrush m_sheet_brush;
     QPen m_sheet_pen;

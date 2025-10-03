@@ -17,6 +17,7 @@
  **********************************************************************************************************/
 
 #include <Sol2dTexturePackerGui/Packer/SpritePackerWidget.h>
+#include <Sol2dTexturePackerGui/ImageFormat.h>
 #include <Sol2dTexturePackerGui/Settings.h>
 #include <LibSol2dTexturePacker/Packers/MaxRectsBinAtlasPacker.h>
 #include <LibSol2dTexturePacker/Packers/SkylineBinAtlasPacker.h>
@@ -25,6 +26,7 @@
 #include <QList>
 #include <QFileDialog>
 #include <QAbstractListModel>
+#include <QImageWriter>
 
 namespace {
 
@@ -99,7 +101,8 @@ inline const QList<Sprite> & SpritePackerWidget::SpriteListModel::getSprites() c
 
 SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
     QWidget(_parent),
-    m_packers(new Packers)
+    m_packers(new Packers),
+    m_open_image_dialog_filter(makeAllReadSupportedImageFormatsFilterString())
 {
     setupUi(this);
 
@@ -200,6 +203,20 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
         tr("Worst Width Fit"),
         static_cast<int>(ShelfBinAtlasPackerChoiceHeuristic::WorstWidthFit));
 
+    m_combo_atlas_format->addItem(tr("Sol2D"));
+
+    {
+        QList<QByteArray> supported_image_formats = QImageWriter::supportedImageFormats();
+        int png_idx = -1;
+        for(int i = 0; i < supported_image_formats.count(); ++i)
+        {
+            QString format(supported_image_formats[i]);
+            m_combo_texture_format->addItem(format);
+            if(format == "png") png_idx = i;
+        }
+        m_combo_texture_format->setCurrentIndex(png_idx);
+    }
+
     connect(m_btn_add_sprites, &QPushButton::clicked, this, &SpritePackerWidget::addSprites);
     connect(m_spin_max_width, &QSpinBox::valueChanged, this, &SpritePackerWidget::renderPack);
     connect(m_spin_max_height, &QSpinBox::valueChanged, this, &SpritePackerWidget::renderPack);
@@ -283,7 +300,8 @@ void SpritePackerWidget::addSprites()
     QStringList files = QFileDialog::getOpenFileNames(
         this,
         QString(),
-        settings.value(gc_settings_key_pack_input_dir).toString()
+        settings.value(gc_settings_key_pack_input_dir).toString(),
+        m_open_image_dialog_filter
     );
     if(files.isEmpty())
         return;

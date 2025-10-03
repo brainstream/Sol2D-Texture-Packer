@@ -18,36 +18,11 @@
 
 #pragma once
 
-#include "ui_SpritePackerWidget.h"
+#include <QImageReader>
 
-class SpritePackerWidget : public QWidget, private Ui::SpritePackerWidget
+
+inline QString makeAllReadSupportedImageFormatsFilterString()
 {
-    Q_OBJECT
-
-private:
-    struct Packers;
-    class SpriteListModel;
-
-public:
-    explicit SpritePackerWidget(QWidget * _parent = nullptr);
-    ~SpritePackerWidget() override;
-
-private slots:
-    void addSprites();
-    void renderPack();
-    void onAlgorithmChanged();
-    void onMaxRectesBiAllowFlipChanged(Qt::CheckState _state);
-    void onMaxRectesBinHeuristicChanged(int _index);
-    void onSkylineBinUseWasteMapChanged(Qt::CheckState _state);
-    void onSkylineBinHeuristicChanged(int _index);
-    void onGuillotineBinChoiceHeuristicChanged(int _index);
-    void onGuillotineBinSplitHeuristicChanged(int _index);
-    void onGuillotineBinAllowMergeChanged(Qt::CheckState _state);
-    void onShelfBinSplitHeuristicChanged(int _index);
-    void onShelfBinUseWasteMapChanged(Qt::CheckState _state);
-
-private:
-    SpriteListModel * m_sprites_model;
-    Packers * m_packers;
-    const QString m_open_image_dialog_filter;
-};
+    return QString(QObject::tr("All supported image formats (*.%1)"))
+        .arg(QImageReader().supportedImageFormats().join(" *."));
+}
