@@ -17,6 +17,7 @@
  **********************************************************************************************************/
 
 #include <LibSol2dTexturePacker/Packers/AtlasPacker.h>
+#include <QCryptographicHash>
 #include <QPainter>
 #include <QRect>
 
@@ -25,7 +26,7 @@ namespace {
 struct Item
 {
     Item(
-        const QImage & _image,
+        const QImage * _image,
         const QString & _name,
         const QRect & _source_rect,
         const QRect & _destination_rect,
@@ -39,10 +40,11 @@ struct Item
     {
     }
 
-    const QImage & image;
-    const QString name;
+    const QImage * image;
+    QString name;
     QRect source_rect;
     QRect destination_rect;
+    QByteArray hash_sum;
     bool is_rotated;
 };
 
@@ -64,9 +66,11 @@ QImage render(const std::list<Item> & _items)
     rotation.rotate(90);
     for(const Item & item : _items)
     {
+        if(item.image == nullptr)
+            continue;
         painter.drawImage(
             item.destination_rect.topLeft(),
-            item.is_rotated ? item.image.transformed(rotation) : item.image,
+            item.is_rotated ? item.image->transformed(rotation) : *item.image,
             item.is_rotated
                 ? QRect(item.source_rect.y(), item.source_rect.x(), item.source_rect.height(), item.source_rect.width())
                 : item.source_rect);
@@ -157,6 +161,16 @@ QList<Frame> itemsToFrames(std::list<Item> _items)
     return frames;
 }
 
+const Item * findDuplicate(const std::list<Item> & _items, const QByteArray & _hash_sum)
+{
+    for(const Item & item : _items)
+    {
+        if(item.hash_sum.compare(_hash_sum) == 0)
+            return &item;
+    }
+    return nullptr;
+}
+
 } // namespace name
 
 std::unique_ptr<RawAtlasPack> AtlasPacker::pack(
@@ -168,23 +182,44 @@ std::unique_ptr<RawAtlasPack> AtlasPacker::pack(
     std::unique_ptr<AtlasPackerAlgorithm> algorithm = createAlgorithm(_options.max_atlas_size);
     foreach(const Sprite & sprite, _sprites)
     {
-        QRect sprite_rect = _options.crop ? crop(sprite.image) : sprite.image.rect();
-        QRect dest_rect = algorithm->insert(sprite_rect.width(), sprite_rect.height());
-        if(dest_rect.isNull() && !items.empty())
+        QByteArray hash_sum;
+        const Item * duplicate = nullptr;
+        if(_options.detect_duplicates)
         {
-            result->add({
-                .image = render(items),
-                .frames = itemsToFrames(items)
-            });
-            items.clear();
-            algorithm->resetBin();
+            hash_sum = QCryptographicHash::hash(
+                QByteArrayView(sprite.image.constBits(), sprite.image.sizeInBytes()),
+                QCryptographicHash::Md5);
+            duplicate = findDuplicate(items, hash_sum);
         }
-        items.emplace_back(
-            std::ref(sprite.image),
-            sprite.name,
-            sprite_rect,
-            dest_rect,
-            dest_rect.width() == sprite_rect.height());
+        if(duplicate)
+        {
+            items.push_back(*duplicate);
+            Item & item = items.back();
+            item.image = nullptr;
+            item.name = sprite.name;
+        }
+        else
+        {
+            QRect sprite_rect = _options.crop ? crop(sprite.image) : sprite.image.rect();
+            QRect dest_rect = algorithm->insert(sprite_rect.width(), sprite_rect.height());
+            if(dest_rect.isNull() && !items.empty())
+            {
+                result->add({
+                    .image = render(items),
+                    .frames = itemsToFrames(items)
+                });
+                items.clear();
+                algorithm->resetBin();
+            }
+            items.emplace_back(
+                &sprite.image,
+                sprite.name,
+                sprite_rect,
+                dest_rect,
+                dest_rect.width() == sprite_rect.height());
+            if(_options.detect_duplicates)
+                items.back().hash_sum = hash_sum;
+        }
     }
     if(!items.empty())
     {

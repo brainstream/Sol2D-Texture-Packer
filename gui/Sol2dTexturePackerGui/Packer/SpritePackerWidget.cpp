@@ -223,6 +223,7 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
     connect(m_spin_max_width, &QSpinBox::valueChanged, this, &SpritePackerWidget::renderPack);
     connect(m_spin_max_height, &QSpinBox::valueChanged, this, &SpritePackerWidget::renderPack);
     connect(m_checkbox_crop, &QCheckBox::checkStateChanged, this, &SpritePackerWidget::renderPack);
+    connect(m_checkbox_detect_duplicates, &QCheckBox::checkStateChanged, this, &SpritePackerWidget::renderPack);
     connect(m_btn_export, &QPushButton::clicked, this, &SpritePackerWidget::exportPack);
     connect(m_edit_export_directory, &QLineEdit::textChanged, this, &SpritePackerWidget::validateExportPackRequirements);
     connect(m_edit_export_name, &QLineEdit::textChanged, this, &SpritePackerWidget::validateExportPackRequirements);

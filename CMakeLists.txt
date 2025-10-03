@@ -26,7 +26,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Xml)
+find_package(Qt6 6.3.0 REQUIRED COMPONENTS Widgets Xml)
 add_subdirectory(third_party/RectangleBinPack)
 
 set(S2TP_LIB_TARGET Library)
