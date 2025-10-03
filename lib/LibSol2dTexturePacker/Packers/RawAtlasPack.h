@@ -43,7 +43,8 @@ public:
     void save(
         const QDir & _directory,
         const QString & _atlas_name,
-        const QString & _image_format);
+        const QString & _image_format,
+        bool _remove_file_ext);
 
     void add(RawAtlas && _atlas){ m_atlases.emplace_back(std::move(_atlas)); }
     void add(const RawAtlas & _atlas) { m_atlases.push_back(_atlas); }

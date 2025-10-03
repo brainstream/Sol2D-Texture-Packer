@@ -19,11 +19,13 @@
 #include <LibSol2dTexturePacker/Packers/RawAtlasPack.h>
 #include <LibSol2dTexturePacker/Atlas/Sol2dAtlasSerializer.h>
 #include <LibSol2dTexturePacker/Exception.h>
+#include <QFileInfo>
 
 void RawAtlasPack::save(
     const QDir & _directory,
     const QString & _atlas_name,
-    const QString & _image_format)
+    const QString & _image_format,
+    bool _remove_file_ext)
 {
     if(m_atlases.empty())
         return;
@@ -36,15 +38,22 @@ void RawAtlasPack::save(
         const QString base_filename = _directory.absoluteFilePath(index == 0
             ? _atlas_name
             : QString("%1-%2").arg(_atlas_name).arg(index));
-        QString filename = QString("%1.%2").arg(base_filename, _image_format);
+        Atlas atlas;
+        atlas.texture = QString("%1.%2").arg(base_filename, _image_format);
         ++index;
-        if(!ra.image.save(filename))
-            throw ImageSavingException(filename);
+        if(!ra.image.save(atlas.texture))
+            throw ImageSavingException(atlas.texture);
+        atlas.frames.reserve(ra.frames.count());
+        for(const Frame & frame : ra.frames)
+        {
+            Frame new_frame = frame;
+            new_frame.name = _remove_file_ext
+                ? QFileInfo(new_frame.name).baseName()
+                : QFileInfo(new_frame.name).fileName();
+            atlas.frames.append(new_frame);
+        }
         serializer.serialize(
-            {
-                .texture = filename,
-                .frames = ra.frames
-            },
+            atlas,
             _directory.absoluteFilePath(QString("%1.%2").arg(base_filename, serializer.defaultFileExtenstion())));
     }
 }

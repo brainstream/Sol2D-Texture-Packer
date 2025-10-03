@@ -358,7 +358,8 @@ void SpritePackerWidget::exportPack()
         m_atlases->save(
             m_edit_export_directory->text(),
             m_edit_export_name->text(),
-            m_combo_texture_format->currentText());
+            m_combo_texture_format->currentText(),
+            m_checkbox_remove_file_ext->isChecked());
     }
     catch(const Exception & _exception)
     {
