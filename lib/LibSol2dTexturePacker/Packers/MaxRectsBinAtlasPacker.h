@@ -22,8 +22,8 @@
 
 enum S2TP_EXPORT class MaxRectsBinAtlasPackerChoiceHeuristic
 {
-    BestShortSideFit,
     BestLongSideFit,
+    BestShortSideFit,
     BestAreaFit,
     BottomLeftRule,
     ContactPointRule

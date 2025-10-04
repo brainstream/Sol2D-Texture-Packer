@@ -71,10 +71,10 @@ rbp::MaxRectsBinPack::FreeRectChoiceHeuristic MaxRectsBinPackAlgorithm::map(
 {
     switch(_heuristic)
     {
-    case MaxRectsBinAtlasPackerChoiceHeuristic::BestShortSideFit:
-        return rbp::MaxRectsBinPack::RectBestShortSideFit;
     case MaxRectsBinAtlasPackerChoiceHeuristic::BestLongSideFit:
         return rbp::MaxRectsBinPack::RectBestLongSideFit;
+    case MaxRectsBinAtlasPackerChoiceHeuristic::BestShortSideFit:
+        return rbp::MaxRectsBinPack::RectBestShortSideFit;
     case MaxRectsBinAtlasPackerChoiceHeuristic::BestAreaFit:
         return rbp::MaxRectsBinPack::RectBestAreaFit;
     case MaxRectsBinAtlasPackerChoiceHeuristic::BottomLeftRule:
@@ -88,7 +88,7 @@ rbp::MaxRectsBinPack::FreeRectChoiceHeuristic MaxRectsBinPackAlgorithm::map(
 
 MaxRectsBinAtlasPacker::MaxRectsBinAtlasPacker(QObject * _parent) :
     AtlasPacker(_parent),
-    m_heuristic(MaxRectsBinAtlasPackerChoiceHeuristic::BestAreaFit),
+    m_heuristic(MaxRectsBinAtlasPackerChoiceHeuristic::BestLongSideFit),
     m_allow_flip(true)
 {
 }

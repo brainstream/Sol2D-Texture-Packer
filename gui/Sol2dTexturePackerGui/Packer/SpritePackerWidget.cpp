@@ -184,7 +184,7 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
         tr("Maximize Area"),
         static_cast<int>(GuillotineBinAtlasPackerSplitHeuristic::MaximizeArea));
     m_combo_guillotine_split_heuristic->addItem(
-        tr("ShorterA xis"),
+        tr("Shorter Axis"),
         static_cast<int>(GuillotineBinAtlasPackerSplitHeuristic::ShorterAxis));
     m_combo_guillotine_split_heuristic->addItem(
         tr("Longer Axis"),
