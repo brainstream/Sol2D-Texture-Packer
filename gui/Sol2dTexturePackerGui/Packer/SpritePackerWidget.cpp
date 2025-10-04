@@ -351,7 +351,8 @@ void SpritePackerWidget::renderPack()
             m_spin_max_height->value()
         ),
         .detect_duplicates = m_checkbox_detect_duplicates->isChecked(),
-        .crop = m_checkbox_crop->isChecked()
+        .crop = m_checkbox_crop->isChecked(),
+        .remove_file_extensions = m_checkbox_remove_file_ext->isChecked()
     };
     m_atlases = m_packers->current->pack(m_sprites_model->getSprites(), options);
     for(const RawAtlas & atlas : *m_atlases)
@@ -366,8 +367,7 @@ void SpritePackerWidget::exportPack()
         m_atlases->save(
             m_edit_export_directory->text(),
             m_edit_export_name->text(),
-            m_combo_texture_format->currentText(),
-            m_checkbox_remove_file_ext->isChecked());
+            m_combo_texture_format->currentText());
     }
     catch(const Exception & _exception)
     {

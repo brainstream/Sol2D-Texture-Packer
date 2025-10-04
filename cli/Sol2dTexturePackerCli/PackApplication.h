@@ -18,14 +18,28 @@
 
 #pragma once
 
+#include <LibSol2dTexturePacker/Packers/AtlasPacker.h>
 #include <Sol2dTexturePackerCli/Application.h>
-#include <QtGlobal>
 
 class PackApplication : public Application
 {
     Q_DISABLE_COPY_MOVE(PackApplication)
 
 public:
-    PackApplication() = default;
+    PackApplication(
+        QList<Sprite> && _sprites,
+        std::unique_ptr<AtlasPacker> && _packer,
+        const AtlasPackerOptions & _options,
+        const QDir & _output_directory,
+        const QString & _atlas_name,
+        const QString & _texture_format);
     int exec() override;
+
+private:
+    const QList<Sprite> m_sprites;
+    const std::unique_ptr<AtlasPacker> m_packer;
+    const AtlasPackerOptions m_options;
+    const QDir m_output_directory;
+    const QString m_atlas_name;
+    const QString m_texture_format;
 };

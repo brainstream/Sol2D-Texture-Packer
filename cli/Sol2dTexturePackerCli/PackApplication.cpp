@@ -17,10 +17,27 @@
  **********************************************************************************************************/
 
 #include <Sol2dTexturePackerCli/PackApplication.h>
-#include <iostream>
+
+PackApplication::PackApplication(
+    QList<Sprite> && _sprites,
+    std::unique_ptr<AtlasPacker> && _packer,
+    const AtlasPackerOptions & _options,
+    const QDir & _output_directory,
+    const QString & _atlas_name,
+    const QString & _texture_format
+) :
+    m_sprites(std::move(_sprites)),
+    m_packer(std::move(_packer)),
+    m_options(_options),
+    m_output_directory(_output_directory),
+    m_atlas_name(_atlas_name),
+    m_texture_format(_texture_format)
+{
+}
 
 int PackApplication::exec()
 {
-    std::cout << "PACKING..." << std::endl;
+    std::unique_ptr<RawAtlasPack> pack = m_packer->pack(m_sprites, m_options);
+    pack->save(m_output_directory, m_atlas_name, m_texture_format);
     return 0;
 }

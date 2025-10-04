@@ -294,13 +294,10 @@ std::unique_ptr<Application> AppRunner::parsePack() const
         }
     };
 
-
-    // 1st argument is app name
-    // 2nd argument is "pack"
-    QStringList args = m_args;
-    args.removeAt(1); // remove the "pack" argument to hide it from the parser
-
     const QString default_atlas_name = QObject::tr("texture");
+    const int default_atlas_size = 2048;
+    const QString default_output_directory(".");
+    const QString default_format("png");
 
     QCommandLineParser parser;
     const QCommandLineOption algorithm_option = {
@@ -342,12 +339,12 @@ std::unique_ptr<Application> AppRunner::parsePack() const
     };
     const QCommandLineOption max_width_option = {
         { "x", "max-width" },
-        QObject::tr("Maximum width of the atlas texture (default: 2048)"),
+        QObject::tr("Maximum width of the atlas texture (default: %1)").arg(default_atlas_size),
         QObject::tr("value in pixels")
     };
     const QCommandLineOption max_height_option = {
         { "y", "max-height" },
-        QObject::tr("Maximum height of the atlas texture (default: 2048)"),
+        QObject::tr("Maximum height of the atlas texture (default: %1)").arg(default_atlas_size),
         QObject::tr("value in pixels")
     };
     const QCommandLineOption crop_option = {
@@ -386,60 +383,155 @@ std::unique_ptr<Application> AppRunner::parsePack() const
         format_option
     };
     parser.addOptions(options);
+
+    // 1st argument is app name
+    // 2nd argument is "pack"
+    QStringList args = m_args;
+    args.removeAt(1); // remove the "pack" argument to hide it from the parser
     parser.process(args);
 
-    int exit_code = ExitCodes::Success;
-
-    if(!parser.isSet("help"))
+    if(parser.isSet("help"))
     {
-        exit_code = ExitCodes::RequiredArgumentNotSpecified;
+        m_io.out <<
+            QObject::tr("Usage") << ": " << m_args[0] << " " << m_args[1] << " " <<
+            QObject::tr("[options] <sprites...>") << Qt::endl <<
+            Qt::endl <<
+            QObject::tr("Options") << ":" << Qt::endl <<
+            options << Qt::endl <<
+            Qt::endl <<
+            QObject::tr("Algorithms") << ":" << Qt::endl;
+        for(size_t i = 0; i < sizeof(algoritms) / sizeof(algoritms[0]); ++i)
+        {
+            const auto & alg = algoritms[i];
+            m_io.out << Qt::endl << " - " << alg.name;
+            if(i == 0)
+                m_io.out << " (" << QObject::tr("default") << ")";
+            m_io.out << Qt::endl;
+            if(!alg.choice_heuristics.empty())
+            {
+                m_io.out << "   " << QObject::tr("Choice heuristics") << ":" << Qt::endl;
+                for(const auto [name, desc] : alg.choice_heuristics.asKeyValueRange())
+                    m_io.out << "    - " << name << ": " << desc << Qt::endl;
+            }
+            if(!alg.split_heuristics.empty())
+            {
+                m_io.out << "   " << QObject::tr("Split heuristics") << ":" << Qt::endl;
+                for(const auto [name, desc] : alg.split_heuristics.asKeyValueRange())
+                    m_io.out << "    - " << name << ": " << desc << Qt::endl;
+            }
+            if(alg.algoritm_options)
+            {
+                m_io.out << "   " << QObject::tr("Supported options") << ":" << Qt::endl;
+                if(alg.algoritm_options & OptionFlagAllowFlip)
+                    m_io.out << "    " << joinOptionNames(allow_flip_option.names()) << Qt::endl;
+                if(alg.algoritm_options & OptionFlagUseWasteMap)
+                    m_io.out << "    " << joinOptionNames(use_waste_map_option.names()) << Qt::endl;
+                if(alg.algoritm_options & OptionFlagAllowMerge)
+                    m_io.out << "    " <<  joinOptionNames(allow_merge_option.names()) << Qt::endl;
+            }
+        }
+        m_io.out << Qt::endl << QObject::tr("Supported texture file formats (depends on Qt)") << ": " <<
+            QImageWriter().supportedImageFormats().join(", ") << Qt::endl;
+        return noop(ExitCodes::Success);
     }
 
-    m_io.out <<
-        QObject::tr("Usage") << ": " << m_args[0] << " " << m_args[1] << " " <<
-        QObject::tr("[options] <sprites...>") << Qt::endl <<
-        Qt::endl <<
-        QObject::tr("Options") << ":" << Qt::endl <<
-        options << Qt::endl <<
-        Qt::endl <<
-        QObject::tr("Algorithms") << ":" << Qt::endl;
-
-    for(size_t i = 0; i < sizeof(algoritms) / sizeof(algoritms[0]); ++i)
+    AtlasPackerOptions atlas_packer_options
     {
-        const auto & alg = algoritms[i];
-        m_io.out << Qt::endl << " - " << alg.name;
-        if(i == 0)
-            m_io.out << " (" << QObject::tr("default") << ")";
-        m_io.out << Qt::endl;
-        if(!alg.choice_heuristics.empty())
+        .max_atlas_size = QSize(default_atlas_size, default_atlas_size),
+        .detect_duplicates = parser.isSet(detect_duplicates_option.names().constFirst()),
+        .crop = parser.isSet(crop_option.names().constFirst()),
+        .remove_file_extensions = parser.isSet(remove_file_ext_option.names().constFirst())
+    };
+    if(parser.isSet(max_width_option.names().constFirst()))
+    {
+        bool ok;
+        int width = parser.value(max_width_option.names().constFirst()).toInt(&ok);
+        if(ok && width > 0)
         {
-            m_io.out << "   " << QObject::tr("Choice heuristics") << ":" << Qt::endl;
-            for(const auto [name, desc] : alg.choice_heuristics.asKeyValueRange())
-                m_io.out << "    - " << name << ": " << desc << Qt::endl;
+            atlas_packer_options.max_atlas_size.setWidth(width);
         }
-        if(!alg.split_heuristics.empty())
+        else
         {
-            m_io.out << "   " << QObject::tr("Split heuristics") << ":" << Qt::endl;
-            for(const auto [name, desc] : alg.split_heuristics.asKeyValueRange())
-                m_io.out << "    - " << name << ": " << desc << Qt::endl;
+            m_io.err << QObject::tr("Invalid max texture width value") << ": " <<
+                parser.value(max_width_option.names().constFirst()) << Qt::endl;
+            return noop(ExitCodes::InvalidArgumentValue);
         }
-        if(alg.algoritm_options)
+    }
+    if(parser.isSet(max_height_option.names().constFirst()))
+    {
+        bool ok;
+        int height = parser.value(max_height_option.names().constFirst()).toInt(&ok);
+        if(ok && height > 0)
         {
-            m_io.out << "   " << QObject::tr("Supported options") << ":" << Qt::endl;
-            if(alg.algoritm_options & OptionFlagAllowFlip)
-                m_io.out << "    " << joinOptionNames(allow_flip_option.names()) << Qt::endl;
-            if(alg.algoritm_options & OptionFlagUseWasteMap)
-                m_io.out << "    " << joinOptionNames(use_waste_map_option.names()) << Qt::endl;
-            if(alg.algoritm_options & OptionFlagAllowMerge)
-                m_io.out << "    " <<  joinOptionNames(allow_merge_option.names()) << Qt::endl;
+            atlas_packer_options.max_atlas_size.setHeight(height);
+        }
+        else
+        {
+            m_io.err << QObject::tr("Invalid max texture height value") << ": " <<
+                parser.value(max_height_option.names().constFirst()) << Qt::endl;
+            return noop(ExitCodes::InvalidArgumentValue);
         }
     }
 
-    m_io.out << Qt::endl << QObject::tr("Supported texture file formats (depends on Qt)") << ": " <<
-        QImageWriter().supportedImageFormats().join(", ") << Qt::endl;
+    QList<Sprite> sprites;
+    sprites.reserve(parser.positionalArguments().count());
+    foreach(const QString & arg, parser.positionalArguments())
+    {
+        QFileInfo fi(arg);
+        QImage image;
+        if(!image.load(fi.absoluteFilePath()))
+            throw ImageLoadingException(fi.absoluteFilePath());
+        sprites.append({
+            .path = fi.absoluteFilePath(),
+            .name = fi.fileName(),
+            .image = image
+        });
+    }
+    if(sprites.count() == 0)
+    {
+        m_io.err << QObject::tr("Sprites not specified") << Qt::endl;
+        return noop(ExitCodes::RequiredArgumentNotSpecified);
+    }
 
-    // return std::unique_ptr<Application>(new PackApplication);
-    return noop(exit_code);
+    std::unique_ptr<AtlasPacker> packer = nullptr;
+    if(parser.isSet(algorithm_option.names().constFirst()))
+    {
+        const QString algoritm_name = algorithm_option.names().constFirst();
+        for(auto algoritm : algoritms)
+        {
+            if(algoritm_name == algoritm.name)
+            {
+                packer.reset(algoritm.create());
+                break;
+            }
+        }
+        if(packer == nullptr)
+        {
+            m_io.err << QObject::tr("Invalid algorithm") << ": " << algoritm_name << Qt::endl;
+            return noop(ExitCodes::InvalidArgumentValue);
+        }
+    }
+    if(packer == nullptr)
+    {
+        packer.reset(algoritms[0].create());
+    }
+
+    // TODO: algoritm options
+
+    return std::unique_ptr<Application>(new PackApplication(
+        std::move(sprites),
+        std::move(packer),
+        atlas_packer_options,
+        parser.isSet(output_directory_option.names().constFirst())
+            ? parser.value(output_directory_option.names().constFirst())
+            : default_output_directory,
+        parser.isSet(output_name_option.names().constFirst())
+            ? parser.value(output_name_option.names().constFirst())
+            : default_atlas_name,
+        parser.isSet(format_option.names().constFirst())
+            ? parser.value(format_option.names().constFirst())
+            : default_format
+        ));
 }
 
 std::unique_ptr<Application> AppRunner::parseUnpack() const

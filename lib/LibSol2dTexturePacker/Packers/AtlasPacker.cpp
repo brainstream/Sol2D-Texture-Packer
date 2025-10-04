@@ -18,6 +18,7 @@
 
 #include <LibSol2dTexturePacker/Packers/AtlasPacker.h>
 #include <QCryptographicHash>
+#include <QFileInfo>
 #include <QPainter>
 #include <QRect>
 
@@ -182,6 +183,9 @@ std::unique_ptr<RawAtlasPack> AtlasPacker::pack(
     std::unique_ptr<AtlasPackerAlgorithm> algorithm = createAlgorithm(_options.max_atlas_size);
     foreach(const Sprite & sprite, _sprites)
     {
+        const QString sprite_name = _options.remove_file_extensions
+            ? QFileInfo(sprite.name).baseName()
+            : QFileInfo(sprite.name).fileName();
         QByteArray hash_sum;
         const Item * duplicate = nullptr;
         if(_options.detect_duplicates)
@@ -196,7 +200,7 @@ std::unique_ptr<RawAtlasPack> AtlasPacker::pack(
             items.push_back(*duplicate);
             Item & item = items.back();
             item.image = nullptr;
-            item.name = sprite.name;
+            item.name = sprite_name;
         }
         else
         {
@@ -213,7 +217,7 @@ std::unique_ptr<RawAtlasPack> AtlasPacker::pack(
             }
             items.emplace_back(
                 &sprite.image,
-                sprite.name,
+                sprite_name,
                 sprite_rect,
                 dest_rect,
                 dest_rect.width() == sprite_rect.height());

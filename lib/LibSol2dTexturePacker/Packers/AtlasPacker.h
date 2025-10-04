@@ -32,7 +32,7 @@ public:
 
 struct S2TP_EXPORT AtlasPackerOptions
 {
-    QSize max_atlas_size = QSize(1024, 1024);
+    QSize max_atlas_size = QSize(2048, 2048);
     bool detect_duplicates = false;
     bool crop = false;
     bool remove_file_extensions = true;
