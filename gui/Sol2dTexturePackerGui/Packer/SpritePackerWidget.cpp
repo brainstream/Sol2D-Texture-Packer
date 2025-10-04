@@ -91,9 +91,16 @@ QVariant SpritePackerWidget::SpriteListModel::data(const QModelIndex & _index, i
 
 void SpritePackerWidget::SpriteListModel::addSprite(const Sprite & _sprite)
 {
-    beginInsertRows(QModelIndex(), m_sprites.count(), m_sprites.count() + 1);
-    m_sprites.append(_sprite);
-    endInsertRows();
+    auto it = std::find_if(
+        m_sprites.begin(),
+        m_sprites.end(),
+        [&_sprite](const Sprite & __s) { return __s.path == _sprite.path; });
+    if(it == m_sprites.end())
+    {
+        beginInsertRows(QModelIndex(), m_sprites.count(), m_sprites.count() + 1);
+        m_sprites.append(_sprite);
+        endInsertRows();
+    }
 }
 
 inline const QList<Sprite> & SpritePackerWidget::SpriteListModel::getSprites() const
