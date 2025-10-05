@@ -52,6 +52,30 @@ struct ExitCodes
     };
 };
 
+struct AlgorithmConfigurationAdapter
+{
+    enum AlgoritmOptions : int
+    {
+        OptionFlagNone = 0x0,
+        OptionFlagAllowFlip = 0x1,
+        OptionFlagAllowMerge = 0x2,
+        OptionFlagUseWasteMap = 0x4
+    };
+
+    struct Heuristic
+    {
+        QString description;
+        std::function<void(AtlasPacker *)> set;
+    };
+
+    QString name;
+    QMap<QString, Heuristic> choice_heuristics;
+    QMap<QString, Heuristic> split_heuristics;
+    std::function<AtlasPacker * ()> create;
+    std::function<void(AtlasPacker *, int)> set_options;
+    AlgoritmOptions algoritm_options;
+};
+
 QString joinOptionNames(const QStringList & _flags)
 {
     QString result;
@@ -145,7 +169,8 @@ std::unique_ptr<Application> AppRunner::run() const
 std::unique_ptr<Application> AppRunner::parseGlobal() const
 {
     QCommandLineParser parser;
-    const QCommandLineOption version_option = {
+    const QCommandLineOption version_option
+    {
         { "v", "version" },
         QObject::tr("Display version")
     };
@@ -211,86 +236,336 @@ std::unique_ptr<Application> AppRunner::invalidArgument(const QCommandLineOption
 
 std::unique_ptr<Application> AppRunner::parsePack() const
 {
-    enum AlgoritmOptions : int
-    {
-        OptionFlagNone = 0x0,
-        OptionFlagAllowFlip = 0x1,
-        OptionFlagAllowMerge = 0x2,
-        OptionFlagUseWasteMap = 0x4
-    };
-
-    struct
-    {
-        QString name;
-        QMap<QString, QString> choice_heuristics;
-        QMap<QString, QString> split_heuristics;
-        std::function<AtlasPacker * ()> create;
-        AlgoritmOptions algoritm_options;
-    }
-    algoritms[] =
+    AlgorithmConfigurationAdapter algoritms[] =
     {
         {
             .name = "maxrects",
             .choice_heuristics =
             {
-                { "BLSF", QObject::tr("Best Long Side Fit (default)") },
-                { "BSSF", QObject::tr("Best Short Side Fit") },
-                { "BAF", QObject::tr("Best Area Fit") },
-                { "BL", QObject::tr("Bottom Left Rule") },
-                { "CP", QObject::tr("Contact Point Rule") }
+                {
+                    "BLSF",
+                    {
+                       .description = QObject::tr("Best Long Side Fit (default)"),
+                       .set = [](AtlasPacker * __packer)
+                       {
+                            static_cast<MaxRectsBinAtlasPacker *>(__packer)->setChoiceHeuristic(
+                                MaxRectsBinAtlasPackerChoiceHeuristic::BestLongSideFit);
+                       }
+                    }
+                },
+                {
+                    "BSSF",
+                    {
+                       .description = QObject::tr("Best Short Side Fit"),
+                       .set = [](AtlasPacker * __packer)
+                       {
+                            static_cast<MaxRectsBinAtlasPacker *>(__packer)->setChoiceHeuristic(
+                                MaxRectsBinAtlasPackerChoiceHeuristic::BestShortSideFit);
+                       }
+                    }
+                },
+                {
+                    "BAF",
+                    {
+                       .description = QObject::tr("Best Area Fit"),
+                        .set = [](AtlasPacker * __packer)
+                        {
+                            static_cast<MaxRectsBinAtlasPacker *>(__packer)->setChoiceHeuristic(
+                                MaxRectsBinAtlasPackerChoiceHeuristic::BestAreaFit);
+                        }
+                    }
+                },
+                {
+                    "BL",
+                    {
+                       .description = QObject::tr("Bottom Left Rule"),
+                         .set = [](AtlasPacker * __packer)
+                         {
+                            static_cast<MaxRectsBinAtlasPacker *>(__packer)->setChoiceHeuristic(
+                                MaxRectsBinAtlasPackerChoiceHeuristic::BottomLeftRule);
+                         }
+                    }
+                },
+                {
+                    "CP",
+                    {
+                       .description = QObject::tr("Contact Point Rule"),
+                         .set = [](AtlasPacker * __packer)
+                         {
+                            static_cast<MaxRectsBinAtlasPacker *>(__packer)->setChoiceHeuristic(
+                                MaxRectsBinAtlasPackerChoiceHeuristic::ContactPointRule);
+                         }
+                    }
+                }
             },
             .split_heuristics = {},
             .create = []() { return new MaxRectsBinAtlasPacker(); },
-            .algoritm_options = OptionFlagAllowFlip
+            .set_options = [](AtlasPacker * __packer, int __flags) {
+                if(__flags & AlgorithmConfigurationAdapter::OptionFlagAllowFlip)
+                    static_cast<MaxRectsBinAtlasPacker *>(__packer)->allowFlip(true);
+             },
+            .algoritm_options = AlgorithmConfigurationAdapter::OptionFlagAllowFlip
         },
         {
             .name = "skyline",
             .choice_heuristics =
             {
-                { "BL", QObject::tr("Bottom Left (default)") },
-                { "MWF", QObject::tr("Min Waste Fit") }
+                {
+                    "BL",
+                    {
+                       .description = QObject::tr("Bottom Left (default)"),
+                        .set = [](AtlasPacker * __packer)
+                        {
+                            static_cast<SkylineBinAtlasPacker *>(__packer)->setLevelChoiceHeuristic(
+                               SkylineBinAtlasPackerLevelChoiceHeuristic::BottomLeft);
+                        }
+                    }
+                },
+                {
+                    "MWF",
+                    {
+                       .description = QObject::tr("Min Waste Fit"),
+                       .set = [](AtlasPacker * __packer)
+                       {
+                           static_cast<SkylineBinAtlasPacker *>(__packer)->setLevelChoiceHeuristic(
+                               SkylineBinAtlasPackerLevelChoiceHeuristic::MinWasteFit);
+                       }
+                    }
+                }
             },
              .split_heuristics = {},
             .create = []() { return new SkylineBinAtlasPacker(); },
-            .algoritm_options = OptionFlagUseWasteMap
+            .set_options = [](AtlasPacker * __packer, int __flags) {
+                if(__flags & AlgorithmConfigurationAdapter::OptionFlagUseWasteMap)
+                    static_cast<SkylineBinAtlasPacker *>(__packer)->enableWasteMap(true);
+             },
+            .algoritm_options = AlgorithmConfigurationAdapter::OptionFlagUseWasteMap
         },
         {
             .name = "guillotine",
             .choice_heuristics =
              {
-                { "BAF", QObject::tr("Best Area Fit (default)") },
-                { "BLSF", QObject::tr("Best Long Side Fit")  },
-                { "BSSF", QObject::tr("Best Short Side Fit")  },
-                { "WAF", QObject::tr("Worst Area Fit")  },
-                { "WSSF", QObject::tr("Worst Short Side Fit")  },
-                { "WLSF", QObject::tr("Worst Long Side Fit")  }
-             },
+                {
+                    "BAF",
+                    {
+                       .description = QObject::tr("Best Area Fit (default)"),
+                        .set = [](AtlasPacker * __packer)
+                        {
+                            static_cast<GuillotineBinAtlaskPacker *>(__packer)->setChoiceHeuristic(
+                                GuillotineBinAtlasPackerChoiceHeuristic::BestAreaFit);
+                        }
+                    }
+                },
+                {
+                    "BLSF",
+                    {
+                       .description = QObject::tr("Best Long Side Fit"),
+                        .set = [](AtlasPacker * __packer)
+                        {
+                            static_cast<GuillotineBinAtlaskPacker *>(__packer)->setChoiceHeuristic(
+                                GuillotineBinAtlasPackerChoiceHeuristic::BestLongSideFit);
+                        }
+                    }
+                },
+                {
+                    "BSSF",
+                    {
+                       .description = QObject::tr("Best Short Side Fit"),
+                        .set = [](AtlasPacker * __packer)
+                        {
+                            static_cast<GuillotineBinAtlaskPacker *>(__packer)->setChoiceHeuristic(
+                                GuillotineBinAtlasPackerChoiceHeuristic::BestShortSideFit);
+                        }
+                    }
+                },
+                {
+                    "WAF",
+                    {
+                       .description = QObject::tr("Worst Area Fit"),
+                        .set = [](AtlasPacker * __packer)
+                        {
+                            static_cast<GuillotineBinAtlaskPacker *>(__packer)->setChoiceHeuristic(
+                                GuillotineBinAtlasPackerChoiceHeuristic::WorstAreaFit);
+                        }
+                    }
+                },
+                {
+                    "WSSF",
+                    {
+                       .description = QObject::tr("Worst Short Side Fit"),
+                        .set = [](AtlasPacker * __packer)
+                        {
+                            static_cast<GuillotineBinAtlaskPacker *>(__packer)->setChoiceHeuristic(
+                                GuillotineBinAtlasPackerChoiceHeuristic::WorstShortSideFit);
+                        }
+                    }
+                },
+                {
+                    "WLSF",
+                    {
+                       .description = QObject::tr("Worst Long Side Fit"),
+                        .set = [](AtlasPacker * __packer)
+                        {
+                            static_cast<GuillotineBinAtlaskPacker *>(__packer)->setChoiceHeuristic(
+                                GuillotineBinAtlasPackerChoiceHeuristic::WorstLongSideFit);
+                        }
+                    }
+                }
+            },
             .split_heuristics =
             {
-                { "SLA", QObject::tr("Shorter Leftover Axis (default)") },
-                { "LLA", QObject::tr("Longer Leftover Axis") },
-                { "MIN", QObject::tr("Minimize Area") },
-                { "MAX", QObject::tr("Maximize Area") },
-                { "SA", QObject::tr("Shorter Axis") },
-                { "LA", QObject::tr("Longer Axis") }
+                {
+                    "SLA",
+                    {
+                       .description = QObject::tr("Shorter Leftover Axis (default)"),
+                       .set = [](AtlasPacker * __packer)
+                       {
+                            static_cast<GuillotineBinAtlaskPacker *>(__packer)->setSplitHeuristic(
+                                GuillotineBinAtlasPackerSplitHeuristic::ShorterLeftoverAxis);
+                       }
+                    }
+                },
+                {
+                    "LLA",
+                    {
+                       .description = QObject::tr("Longer Leftover Axis"),
+                        .set = [](AtlasPacker * __packer)
+                        {
+                            static_cast<GuillotineBinAtlaskPacker *>(__packer)->setSplitHeuristic(
+                                GuillotineBinAtlasPackerSplitHeuristic::LongerLeftoverAxis);
+                        }
+                    }
+                },
+                {
+                    "MIN",
+                    {
+                       .description = QObject::tr("Minimize Area"),
+                        .set = [](AtlasPacker * __packer)
+                        {
+                            static_cast<GuillotineBinAtlaskPacker *>(__packer)->setSplitHeuristic(
+                                GuillotineBinAtlasPackerSplitHeuristic::MinimizeArea);
+                        }
+                    }
+                },
+                {
+                    "MAX",
+                    {
+                       .description = QObject::tr("Maximize Area"),
+                        .set = [](AtlasPacker * __packer)
+                        {
+                            static_cast<GuillotineBinAtlaskPacker *>(__packer)->setSplitHeuristic(
+                                GuillotineBinAtlasPackerSplitHeuristic::MaximizeArea);
+                        }
+                    }
+                },
+                {
+                    "SA",
+                    {
+                       .description = QObject::tr("Shorter Axis"),
+                        .set = [](AtlasPacker * __packer)
+                        {
+                            static_cast<GuillotineBinAtlaskPacker *>(__packer)->setSplitHeuristic(
+                                GuillotineBinAtlasPackerSplitHeuristic::ShorterAxis);
+                        }
+                    }
+                },
+                {
+                    "LA",
+                    {
+                       .description = QObject::tr("Longer Axis"),
+                        .set = [](AtlasPacker * __packer)
+                        {
+                            static_cast<GuillotineBinAtlaskPacker *>(__packer)->setSplitHeuristic(
+                                GuillotineBinAtlasPackerSplitHeuristic::LongerAxis);
+                        }
+                    }
+                }
             },
             .create = []() { return new GuillotineBinAtlaskPacker(); },
-            .algoritm_options = OptionFlagAllowMerge
+            .set_options = [](AtlasPacker * __packer, int __flags) {
+                if(__flags & AlgorithmConfigurationAdapter::OptionFlagAllowMerge)
+                    static_cast<GuillotineBinAtlaskPacker *>(__packer)->enableMerge(true);
+            },
+            .algoritm_options = AlgorithmConfigurationAdapter::OptionFlagAllowMerge
         },
         {
             .name = "shelf",
              .choice_heuristics =
              {
-                { "NF", QObject::tr("Next Fit (default)") },
-                { "FF", QObject::tr("First Fit") },
-                { "BAF", QObject::tr("Best Area Fit") },
-                { "WAF", QObject::tr("Worst Area Fit") },
-                { "BWF", QObject::tr("Best Width Fit") },
-                { "WWF", QObject::tr("Worst Width Fit") }
+                {
+                    "NF",
+                    {
+                       .description = QObject::tr("Next Fit (default)"),
+                        .set = [](AtlasPacker * __packer)
+                        {
+                            static_cast<ShelfBinAtlasPacker *>(__packer)->setChoiceHeuristic(
+                                ShelfBinAtlasPackerChoiceHeuristic::NextFit);
+                        }
+                    }
+                },
+                {
+                    "FF",
+                    {
+                       .description = QObject::tr("First Fit"),
+                        .set = [](AtlasPacker * __packer)
+                        {
+                            static_cast<ShelfBinAtlasPacker *>(__packer)->setChoiceHeuristic(
+                                ShelfBinAtlasPackerChoiceHeuristic::FirstFit);
+                        }
+                    }
+                },
+                {
+                    "BAF",
+                    {
+                       .description = QObject::tr("Best Area Fit"),
+                        .set = [](AtlasPacker * __packer)
+                        {
+                            static_cast<ShelfBinAtlasPacker *>(__packer)->setChoiceHeuristic(
+                                ShelfBinAtlasPackerChoiceHeuristic::BestAreaFit);
+                        }
+                    }
+                },
+                {
+                    "WAF",
+                    {
+                       .description = QObject::tr("Worst Area Fit"),
+                        .set = [](AtlasPacker * __packer)
+                        {
+                            static_cast<ShelfBinAtlasPacker *>(__packer)->setChoiceHeuristic(
+                                ShelfBinAtlasPackerChoiceHeuristic::WorstAreaFit);
+                        }
+                    }
+                },
+                {
+                    "BWF",
+                    {
+                       .description = QObject::tr("Best Width Fit"),
+                        .set = [](AtlasPacker * __packer)
+                        {
+                            static_cast<ShelfBinAtlasPacker *>(__packer)->setChoiceHeuristic(
+                                ShelfBinAtlasPackerChoiceHeuristic::BestWidthFit);
+                        }
+                    }
+                },
+                {
+                    "WWF",
+                    {
+                       .description = QObject::tr("Worst Width Fit"),
+                        .set = [](AtlasPacker * __packer)
+                        {
+                            static_cast<ShelfBinAtlasPacker *>(__packer)->setChoiceHeuristic(
+                                ShelfBinAtlasPackerChoiceHeuristic::WorstWidthFit);
+                        }
+                    }
+                }
              },
              .split_heuristics = {},
             .create = []() { return new ShelfBinAtlasPacker(); },
-            .algoritm_options = OptionFlagUseWasteMap
+            .set_options = [](AtlasPacker * __packer, int __flags) {
+                if(__flags & AlgorithmConfigurationAdapter::OptionFlagUseWasteMap)
+                    static_cast<ShelfBinAtlasPacker *>(__packer)->enableWasteMap(true);
+            },
+            .algoritm_options = AlgorithmConfigurationAdapter::OptionFlagUseWasteMap
         }
     };
 
@@ -300,66 +575,80 @@ std::unique_ptr<Application> AppRunner::parsePack() const
     const QString default_format("png");
 
     QCommandLineParser parser;
-    const QCommandLineOption algorithm_option = {
+    const QCommandLineOption algorithm_option
+    {
         { "a", "algorithm" },
         QObject::tr("Packing algoritm"),
         QObject::tr("algorithm name")
     };
-    const QCommandLineOption choice_heuristic_option = {
+    const QCommandLineOption choice_heuristic_option
+    {
         { "c", "choice-heuristic" },
         QObject::tr("Algorithm-specific choice heuristic"),
         QObject::tr("heuristic")
     };
-    const QCommandLineOption split_heuristic_option = {
+    const QCommandLineOption split_heuristic_option
+    {
         { "s", "split-heuristic" },
         QObject::tr("Algorithm-specific split heuristic"),
         QObject::tr("heuristic")
     };
-    const QCommandLineOption allow_flip_option = {
+    const QCommandLineOption allow_flip_option
+    {
         { "f", "allow-flip" },
         QObject::tr("Algorithm-specific option that allows sprites to be flipped")
     };
-    const QCommandLineOption use_waste_map_option = {
+    const QCommandLineOption use_waste_map_option
+    {
         { "w", "use-waste-map" },
         QObject::tr("Algorithm-specific option that enables the use of a waste map")
     };
-    const QCommandLineOption output_directory_option = {
+    const QCommandLineOption output_directory_option
+    {
         { "o", "output" },
         QObject::tr("Output directory (default: .)"),
         QObject::tr("existent directory")
     };
-    const QCommandLineOption output_name_option = {
+    const QCommandLineOption output_name_option
+    {
         { "n", "name" },
         QObject::tr("Atlas name (default: %1)").arg(default_atlas_name),
         QObject::tr("name")
     };
-    const QCommandLineOption allow_merge_option = {
+    const QCommandLineOption allow_merge_option
+    {
         { "m", "allow-merge" },
         QObject::tr("Algorithm-specific option that allows merge rectangles")
     };
-    const QCommandLineOption max_width_option = {
+    const QCommandLineOption max_width_option
+    {
         { "x", "max-width" },
         QObject::tr("Maximum width of the atlas texture (default: %1)").arg(default_atlas_size),
         QObject::tr("value in pixels")
     };
-    const QCommandLineOption max_height_option = {
+    const QCommandLineOption max_height_option
+    {
         { "y", "max-height" },
         QObject::tr("Maximum height of the atlas texture (default: %1)").arg(default_atlas_size),
         QObject::tr("value in pixels")
     };
-    const QCommandLineOption crop_option = {
+    const QCommandLineOption crop_option
+    {
         { "r", "crop" },
         QObject::tr("Remove whitespace around sprites to save space in the atlas")
     };
-    const QCommandLineOption detect_duplicates_option = {
+    const QCommandLineOption detect_duplicates_option
+    {
         { "d", "detect-duplicates" },
         QObject::tr("Remove duplicates sprites to save space in the atlas")
     };
-    const QCommandLineOption remove_file_ext_option = {
+    const QCommandLineOption remove_file_ext_option
+    {
         { "e", "remove-ext" },
         QObject::tr("Remove file extensions from frame names")
     };
-    const QCommandLineOption format_option = {
+    const QCommandLineOption format_option
+    {
         { "t", "format" },
         QObject::tr("Texture file format. Supported formats (default: png)"),
         QObject::tr("format")
@@ -410,23 +699,23 @@ std::unique_ptr<Application> AppRunner::parsePack() const
             if(!alg.choice_heuristics.empty())
             {
                 m_io.out << "   " << QObject::tr("Choice heuristics") << ":" << Qt::endl;
-                for(const auto [name, desc] : alg.choice_heuristics.asKeyValueRange())
-                    m_io.out << "    - " << name << ": " << desc << Qt::endl;
+                for(const auto [name, heuristic] : alg.choice_heuristics.asKeyValueRange())
+                    m_io.out << "    - " << name << ": " << heuristic.description << Qt::endl;
             }
             if(!alg.split_heuristics.empty())
             {
                 m_io.out << "   " << QObject::tr("Split heuristics") << ":" << Qt::endl;
-                for(const auto [name, desc] : alg.split_heuristics.asKeyValueRange())
-                    m_io.out << "    - " << name << ": " << desc << Qt::endl;
+                for(const auto [name, heuristic] : alg.split_heuristics.asKeyValueRange())
+                    m_io.out << "    - " << name << ": " << heuristic.description << Qt::endl;
             }
             if(alg.algoritm_options)
             {
                 m_io.out << "   " << QObject::tr("Supported options") << ":" << Qt::endl;
-                if(alg.algoritm_options & OptionFlagAllowFlip)
+                if(alg.algoritm_options & AlgorithmConfigurationAdapter::OptionFlagAllowFlip)
                     m_io.out << "    " << joinOptionNames(allow_flip_option.names()) << Qt::endl;
-                if(alg.algoritm_options & OptionFlagUseWasteMap)
+                if(alg.algoritm_options & AlgorithmConfigurationAdapter::OptionFlagUseWasteMap)
                     m_io.out << "    " << joinOptionNames(use_waste_map_option.names()) << Qt::endl;
-                if(alg.algoritm_options & OptionFlagAllowMerge)
+                if(alg.algoritm_options & AlgorithmConfigurationAdapter::OptionFlagAllowMerge)
                     m_io.out << "    " <<  joinOptionNames(allow_merge_option.names()) << Qt::endl;
             }
         }
@@ -493,7 +782,7 @@ std::unique_ptr<Application> AppRunner::parsePack() const
         return noop(ExitCodes::RequiredArgumentNotSpecified);
     }
 
-    std::unique_ptr<AtlasPacker> packer = nullptr;
+    AlgorithmConfigurationAdapter * algorithm_config = nullptr;
     if(parser.isSet(algorithm_option.names().constFirst()))
     {
         const QString algoritm_name = algorithm_option.names().constFirst();
@@ -501,22 +790,54 @@ std::unique_ptr<Application> AppRunner::parsePack() const
         {
             if(algoritm_name == algoritm.name)
             {
-                packer.reset(algoritm.create());
+                algorithm_config = &algoritm;
                 break;
             }
         }
-        if(packer == nullptr)
+        if(algorithm_config == nullptr)
         {
             m_io.err << QObject::tr("Invalid algorithm") << ": " << algoritm_name << Qt::endl;
             return noop(ExitCodes::InvalidArgumentValue);
         }
     }
-    if(packer == nullptr)
+    if(algorithm_config == nullptr)
     {
-        packer.reset(algoritms[0].create());
+        algorithm_config = &algoritms[0];
+
     }
 
-    // TODO: algoritm options
+    std::unique_ptr<AtlasPacker> packer(algorithm_config->create());
+    if(parser.isSet(choice_heuristic_option.names().constFirst()))
+    {
+        const QString heuristic_name = parser.value(choice_heuristic_option.names().constFirst());
+        auto it = algorithm_config->choice_heuristics.find(heuristic_name);
+        if(it == algorithm_config->choice_heuristics.end())
+        {
+            m_io.err << QObject::tr("Invalid or unsupported choice heuristic") << ": " << heuristic_name << Qt::endl;
+            return noop(ExitCodes::InvalidArgumentValue);
+        }
+        it->set(packer.get());
+    }
+    if(parser.isSet(split_heuristic_option.names().constFirst()))
+    {
+        const QString heuristic_name = parser.value(split_heuristic_option.names().constFirst());
+        auto it = algorithm_config->split_heuristics.find(heuristic_name);
+        if(it == algorithm_config->split_heuristics.end())
+        {
+            m_io.err << QObject::tr("Invalid or unsupported split heuristic") << ": " << heuristic_name << Qt::endl;
+            return noop(ExitCodes::InvalidArgumentValue);
+        }
+        it->set(packer.get());
+    }
+
+    int option_flags = AlgorithmConfigurationAdapter::OptionFlagNone;
+    if(parser.isSet(allow_flip_option.names().constFirst()))
+        option_flags |= AlgorithmConfigurationAdapter::OptionFlagAllowFlip;
+    if(parser.isSet(allow_merge_option.names().constFirst()))
+        option_flags |= AlgorithmConfigurationAdapter::OptionFlagAllowMerge;
+    if(parser.isSet(use_waste_map_option.names().constFirst()))
+        option_flags |= AlgorithmConfigurationAdapter::OptionFlagUseWasteMap;
+    algorithm_config->set_options(packer.get(), option_flags);
 
     return std::unique_ptr<Application>(new PackApplication(
         std::move(sprites),
@@ -582,58 +903,69 @@ std::unique_ptr<Application> AppRunner::parseUnpackGrid() const
     args.removeAt(1); // remove the "unpack" argument to hide it from the parser
     args.removeAt(1); // remove the "grid" argument to hide it from the parser
 
-    const QCommandLineOption texture_option {
+    const QCommandLineOption texture_option
+    {
         QStringList { "tx", "texture" },
         QObject::tr("Texture filename"),
         QObject::tr("filename")
     };
-    const QCommandLineOption output_option {
+    const QCommandLineOption output_option
+    {
         QStringList { "out" },
         QObject::tr("Output directory"),
         QObject::tr("directory")
     };
-    const QCommandLineOption rows_option {
+    const QCommandLineOption rows_option
+    {
         QStringList { "rows" },
         QObject::tr("Row count"),
         QObject::tr("value")
     };
-    const QCommandLineOption columns_option {
+    const QCommandLineOption columns_option
+    {
         QStringList { "cols", "columns" },
         QObject::tr("Column count"),
         QObject::tr("value")
     };
-    const QCommandLineOption sprite_width_option {
+    const QCommandLineOption sprite_width_option
+    {
         QStringList { "wd", "sprite-width" },
         QObject::tr("Sprite width"),
         QObject::tr("value")
     };
-    const QCommandLineOption sprite_height_option {
+    const QCommandLineOption sprite_height_option
+    {
         QStringList { "ht", "sprite-height" },
         QObject::tr("Sprite height"),
         QObject::tr("value")
     };
-    const QCommandLineOption horizontal_spacing_option {
+    const QCommandLineOption horizontal_spacing_option
+    {
         QStringList { "hs", "horizontal-spacing" },
         QObject::tr("Horizontal spacing"),
         QObject::tr("value")
     };
-    const QCommandLineOption vertical_spacing_option {
+    const QCommandLineOption vertical_spacing_option
+    {
         QStringList { "vs", "vertical-spacing" },
         QObject::tr("Vertical spacing"),
         QObject::tr("value")
     };
-    const QCommandLineOption margin_top_option {
+    const QCommandLineOption margin_top_option
+    {
         QStringList { "mt", "margin-top" },
         QObject::tr("Margin top"),
         QObject::tr("value")
     };
-    const QCommandLineOption margin_left_option {
+    const QCommandLineOption margin_left_option
+    {
         QStringList { "ml", "margin-left" },
         QObject::tr("Margin left"),
         QObject::tr("value")
     };
 
-    const QList options = {
+    const QList options
+    {
         m_help_options,
         texture_option,
         output_option,
@@ -716,18 +1048,21 @@ QStringList args = m_args;
     args.removeAt(1); // remove the "unpack" argument to hide it from the parser
     args.removeAt(1); // remove the "atlas" argument to hide it from the parser
 
-    const QCommandLineOption atlas_option {
+    const QCommandLineOption atlas_option
+    {
         QStringList { "at", "atlas" },
         QObject::tr("Atlas filename"),
         QObject::tr("filename")
     };
-    const QCommandLineOption output_option {
+    const QCommandLineOption output_option
+    {
         QStringList { "out" },
         QObject::tr("Output directory"),
         QObject::tr("directory")
     };
 
-    const QList options = {
+    const QList options
+    {
         m_help_options,
         atlas_option,
         output_option
