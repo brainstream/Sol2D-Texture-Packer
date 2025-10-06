@@ -18,27 +18,12 @@
 
 #include <Sol2dTexturePackerGui/GraphicsView.h>
 #include <QGraphicsItem>
-#include <QStyleHints>
-#include <QGuiApplication>
 #include <QWheelEvent>
 
 GraphicsView::GraphicsView(QWidget * _parent) :
     QGraphicsView(_parent),
     m_zoom_model(nullptr)
 {
-    QStyleHints * style_hints = QGuiApplication::styleHints();
-    applyColorScheme(style_hints->colorScheme());
-    connect(style_hints, &QStyleHints::colorSchemeChanged, this, &GraphicsView::applyColorScheme);
-}
-
-void GraphicsView::applyColorScheme(Qt::ColorScheme _scheme)
-{
-    QString brush_texture_file = _scheme == Qt::ColorScheme::Dark
-        ? ":/image/transparent_dark"
-        : ":/image/transparent_light";
-    QBrush brush(Qt::TexturePattern);
-    brush.setTexture(QPixmap(brush_texture_file));
-    setBackgroundBrush(brush);
 }
 
 void GraphicsView::drawBackground(QPainter * _painter, const QRectF &)

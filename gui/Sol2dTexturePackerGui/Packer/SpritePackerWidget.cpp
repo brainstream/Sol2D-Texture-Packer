@@ -17,6 +17,7 @@
  **********************************************************************************************************/
 
 #include <Sol2dTexturePackerGui/Packer/SpritePackerWidget.h>
+#include <Sol2dTexturePackerGui/TransparentGraphicsPixmapItem.h>
 #include <Sol2dTexturePackerGui/ImageFormat.h>
 #include <Sol2dTexturePackerGui/Settings.h>
 #include <LibSol2dTexturePacker/Packers/MaxRectsBinAtlasPacker.h>
@@ -83,7 +84,7 @@ QVariant SpritePackerWidget::SpriteListModel::data(const QModelIndex & _index, i
     case Qt::DisplayRole:
         return m_sprites[_index.row()].name;
     case Qt::DecorationRole:
-        return m_sprites[_index.row()].image;
+        return m_sprites[_index.row()].image.scaled(64, 64, Qt::KeepAspectRatio);
     default:
         return QVariant();
     }
@@ -231,6 +232,8 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
     connect(m_spin_max_height, &QSpinBox::valueChanged, this, &SpritePackerWidget::renderPack);
     connect(m_checkbox_crop, &QCheckBox::checkStateChanged, this, &SpritePackerWidget::renderPack);
     connect(m_checkbox_detect_duplicates, &QCheckBox::checkStateChanged, this, &SpritePackerWidget::renderPack);
+    // connect(m_spin_max_width, &QSpinBox::valueChanged, this, &SpritePackerWidget::renderPack); // FIXME: exception when value less than sprite
+    // connect(m_spin_max_height, &QSpinBox::valueChanged, this, &SpritePackerWidget::renderPack);
     connect(m_btn_export, &QPushButton::clicked, this, &SpritePackerWidget::exportPack);
     connect(m_edit_export_directory, &QLineEdit::textChanged, this, &SpritePackerWidget::validateExportPackRequirements);
     connect(m_edit_export_name, &QLineEdit::textChanged, this, &SpritePackerWidget::validateExportPackRequirements);
@@ -344,19 +347,27 @@ void SpritePackerWidget::addSprites()
 void SpritePackerWidget::renderPack()
 {
     m_preview->scene()->clear();
-    AtlasPackerOptions options
-    {
-        .max_atlas_size = QSize(
-            m_spin_max_width->value(),
-            m_spin_max_height->value()
-        ),
-        .detect_duplicates = m_checkbox_detect_duplicates->isChecked(),
-        .crop = m_checkbox_crop->isChecked(),
-        .remove_file_extensions = m_checkbox_remove_file_ext->isChecked()
-    };
-    m_atlases = m_packers->current->pack(m_sprites_model->getSprites(), options);
+    m_atlases = m_packers->current->pack(
+        m_sprites_model->getSprites(),
+        {
+            .max_atlas_size = QSize(
+                m_spin_max_width->value(),
+                m_spin_max_height->value()
+                ),
+            .detect_duplicates = m_checkbox_detect_duplicates->isChecked(),
+            .crop = m_checkbox_crop->isChecked(),
+            .remove_file_extensions = m_checkbox_remove_file_ext->isChecked()
+        });
+    const qreal y_gap = 100.0;
+    qreal y_offset = .0;
     for(const RawAtlas & atlas : *m_atlases)
-        m_preview->scene()->addPixmap(QPixmap::fromImage(atlas.image));
+    {
+        TransparentGraphicsPixmapItem * item = new TransparentGraphicsPixmapItem(QPixmap::fromImage(atlas.image));
+        m_preview->scene()->addItem(item);
+        if(y_offset > .0)
+            item->moveBy(.0, y_offset);
+        y_offset += y_gap + item->boundingRect().height();
+    }
     validateExportPackRequirements();
 }
 

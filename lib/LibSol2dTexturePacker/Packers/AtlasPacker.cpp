@@ -17,6 +17,7 @@
  **********************************************************************************************************/
 
 #include <LibSol2dTexturePacker/Packers/AtlasPacker.h>
+#include <LibSol2dTexturePacker/Exception.h>
 #include <QCryptographicHash>
 #include <QFileInfo>
 #include <QPainter>
@@ -75,7 +76,6 @@ QImage render(const std::list<Item> & _items)
             item.is_rotated
                 ? QRect(
                       item.image->height() - (item.source_rect.height() + item.source_rect.y()),
-                      // item.image->width() - (item.source_rect.width() + item.source_rect.x()),
                       item.source_rect.x(),
                       item.source_rect.height(),
                       item.source_rect.width())
@@ -210,15 +210,21 @@ std::unique_ptr<RawAtlasPack> AtlasPacker::pack(
         else
         {
             QRect sprite_rect = _options.crop ? crop(sprite.image) : sprite.image.rect();
+        RETRY:
             QRect dest_rect = algorithm->insert(sprite_rect.width(), sprite_rect.height());
-            if(dest_rect.isNull() && !items.empty())
+            if(dest_rect.isNull())
             {
+                if(items.empty())
+                {
+                    throw InvalidOperationExeption(tr("The sprite exceeds the texture size limit"));
+                }
                 result->add({
                     .image = render(items),
                     .frames = itemsToFrames(items)
                 });
                 items.clear();
                 algorithm->resetBin();
+                goto RETRY;
             }
             items.emplace_back(
                 &sprite.image,

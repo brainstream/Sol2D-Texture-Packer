@@ -39,6 +39,15 @@ private:
     const QString m_message;
 };
 
+class S2TP_EXPORT InvalidOperationExeption : public Exception
+{
+public:
+    explicit InvalidOperationExeption(QString _message) :
+        Exception(std::move(_message))
+    {
+    }
+};
+
 class S2TP_EXPORT IOExeption : public Exception
 {
 public:
