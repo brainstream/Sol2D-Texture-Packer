@@ -73,7 +73,12 @@ QImage render(const std::list<Item> & _items)
             item.destination_rect.topLeft(),
             item.is_rotated ? item.image->transformed(rotation) : *item.image,
             item.is_rotated
-                ? QRect(item.source_rect.y(), item.source_rect.x(), item.source_rect.height(), item.source_rect.width())
+                ? QRect(
+                      item.image->height() - (item.source_rect.height() + item.source_rect.y()),
+                      // item.image->width() - (item.source_rect.width() + item.source_rect.x()),
+                      item.source_rect.x(),
+                      item.source_rect.height(),
+                      item.source_rect.width())
                 : item.source_rect);
     }
     return image;
