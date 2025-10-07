@@ -31,7 +31,7 @@
 SpriteSheetSplitterWidget::SpriteSheetSplitterWidget(QWidget * _parent) :
     QWidget(_parent),
     m_open_image_dialog_filter(makeAllReadSupportedImageFormatsFilterString()),
-    m_sprite_pen(QColor(255, 0, 0, 80)),
+    m_sprite_pen(QColor(120, 0, 0, 80), 1.0, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin),
     m_sprite_brush(QColor(255, 0, 0, 50)),
     m_pack(nullptr)
 {

@@ -367,15 +367,18 @@ void SpritePackerWidget::renderPack()
         return;
     }
     const qreal y_gap = 100.0;
+    qreal max_width = .0;
     qreal y_offset = .0;
     for(const RawAtlas & atlas : *m_atlases)
     {
         TransparentGraphicsPixmapItem * item = new TransparentGraphicsPixmapItem(QPixmap::fromImage(atlas.image));
         m_preview->scene()->addItem(item);
-        if(y_offset > .0)
-            item->moveBy(.0, y_offset);
+        item->setPos(-atlas.image.width() / 2.0, y_offset);
         y_offset += y_gap + item->boundingRect().height();
+        if(atlas.image.width() > max_width)
+            max_width = atlas.image.width();
     }
+    m_preview->scene()->setSceneRect(-max_width / 2.0, 0, max_width, y_offset);
     validateExportPackRequirements();
 }
 
