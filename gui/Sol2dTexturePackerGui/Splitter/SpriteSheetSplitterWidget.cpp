@@ -17,13 +17,13 @@
  **********************************************************************************************************/
 
 #include <Sol2dTexturePackerGui/Splitter/SpriteSheetSplitterWidget.h>
+#include <Sol2dTexturePackerGui/TransparentGraphicsPixmapItem.h>
 #include <Sol2dTexturePackerGui/Settings.h>
 #include <Sol2dTexturePackerGui/ImageFormat.h>
 #include <LibSol2dTexturePacker/Pack/GridPack.h>
 #include <LibSol2dTexturePacker/Pack/AtlasPack.h>
 #include <LibSol2dTexturePacker/Exception.h>
 #include <LibSol2dTexturePacker/Atlas/Sol2dAtlasSerializer.h>
-#include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -31,8 +31,6 @@
 SpriteSheetSplitterWidget::SpriteSheetSplitterWidget(QWidget * _parent) :
     QWidget(_parent),
     m_open_image_dialog_filter(makeAllReadSupportedImageFormatsFilterString()),
-    m_sheet_brush(QColor(255, 255, 255, 180)),
-    m_sheet_pen(QColor(0, 0, 0, 150)),
     m_sprite_pen(QColor(255, 0, 0, 80)),
     m_sprite_brush(QColor(255, 0, 0, 50)),
     m_pack(nullptr)
@@ -92,10 +90,9 @@ void SpriteSheetSplitterWidget::syncWithPack()
 {
     QGraphicsScene * scene = m_preview->scene();
     scene->clear();
-    QGraphicsPixmapItem * pixmap_item = scene->addPixmap(QPixmap::fromImage(m_pack->texture()));
-    scene->addRect({pixmap_item->pos(), m_pack->texture().size()}, m_sheet_pen, m_sheet_brush);
-    pixmap_item->setZValue(1);
-    qreal border_half_width = m_sheet_pen.widthF() / 2;
+    TransparentGraphicsPixmapItem * pixmap_item = new TransparentGraphicsPixmapItem(QPixmap::fromImage(m_pack->texture()));
+    scene->addItem(pixmap_item);
+    qreal border_half_width = m_sprite_pen.widthF() / 2;
     bool is_valid = m_pack->forEachFrame([this, scene, border_half_width](const Frame & __frame) {
         QRectF rect = __frame.texture_rect.toRectF();
         rect.adjust(border_half_width, border_half_width, -border_half_width, -border_half_width);
