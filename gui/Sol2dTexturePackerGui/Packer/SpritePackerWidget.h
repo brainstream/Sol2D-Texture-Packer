@@ -20,6 +20,7 @@
 
 #include "ui_SpritePackerWidget.h"
 #include <LibSol2dTexturePacker/Packers/RawAtlasPack.h>
+#include <QMenu>
 #include <memory>
 
 class SpritePackerWidget : public QWidget, private Ui::SpritePackerWidget
@@ -35,7 +36,9 @@ public:
     ~SpritePackerWidget() override;
 
 private slots:
+    void showTreeItemContextMentu(const QPoint & _pos);
     void addSprites();
+    void removeSprites();
     void renderPack();
     void exportPack();
     void browseForExportDir();
@@ -53,6 +56,7 @@ private slots:
 
 private:
     SpriteListModel * m_sprites_model;
+    QMenu * m_tree_item_context_menu;
     Packers * m_packers;
     const QString m_open_image_dialog_filter;
     std::unique_ptr<RawAtlasPack> m_atlases;

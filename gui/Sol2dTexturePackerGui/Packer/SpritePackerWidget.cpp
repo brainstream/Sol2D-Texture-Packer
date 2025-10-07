@@ -58,6 +58,7 @@ public:
     explicit SpriteListModel(QObject * _parent);
     int rowCount(const QModelIndex & _parent) const override;
     QVariant data(const QModelIndex & _index, int _role) const override;
+    bool removeRows(int _row, int _count, const QModelIndex & _parent) override;
     void addSprite(const Sprite & _sprite);
     const QList<Sprite> & getSprites() const;
 
@@ -104,6 +105,14 @@ void SpritePackerWidget::SpriteListModel::addSprite(const Sprite & _sprite)
     }
 }
 
+bool SpritePackerWidget::SpriteListModel::removeRows(int _row, int _count, const QModelIndex & _parent)
+{
+    beginRemoveRows(_parent, _row, _row + _count);
+    m_sprites.remove(_row, _count);
+    endRemoveRows();
+    return true;
+}
+
 inline const QList<Sprite> & SpritePackerWidget::SpriteListModel::getSprites() const
 {
     return m_sprites;
@@ -115,6 +124,9 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
     m_open_image_dialog_filter(makeAllReadSupportedImageFormatsFilterString())
 {
     setupUi(this);
+
+    m_tree_item_context_menu = new QMenu(this);
+    m_tree_item_context_menu->addAction(m_action_remove_sprite);
 
     m_packers->current = nullptr;
     m_packers->max_rects_bin.setChoiceHeuristic(MaxRectsBinAtlasPackerChoiceHeuristic::BestAreaFit);
@@ -228,6 +240,8 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
     }
 
     connect(m_btn_add_sprites, &QPushButton::clicked, this, &SpritePackerWidget::addSprites);
+    connect(m_action_remove_sprite, &QAction::triggered, this, &SpritePackerWidget::removeSprites);
+    connect(m_tree_sprites, &QTreeView::customContextMenuRequested, this, &SpritePackerWidget::showTreeItemContextMentu);
     connect(m_spin_max_width, &QSpinBox::valueChanged, this, &SpritePackerWidget::renderPack);
     connect(m_spin_max_height, &QSpinBox::valueChanged, this, &SpritePackerWidget::renderPack);
     connect(m_checkbox_crop, &QCheckBox::checkStateChanged, this, &SpritePackerWidget::renderPack);
@@ -344,6 +358,23 @@ void SpritePackerWidget::addSprites()
     renderPack();
 }
 
+void SpritePackerWidget::removeSprites()
+{
+    const QItemSelection selection = m_tree_sprites->selectionModel()->selection();
+    std::list<int> rows;
+    foreach(const QModelIndex & idx, selection.indexes())
+    {
+        const int r = idx.row();
+        if(rows.empty() || r < rows.back()) // sort desc
+            rows.push_back(r);
+        else
+            rows.push_front(r);
+    }
+    for(const int row : rows)
+        m_sprites_model->removeRow(row);
+    renderPack();
+}
+
 void SpritePackerWidget::renderPack()
 {
     m_preview->scene()->clear();
@@ -380,6 +411,13 @@ void SpritePackerWidget::renderPack()
     }
     m_preview->scene()->setSceneRect(-max_width / 2.0, 0, max_width, y_offset);
     validateExportPackRequirements();
+}
+
+void SpritePackerWidget::showTreeItemContextMentu(const QPoint & _pos)
+{
+    QModelIndex index = m_tree_sprites->indexAt(_pos);
+    if(index.isValid())
+        m_tree_item_context_menu->exec(m_tree_sprites->mapToGlobal(_pos));
 }
 
 void SpritePackerWidget::exportPack()

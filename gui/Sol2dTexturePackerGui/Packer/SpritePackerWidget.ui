@@ -23,8 +23,14 @@
       <layout class="QVBoxLayout" name="m_layout">
        <item>
         <widget class="QTreeView" name="m_tree_sprites">
+         <property name="contextMenuPolicy">
+          <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
+         </property>
          <property name="alternatingRowColors">
           <bool>true</bool>
+         </property>
+         <property name="selectionMode">
+          <enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum>
          </property>
          <property name="rootIsDecorated">
           <bool>false</bool>
@@ -462,6 +468,21 @@
     </widget>
    </item>
   </layout>
+  <action name="m_action_remove_sprite">
+   <property name="icon">
+    <iconset resource="../Resources/Resources.qrc">
+     <normaloff>:/icons/list-remove</normaloff>:/icons/list-remove</iconset>
+   </property>
+   <property name="text">
+    <string>Remove sprite</string>
+   </property>
+   <property name="toolTip">
+    <string>Remove</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
