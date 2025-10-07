@@ -29,7 +29,7 @@
    <item row="0" column="0">
     <widget class="QLabel" name="m_label_data_file">
      <property name="text">
-      <string>Data file</string>
+      <string>Atlas</string>
      </property>
     </widget>
    </item>
@@ -57,7 +57,7 @@
      </property>
      <item>
       <property name="text">
-       <string>Default</string>
+       <string>Sol2D</string>
       </property>
      </item>
     </widget>
