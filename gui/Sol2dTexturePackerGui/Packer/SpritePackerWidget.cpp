@@ -242,12 +242,10 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
     connect(m_btn_add_sprites, &QPushButton::clicked, this, &SpritePackerWidget::addSprites);
     connect(m_action_remove_sprite, &QAction::triggered, this, &SpritePackerWidget::removeSprites);
     connect(m_tree_sprites, &QTreeView::customContextMenuRequested, this, &SpritePackerWidget::showTreeItemContextMentu);
-    connect(m_spin_max_width, &QSpinBox::valueChanged, this, &SpritePackerWidget::renderPack);
-    connect(m_spin_max_height, &QSpinBox::valueChanged, this, &SpritePackerWidget::renderPack);
     connect(m_checkbox_crop, &QCheckBox::checkStateChanged, this, &SpritePackerWidget::renderPack);
     connect(m_checkbox_detect_duplicates, &QCheckBox::checkStateChanged, this, &SpritePackerWidget::renderPack);
-    // connect(m_spin_max_width, &QSpinBox::valueChanged, this, &SpritePackerWidget::renderPack); // FIXME: exception when value less than sprite
-    // connect(m_spin_max_height, &QSpinBox::valueChanged, this, &SpritePackerWidget::renderPack);
+    connect(m_spin_max_width, &QSpinBox::editingFinished, this, &SpritePackerWidget::renderPack);
+    connect(m_spin_max_height, &QSpinBox::editingFinished, this, &SpritePackerWidget::renderPack);
     connect(m_btn_export, &QPushButton::clicked, this, &SpritePackerWidget::exportPack);
     connect(m_edit_export_directory, &QLineEdit::textChanged, this, &SpritePackerWidget::validateExportPackRequirements);
     connect(m_edit_export_name, &QLineEdit::textChanged, this, &SpritePackerWidget::validateExportPackRequirements);
