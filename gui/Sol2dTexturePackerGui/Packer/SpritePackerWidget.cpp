@@ -18,6 +18,7 @@
 
 #include <Sol2dTexturePackerGui/Packer/SpritePackerWidget.h>
 #include <Sol2dTexturePackerGui/TransparentGraphicsPixmapItem.h>
+#include <Sol2dTexturePackerGui/BusySmartThread.h>
 #include <Sol2dTexturePackerGui/ImageFormat.h>
 #include <Sol2dTexturePackerGui/Settings.h>
 #include <LibSol2dTexturePacker/Packers/MaxRectsBinAtlasPacker.h>
@@ -375,40 +376,45 @@ void SpritePackerWidget::removeSprites()
 
 void SpritePackerWidget::renderPack()
 {
-    m_preview->scene()->clear();
-    try
-    {
-        m_atlases = m_packers->current->pack(
-            m_sprites_model->getSprites(),
-            {
-                .max_atlas_size = QSize(
-                    m_spin_max_width->value(),
-                    m_spin_max_height->value()
-                    ),
-                .detect_duplicates = m_checkbox_detect_duplicates->isChecked(),
-                .crop = m_checkbox_crop->isChecked(),
-                .remove_file_extensions = m_checkbox_remove_file_ext->isChecked()
-            });
-    }
-    catch(const Exception & exception)
-    {
-        QMessageBox::critical(this, QString(), exception.message());
-        return;
-    }
-    const qreal y_gap = 100.0;
-    qreal max_width = .0;
-    qreal y_offset = .0;
-    for(const RawAtlas & atlas : *m_atlases)
-    {
-        TransparentGraphicsPixmapItem * item = new TransparentGraphicsPixmapItem(QPixmap::fromImage(atlas.image));
-        m_preview->scene()->addItem(item);
-        item->setPos(-atlas.image.width() / 2.0, y_offset);
-        y_offset += y_gap + item->boundingRect().height();
-        if(atlas.image.width() > max_width)
-            max_width = atlas.image.width();
-    }
-    m_preview->scene()->setSceneRect(-max_width / 2.0, 0, max_width, y_offset);
-    validateExportPackRequirements();
+    BusySmartThread * thread = new BusySmartThread(
+        [this]()
+        {
+            m_atlases = m_packers->current->pack(
+                m_sprites_model->getSprites(),
+                {
+                    .max_atlas_size = QSize(
+                        m_spin_max_width->value(),
+                        m_spin_max_height->value()
+                        ),
+                    .detect_duplicates = m_checkbox_detect_duplicates->isChecked(),
+                    .crop = m_checkbox_crop->isChecked(),
+                    .remove_file_extensions = m_checkbox_remove_file_ext->isChecked()
+                });
+
+        },
+        this);
+    connect(thread, &BusySmartThread::finished, this, [this, thread]() {
+        m_preview->scene()->clear();
+        const qreal y_gap = 100.0;
+        qreal max_width = .0;
+        qreal y_offset = .0;
+        for(const RawAtlas & atlas : *m_atlases)
+        {
+            TransparentGraphicsPixmapItem * item = new TransparentGraphicsPixmapItem(QPixmap::fromImage(atlas.image));
+            m_preview->scene()->addItem(item);
+            item->setPos(-atlas.image.width() / 2.0, y_offset);
+            y_offset += y_gap + item->boundingRect().height();
+            if(atlas.image.width() > max_width)
+                max_width = atlas.image.width();
+        }
+        m_preview->scene()->setSceneRect(-max_width / 2.0, 0, max_width, y_offset);
+        validateExportPackRequirements();
+        thread->deleteLater();
+    });
+    connect(thread, &BusySmartThread::exception, this, [this](const QString & __message) {
+        QMessageBox::critical(this, QString(), __message);
+    });
+    thread->start();
 }
 
 void SpritePackerWidget::showTreeItemContextMentu(const QPoint & _pos)
