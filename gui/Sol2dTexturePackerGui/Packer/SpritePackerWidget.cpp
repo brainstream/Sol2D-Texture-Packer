@@ -347,17 +347,25 @@ void SpritePackerWidget::addSprites()
 void SpritePackerWidget::renderPack()
 {
     m_preview->scene()->clear();
-    m_atlases = m_packers->current->pack(
-        m_sprites_model->getSprites(),
-        {
-            .max_atlas_size = QSize(
-                m_spin_max_width->value(),
-                m_spin_max_height->value()
-                ),
-            .detect_duplicates = m_checkbox_detect_duplicates->isChecked(),
-            .crop = m_checkbox_crop->isChecked(),
-            .remove_file_extensions = m_checkbox_remove_file_ext->isChecked()
-        });
+    try
+    {
+        m_atlases = m_packers->current->pack(
+            m_sprites_model->getSprites(),
+            {
+                .max_atlas_size = QSize(
+                    m_spin_max_width->value(),
+                    m_spin_max_height->value()
+                    ),
+                .detect_duplicates = m_checkbox_detect_duplicates->isChecked(),
+                .crop = m_checkbox_crop->isChecked(),
+                .remove_file_extensions = m_checkbox_remove_file_ext->isChecked()
+            });
+    }
+    catch(const Exception & exception)
+    {
+        QMessageBox::critical(this, QString(), exception.message());
+        return;
+    }
     const qreal y_gap = 100.0;
     qreal y_offset = .0;
     for(const RawAtlas & atlas : *m_atlases)
