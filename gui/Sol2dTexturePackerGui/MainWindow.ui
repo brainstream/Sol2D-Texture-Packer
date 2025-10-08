@@ -93,6 +93,31 @@
          </property>
         </spacer>
        </item>
+       <item>
+        <widget class="QToolButton" name="m_btn_about">
+         <property name="minimumSize">
+          <size>
+           <width>64</width>
+           <height>64</height>
+          </size>
+         </property>
+         <property name="text">
+          <string notr="true"/>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>48</width>
+           <height>48</height>
+          </size>
+         </property>
+         <property name="toolButtonStyle">
+          <enum>Qt::ToolButtonStyle::ToolButtonTextUnderIcon</enum>
+         </property>
+         <property name="autoRaise">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </item>
@@ -132,6 +157,18 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
+  <action name="m_action_about">
+   <property name="icon">
+    <iconset resource="Resources/Resources.qrc">
+     <normaloff>:/icons/help-browser</normaloff>:/icons/help-browser</iconset>
+   </property>
+   <property name="text">
+    <string>About</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -145,6 +182,7 @@
   <tabstop>m_tabs</tabstop>
   <tabstop>m_btn_pack_sprites</tabstop>
   <tabstop>m_btn_split_sheet</tabstop>
+  <tabstop>m_btn_about</tabstop>
  </tabstops>
  <resources>
   <include location="Resources/Resources.qrc"/>

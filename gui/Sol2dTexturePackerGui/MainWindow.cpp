@@ -19,6 +19,7 @@
 #include <Sol2dTexturePackerGui/Splitter/SpriteSheetSplitterWidget.h>
 #include <Sol2dTexturePackerGui/Packer/SpritePackerWidget.h>
 #include <Sol2dTexturePackerGui/MainWindow.h>
+#include <Sol2dTexturePackerGui/AboutDialog.h>
 #include <Sol2dTexturePackerGui/Settings.h>
 #include <QFileInfo>
 
@@ -34,10 +35,12 @@ MainWindow::MainWindow(QWidget *_parent) :
 
     m_btn_pack_sprites->setDefaultAction(m_action_pack_sprites);
     m_btn_split_sheet->setDefaultAction(m_action_split_sheet);
+    m_btn_about->setDefaultAction(m_action_about);
 
     connect(m_tabs, &QTabWidget::tabCloseRequested, this, &MainWindow::closeTab);
     connect(m_action_split_sheet, &QAction::triggered, this, &MainWindow::showSheetSplitter);
     connect(m_action_pack_sprites, &QAction::triggered, this, &MainWindow::showSpritePacker);
+    connect(m_action_about, &QAction::triggered, this, &MainWindow::showAboutDialog);
 }
 
 MainWindow::~MainWindow()
@@ -77,4 +80,10 @@ void MainWindow::showSpritePacker()
 void MainWindow::closeTab(int _index)
 {
     m_tabs->widget(_index)->deleteLater();
+}
+
+void MainWindow::showAboutDialog()
+{
+    AboutDialog dlg(this);
+    dlg.exec();
 }

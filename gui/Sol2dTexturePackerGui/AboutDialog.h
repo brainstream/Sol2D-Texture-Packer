@@ -18,27 +18,12 @@
 
 #pragma once
 
-#include "ui_MainWindow.h"
-#include <QMainWindow>
+#include "ui_AboutDialog.h"
 
-class MainWindow : public QMainWindow, private Ui::MainWindow
+class AboutDialog : public QDialog, private Ui::AboutDialog
 {
     Q_OBJECT
 
 public:
-    MainWindow(QWidget * _parent = nullptr);
-    ~MainWindow() override;
-
-protected:
-    void closeEvent(QCloseEvent * _event) override;
-
-private slots:
-    void showSheetSplitter();
-    void showSpritePacker();
-    void closeTab(int _index);
-    void showAboutDialog();
-
-private:
-    QIcon * m_split_icon;
-    QIcon * m_pack_icon;
+    explicit AboutDialog(QWidget * _parent = nullptr);
 };

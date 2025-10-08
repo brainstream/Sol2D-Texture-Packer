@@ -16,29 +16,19 @@
  *                                                                                                        *
  **********************************************************************************************************/
 
-#pragma once
+#include <Sol2dTexturePackerGui/AboutDialog.h>
 
-#include "ui_MainWindow.h"
-#include <QMainWindow>
-
-class MainWindow : public QMainWindow, private Ui::MainWindow
+AboutDialog::AboutDialog(QWidget * _parent) :
+    QDialog(_parent, Qt::WindowSystemMenuHint | Qt::WindowTitleHint)
 {
-    Q_OBJECT
-
-public:
-    MainWindow(QWidget * _parent = nullptr);
-    ~MainWindow() override;
-
-protected:
-    void closeEvent(QCloseEvent * _event) override;
-
-private slots:
-    void showSheetSplitter();
-    void showSpritePacker();
-    void closeTab(int _index);
-    void showAboutDialog();
-
-private:
-    QIcon * m_split_icon;
-    QIcon * m_pack_icon;
-};
+    setupUi(this);
+    m_label_title->setText(__S2TP_APP);
+    static const int start_development_year = 2025;
+    int build_year = QString(__DATE__).right(4).toInt();
+    QString years = (start_development_year < build_year) ?
+        QString("%1 - %2").arg(start_development_year).arg(build_year) :
+        QString::number(build_year);
+    m_label_version->setText(m_label_version->text().arg(__S2TP_VERSION));
+    m_label_description->setText(m_label_description->text().arg(years));
+    adjustSize();
+}
