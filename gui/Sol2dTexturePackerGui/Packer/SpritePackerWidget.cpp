@@ -25,6 +25,7 @@
 #include <LibSol2dTexturePacker/Packers/SkylineBinAtlasPacker.h>
 #include <LibSol2dTexturePacker/Packers/GuillotineBinAtlaskPacker.h>
 #include <LibSol2dTexturePacker/Packers/ShelfBinAtlasPacker.h>
+#include <LibSol2dTexturePacker/Packers/MetaAtlasPacker.h>
 #include <LibSol2dTexturePacker/Exception.h>
 #include <QList>
 #include <QFileDialog>
@@ -39,7 +40,8 @@ enum class PackAlgorithm
     MaxRectsBin,
     SkylineBinPack,
     GuillotineBinPack,
-    ShelfBinPack
+    ShelfBinPack,
+    Meta
 };
 
 } // namespace name
@@ -50,6 +52,7 @@ struct SpritePackerWidget::Packers
     SkylineBinAtlasPacker skyline_bin;
     GuillotineBinAtlaskPacker guillotine_bin;
     ShelfBinAtlasPacker shelf_bin;
+    MetaAtlasPacker meta;
     AtlasPacker * current;
 };
 
@@ -142,6 +145,7 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
     m_combo_algorithm->addItem("Skyline", static_cast<int>(PackAlgorithm::SkylineBinPack));
     m_combo_algorithm->addItem("Guillotine", static_cast<int>(PackAlgorithm::GuillotineBinPack));
     m_combo_algorithm->addItem("Shelf", static_cast<int>(PackAlgorithm::ShelfBinPack));
+    m_combo_algorithm->addItem("Auto", static_cast<int>(PackAlgorithm::Meta));
 
     m_combo_mrb_heuristic->addItem(
         tr("Best Long Side Fit"),
@@ -472,6 +476,9 @@ void SpritePackerWidget::onAlgorithmChanged()
         break;
     case PackAlgorithm::ShelfBinPack:
         new_packer = &m_packers->shelf_bin;
+        break;
+    case PackAlgorithm::Meta:
+        new_packer = &m_packers->meta;
         break;
     default:
         new_packer = m_packers->current;

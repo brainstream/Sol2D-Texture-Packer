@@ -21,7 +21,7 @@
 
 namespace {
 
-class ShelfBinAtlasPackerAlgorithm : public AtlasPackerAlgorithm
+class ShelfBinAtlasPackerAlgorithm : public AtlasPackerOnlineAlgorithm
 {
 public:
     ShelfBinAtlasPackerAlgorithm(
@@ -90,14 +90,14 @@ void ShelfBinAtlasPackerAlgorithm::resetBin()
 } // namespace
 
 ShelfBinAtlasPacker::ShelfBinAtlasPacker(QObject * _parent) :
-    AtlasPacker(_parent),
+    OnlineAlgorithmAtlasPacker(_parent),
     m_heuristic(ShelfBinAtlasPackerChoiceHeuristic::NextFit),
     m_use_waste_map(false)
 {
 }
 
-std::unique_ptr<AtlasPackerAlgorithm> ShelfBinAtlasPacker::createAlgorithm(const QSize & _max_atlas_size) const
+std::unique_ptr<AtlasPackerOnlineAlgorithm> ShelfBinAtlasPacker::createAlgorithm(const QSize & _max_atlas_size) const
 {
-    return std::unique_ptr<AtlasPackerAlgorithm>(
+    return std::unique_ptr<AtlasPackerOnlineAlgorithm>(
         new ShelfBinAtlasPackerAlgorithm(_max_atlas_size, m_heuristic, m_use_waste_map));
 }

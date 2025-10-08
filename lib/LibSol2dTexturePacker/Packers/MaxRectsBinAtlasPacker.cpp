@@ -21,7 +21,7 @@
 
 namespace {
 
-class MaxRectsBinPackAlgorithm : public AtlasPackerAlgorithm
+class MaxRectsBinPackAlgorithm : public AtlasPackerOnlineAlgorithm
 {
 public:
     MaxRectsBinPackAlgorithm(
@@ -87,14 +87,14 @@ rbp::MaxRectsBinPack::FreeRectChoiceHeuristic MaxRectsBinPackAlgorithm::map(
 }
 
 MaxRectsBinAtlasPacker::MaxRectsBinAtlasPacker(QObject * _parent) :
-    AtlasPacker(_parent),
+    OnlineAlgorithmAtlasPacker(_parent),
     m_heuristic(MaxRectsBinAtlasPackerChoiceHeuristic::BestLongSideFit),
     m_allow_flip(true)
 {
 }
 
-std::unique_ptr<AtlasPackerAlgorithm> MaxRectsBinAtlasPacker::createAlgorithm(const QSize & _max_atlas_size) const
+std::unique_ptr<AtlasPackerOnlineAlgorithm> MaxRectsBinAtlasPacker::createAlgorithm(const QSize & _max_atlas_size) const
 {
-    return std::unique_ptr<AtlasPackerAlgorithm>(
+    return std::unique_ptr<AtlasPackerOnlineAlgorithm>(
         new MaxRectsBinPackAlgorithm(_max_atlas_size, m_heuristic, m_allow_flip));
 }

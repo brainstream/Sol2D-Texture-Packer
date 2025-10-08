@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <LibSol2dTexturePacker/Packers/AtlasPacker.h>
+#include <LibSol2dTexturePacker/Packers/OnlineAlgorithmAtlasPacker.h>
 
 enum S2TP_EXPORT class MaxRectsBinAtlasPackerChoiceHeuristic
 {
@@ -29,7 +29,7 @@ enum S2TP_EXPORT class MaxRectsBinAtlasPackerChoiceHeuristic
     ContactPointRule
 };
 
-class S2TP_EXPORT MaxRectsBinAtlasPacker final : public AtlasPacker
+class S2TP_EXPORT MaxRectsBinAtlasPacker final : public OnlineAlgorithmAtlasPacker
 {
 public:
     explicit MaxRectsBinAtlasPacker(QObject * _parent = nullptr);
@@ -39,7 +39,7 @@ public:
     MaxRectsBinAtlasPackerChoiceHeuristic choiceHeuristic() const { return m_heuristic; }
 
 protected:
-    std::unique_ptr<AtlasPackerAlgorithm> createAlgorithm(const QSize & _max_atlas_size) const override;
+    std::unique_ptr<AtlasPackerOnlineAlgorithm> createAlgorithm(const QSize & _max_atlas_size) const override;
 
 private:
     MaxRectsBinAtlasPackerChoiceHeuristic m_heuristic;

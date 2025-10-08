@@ -22,7 +22,7 @@
 
 namespace {
 
-class SkylineBinPackAlgorithm : public AtlasPackerAlgorithm
+class SkylineBinPackAlgorithm : public AtlasPackerOnlineAlgorithm
 {
 public:
     SkylineBinPackAlgorithm(
@@ -82,14 +82,14 @@ void SkylineBinPackAlgorithm::resetBin()
 }
 
 SkylineBinAtlasPacker::SkylineBinAtlasPacker(QObject *_parent) :
-    AtlasPacker(_parent),
+    OnlineAlgorithmAtlasPacker(_parent),
     m_heuristic(SkylineBinAtlasPackerLevelChoiceHeuristic::BottomLeft),
     m_use_waste_map(false)
 {
 }
 
-std::unique_ptr<AtlasPackerAlgorithm> SkylineBinAtlasPacker::createAlgorithm(const QSize & _max_atlas_size) const
+std::unique_ptr<AtlasPackerOnlineAlgorithm> SkylineBinAtlasPacker::createAlgorithm(const QSize & _max_atlas_size) const
 {
-    return std::unique_ptr<AtlasPackerAlgorithm>(
+    return std::unique_ptr<AtlasPackerOnlineAlgorithm>(
         new SkylineBinPackAlgorithm(_max_atlas_size, m_heuristic, m_use_waste_map));
 }

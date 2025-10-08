@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <LibSol2dTexturePacker/Packers/AtlasPacker.h>
+#include <LibSol2dTexturePacker/Packers/OnlineAlgorithmAtlasPacker.h>
 
 enum class S2TP_EXPORT ShelfBinAtlasPackerChoiceHeuristic
 {
@@ -31,7 +31,7 @@ enum class S2TP_EXPORT ShelfBinAtlasPackerChoiceHeuristic
     WorstWidthFit
 };
 
-class S2TP_EXPORT ShelfBinAtlasPacker : public AtlasPacker
+class S2TP_EXPORT ShelfBinAtlasPacker : public OnlineAlgorithmAtlasPacker
 {
 public:
     explicit ShelfBinAtlasPacker(QObject * _parent = nullptr);
@@ -41,7 +41,7 @@ public:
     bool isWasteMapEnabled() const { return m_use_waste_map; }
 
 protected:
-    std::unique_ptr<AtlasPackerAlgorithm> createAlgorithm(const QSize & _max_atlas_size) const override;
+    std::unique_ptr<AtlasPackerOnlineAlgorithm> createAlgorithm(const QSize & _max_atlas_size) const override;
 
 private:
     ShelfBinAtlasPackerChoiceHeuristic m_heuristic;

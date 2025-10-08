@@ -22,14 +22,6 @@
 #include <LibSol2dTexturePacker/Sprite.h>
 #include <QObject>
 
-class S2TP_EXPORT AtlasPackerAlgorithm
-{
-public:
-    virtual ~AtlasPackerAlgorithm() { }
-    virtual QRect insert(int _width, int _height) = 0;
-    virtual void resetBin() = 0;
-};
-
 struct S2TP_EXPORT AtlasPackerOptions
 {
     QSize max_atlas_size = QSize(2048, 2048);
@@ -47,10 +39,9 @@ public:
     {
     }
 
-    std::unique_ptr<RawAtlasPack> pack(const QList<Sprite> & _sprites, const AtlasPackerOptions & _options) const;
-
-protected:
-    virtual std::unique_ptr<AtlasPackerAlgorithm> createAlgorithm(const QSize & _max_atlas_size) const = 0;
+    virtual std::unique_ptr<RawAtlasPack> pack(
+        const QList<Sprite> & _sprites,
+        const AtlasPackerOptions & _options) const = 0;
 
 protected:
     QSize m_max_atlas_size;

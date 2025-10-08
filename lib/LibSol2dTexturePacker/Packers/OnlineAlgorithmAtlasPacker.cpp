@@ -16,7 +16,7 @@
  *                                                                                                        *
  **********************************************************************************************************/
 
-#include <LibSol2dTexturePacker/Packers/AtlasPacker.h>
+#include <LibSol2dTexturePacker/Packers/OnlineAlgorithmAtlasPacker.h>
 #include <LibSol2dTexturePacker/Exception.h>
 #include <QCryptographicHash>
 #include <QFileInfo>
@@ -179,13 +179,13 @@ const Item * findDuplicate(const std::list<Item> & _items, const QByteArray & _h
 
 } // namespace name
 
-std::unique_ptr<RawAtlasPack> AtlasPacker::pack(
+std::unique_ptr<RawAtlasPack> OnlineAlgorithmAtlasPacker::pack(
     const QList<Sprite> & _sprites,
     const AtlasPackerOptions & _options) const
 {
     std::list<Item> items;
     std::unique_ptr<RawAtlasPack> result = std::make_unique<RawAtlasPack>();
-    std::unique_ptr<AtlasPackerAlgorithm> algorithm = createAlgorithm(_options.max_atlas_size);
+    std::unique_ptr<AtlasPackerOnlineAlgorithm> algorithm = createAlgorithm(_options.max_atlas_size);
     foreach(const Sprite & sprite, _sprites)
     {
         const QString sprite_name = _options.remove_file_extensions

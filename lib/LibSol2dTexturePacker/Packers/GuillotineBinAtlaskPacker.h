@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <LibSol2dTexturePacker/Packers/AtlasPacker.h>
+#include <LibSol2dTexturePacker/Packers/OnlineAlgorithmAtlasPacker.h>
 
 enum class S2TP_EXPORT GuillotineBinAtlasPackerChoiceHeuristic
 {
@@ -40,7 +40,7 @@ enum class S2TP_EXPORT GuillotineBinAtlasPackerSplitHeuristic
     LongerAxis
 };
 
-class S2TP_EXPORT GuillotineBinAtlaskPacker : public AtlasPacker
+class S2TP_EXPORT GuillotineBinAtlaskPacker : public OnlineAlgorithmAtlasPacker
 {
 public:
     explicit GuillotineBinAtlaskPacker(QObject * _parent = nullptr);
@@ -53,7 +53,7 @@ public:
     bool isMergeEnabled() const { return m_is_merge_enabled; }
 
 protected:
-    std::unique_ptr<AtlasPackerAlgorithm> createAlgorithm(const QSize & _max_atlas_size) const override;
+    std::unique_ptr<AtlasPackerOnlineAlgorithm> createAlgorithm(const QSize & _max_atlas_size) const override;
 
 private:
     GuillotineBinAtlasPackerChoiceHeuristic m_choice_heuristic;

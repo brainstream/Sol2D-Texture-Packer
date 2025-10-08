@@ -21,7 +21,7 @@
 
 namespace {
 
-class GuillotineBinPackAlgorithm : public AtlasPackerAlgorithm
+class GuillotineBinPackAlgorithm : public AtlasPackerOnlineAlgorithm
 {
 public:
     GuillotineBinPackAlgorithm(
@@ -116,15 +116,15 @@ void GuillotineBinPackAlgorithm::resetBin()
 } // namespace
 
 GuillotineBinAtlaskPacker::GuillotineBinAtlaskPacker(QObject * _parent) :
-    AtlasPacker(_parent),
+    OnlineAlgorithmAtlasPacker(_parent),
     m_choice_heuristic(GuillotineBinAtlasPackerChoiceHeuristic::BestAreaFit),
     m_split_heuristic(GuillotineBinAtlasPackerSplitHeuristic::ShorterLeftoverAxis),
     m_is_merge_enabled(false)
 {
 }
 
-std::unique_ptr<AtlasPackerAlgorithm> GuillotineBinAtlaskPacker::createAlgorithm(const QSize & _max_atlas_size) const
+std::unique_ptr<AtlasPackerOnlineAlgorithm> GuillotineBinAtlaskPacker::createAlgorithm(const QSize & _max_atlas_size) const
 {
-    return std::unique_ptr<AtlasPackerAlgorithm>(
+    return std::unique_ptr<AtlasPackerOnlineAlgorithm>(
         new GuillotineBinPackAlgorithm(_max_atlas_size, m_choice_heuristic, m_split_heuristic, m_is_merge_enabled));
 }

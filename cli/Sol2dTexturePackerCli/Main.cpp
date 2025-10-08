@@ -23,6 +23,7 @@
 #include <LibSol2dTexturePacker/Packers/SkylineBinAtlasPacker.h>
 #include <LibSol2dTexturePacker/Packers/GuillotineBinAtlaskPacker.h>
 #include <LibSol2dTexturePacker/Packers/ShelfBinAtlasPacker.h>
+#include <LibSol2dTexturePacker/Packers/MetaAtlasPacker.h>
 #include <LibSol2dTexturePacker/Exception.h>
 #include <QImageWriter>
 #include <QCommandLineParser>
@@ -333,7 +334,7 @@ std::unique_ptr<Application> AppRunner::parsePack() const
                     }
                 }
             },
-             .split_heuristics = {},
+            .split_heuristics = {},
             .create = []() { return new SkylineBinAtlasPacker(); },
             .set_options = [](AtlasPacker * __packer, int __flags) {
                 if(__flags & AlgorithmConfigurationAdapter::OptionFlagUseWasteMap)
@@ -490,8 +491,8 @@ std::unique_ptr<Application> AppRunner::parsePack() const
         },
         {
             .name = "shelf",
-             .choice_heuristics =
-             {
+            .choice_heuristics =
+            {
                 {
                     "NF",
                     {
@@ -558,14 +559,22 @@ std::unique_ptr<Application> AppRunner::parsePack() const
                         }
                     }
                 }
-             },
-             .split_heuristics = {},
+            },
+            .split_heuristics = {},
             .create = []() { return new ShelfBinAtlasPacker(); },
             .set_options = [](AtlasPacker * __packer, int __flags) {
                 if(__flags & AlgorithmConfigurationAdapter::OptionFlagUseWasteMap)
                     static_cast<ShelfBinAtlasPacker *>(__packer)->enableWasteMap(true);
             },
             .algoritm_options = AlgorithmConfigurationAdapter::OptionFlagUseWasteMap
+        },
+        {
+            .name = "auto",
+            .choice_heuristics = {},
+            .split_heuristics = {},
+            .create = []() { return new MetaAtlasPacker(); },
+            .set_options = [](AtlasPacker *, int) {},
+            .algoritm_options = AlgorithmConfigurationAdapter::OptionFlagNone
         }
     };
 
@@ -785,7 +794,7 @@ std::unique_ptr<Application> AppRunner::parsePack() const
     AlgorithmConfigurationAdapter * algorithm_config = nullptr;
     if(parser.isSet(algorithm_option.names().constFirst()))
     {
-        const QString algoritm_name = algorithm_option.names().constFirst();
+        const QString algoritm_name = parser.value(algorithm_option.names().constFirst());
         for(auto algoritm : algoritms)
         {
             if(algoritm_name == algoritm.name)

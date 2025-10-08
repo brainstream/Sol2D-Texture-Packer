@@ -18,37 +18,28 @@
 
 #pragma once
 
-#include <LibSol2dTexturePacker/Packers/OnlineAlgorithmAtlasPacker.h>
+#include <LibSol2dTexturePacker/Packers/AtlasPacker.h>
 
-enum S2TP_EXPORT class SkylineBinAtlasPackerLevelChoiceHeuristic
-{
-    BottomLeft,
-    MinWasteFit
-};
-
-
-class S2TP_EXPORT SkylineBinAtlasPacker : public OnlineAlgorithmAtlasPacker
+class S2TP_EXPORT MetaAtlasPacker final : public AtlasPacker
 {
 public:
-    explicit SkylineBinAtlasPacker(QObject * _parent = nullptr);
+    explicit MetaAtlasPacker(QObject * _parent = nullptr);
 
-    void setLevelChoiceHeuristic(SkylineBinAtlasPackerLevelChoiceHeuristic _heuristic)
-    {
-        m_heuristic = _heuristic;
-    }
-
-    SkylineBinAtlasPackerLevelChoiceHeuristic levelChoiceHeuristic() const
-    {
-        return m_heuristic;
-    }
-
-    void enableWasteMap(bool _enable) { m_use_waste_map = _enable; }
-    bool isWasteMapEnabled() const { return m_use_waste_map; }
-
-protected:
-    std::unique_ptr<AtlasPackerOnlineAlgorithm> createAlgorithm(const QSize & _max_atlas_size) const override;
+    std::unique_ptr<RawAtlasPack> pack(
+        const QList<Sprite> & _sprites,
+        const AtlasPackerOptions & _options) const override;
 
 private:
-    SkylineBinAtlasPackerLevelChoiceHeuristic m_heuristic;
-    bool m_use_waste_map;
+    std::unique_ptr<RawAtlasPack> packBestMaxRectsBinAtlasPacker(
+        const QList<Sprite> & _sprites,
+        const AtlasPackerOptions & _options) const;
+    std::unique_ptr<RawAtlasPack> packBestSkylineBinAtlasPacker(
+        const QList<Sprite> & _sprites,
+        const AtlasPackerOptions & _options) const;
+    std::unique_ptr<RawAtlasPack> packBestGuillotineBinAtlaskPacker(
+        const QList<Sprite> & _sprites,
+        const AtlasPackerOptions & _options) const;
+    std::unique_ptr<RawAtlasPack> packBestShelfBinAtlasPacker(
+        const QList<Sprite> & _sprites,
+        const AtlasPackerOptions & _options) const;
 };
