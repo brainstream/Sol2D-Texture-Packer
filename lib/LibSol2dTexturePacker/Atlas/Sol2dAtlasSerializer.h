@@ -26,5 +26,8 @@ public:
     void serialize(const Atlas & _atlas, const QString & _file) override;
     void deserialize(const QString & _file, Atlas & _atlas) override;
     const char * defaultFileExtenstion() const override { return "xml"; }
+
+private:
+    static const int m_latest_version;
 };
 

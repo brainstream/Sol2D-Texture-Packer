@@ -28,6 +28,7 @@ namespace {
 
 const char * g_xml_tag_atlas = "atlas";
 const char * g_xml_tag_frame = "frame";
+const char * g_xml_attr_version = "version";
 const char * g_xml_attr_texture = "texture";
 const char * g_xml_attr_name = "name";
 const char * g_xml_attr_rotated = "rotated";
@@ -84,6 +85,9 @@ Int getXmlFrameIntAttribute(
 
 } // namespace
 
+
+const int Sol2dAtlasSerializer::m_latest_version = 1;
+
 void Sol2dAtlasSerializer::serialize(const Atlas & _atlas, const QString & _file)
 {
     QFile file(_file);
@@ -95,6 +99,7 @@ void Sol2dAtlasSerializer::serialize(const Atlas & _atlas, const QString & _file
     xml.setAutoFormatting(true);
     xml.writeStartDocument();
     xml.writeStartElement(g_xml_tag_atlas);
+    xml.writeAttribute(g_xml_attr_version, QString::number(m_latest_version));
     xml.writeAttribute(g_xml_attr_texture, makeTextureRelativePath(_atlas, _file));
     for(int i = 0; i < _atlas.frames.count(); ++i)
     {
@@ -138,6 +143,22 @@ void Sol2dAtlasSerializer::deserialize(const QString & _file, Atlas & _atlas)
         throw InvalidFileFormatException(
             _file,
             QObject::tr("The XML root element must be \"%1\"").arg(g_xml_tag_atlas));
+    }
+    {
+        bool is_version_parsed;
+        int version = xatlas.attribute(g_xml_attr_version).toInt(&is_version_parsed);
+        if(!is_version_parsed)
+        {
+            throw InvalidFileFormatException(
+                _file,
+                QObject::tr("Tag \"%1\" must contain attribute \"%2\"").arg(g_xml_tag_atlas, g_xml_attr_version));
+        }
+        if(version != m_latest_version)
+        {
+            throw InvalidFileFormatException(
+                _file,
+                QObject::tr("Unsupported version %1, latest supported version is %2").arg(version).arg(m_latest_version));
+        }
     }
     Atlas tmp_atlas;
     tmp_atlas.texture = xatlas.attribute(g_xml_attr_texture);
