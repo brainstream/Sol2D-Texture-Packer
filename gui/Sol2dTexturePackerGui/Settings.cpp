@@ -18,9 +18,12 @@
 
 #include <Sol2dTexturePackerGui/Settings.h>
 
-const char * gc_settings_key_sheet_dir = "directory/sheet";
-const char * gc_settings_key_split_dir = "directory/split";
-const char * gc_settings_key_atlas_dir = "directory/atlas";
-const char * gc_settings_key_pack_input_dir = "directory/pack-input";
-const char * gc_settings_key_wnd_geom = "main-window/geometry";
-const char * gc_settings_key_wnd_state = "main-window/state";
+const char * const Settings::MainWindow::geometry = "MainWindow/Geometry";
+const char * const Settings::MainWindow::state = "MainWindow/State";
+
+const char * const Settings::Input::texture_directory = "Input/TextureDirectory";
+const char * const Settings::Input::atlas_directory = "Input/AtlasDirectory";
+const char * const Settings::Input::sprite_directory = "Input/SpriteDirectory";
+
+const char * const Settings::Output::sprite_directory = "Output/SpriteDirectory";
+const char * const Settings::Output::atlas_directory = "Output/AtlasDirectory";

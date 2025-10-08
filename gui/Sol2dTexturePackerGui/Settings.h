@@ -20,9 +20,24 @@
 
 #include <QSettings>
 
-extern const char * gc_settings_key_sheet_dir;
-extern const char * gc_settings_key_split_dir;
-extern const char * gc_settings_key_atlas_dir;
-extern const char * gc_settings_key_pack_input_dir;
-extern const char * gc_settings_key_wnd_geom;
-extern const char * gc_settings_key_wnd_state;
+struct Settings
+{
+    struct MainWindow
+    {
+        static const char * const geometry;
+        static const char * const state;
+    };
+
+    struct Input
+    {
+        static const char * const texture_directory;
+        static const char * const atlas_directory;
+        static const char * const sprite_directory;
+    };
+
+    struct Output
+    {
+        static const char * const sprite_directory;
+        static const char * const atlas_directory;
+    };
+};

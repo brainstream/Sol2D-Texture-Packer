@@ -336,13 +336,13 @@ void SpritePackerWidget::addSprites()
     QStringList files = QFileDialog::getOpenFileNames(
         this,
         QString(),
-        settings.value(gc_settings_key_pack_input_dir).toString(),
+        settings.value(Settings::Input::sprite_directory).toString(),
         m_open_image_dialog_filter
     );
     if(files.isEmpty())
         return;
     settings.setValue(
-        gc_settings_key_pack_input_dir,
+        Settings::Input::sprite_directory,
         std::filesystem::absolute(std::filesystem::path(files[0].toStdString()).parent_path()).c_str()
     );
     foreach(const QString & file, files) {
@@ -455,9 +455,16 @@ void SpritePackerWidget::validateExportPackRequirements()
 
 void SpritePackerWidget::browseForExportDir()
 {
-    QString dir = QFileDialog::getExistingDirectory(this, tr("Select directory to save atlases")); // TODO: default dir
+    QSettings settings;
+    QString default_dir = m_edit_export_directory->text();
+    if(default_dir.isEmpty())
+        default_dir = settings.value(Settings::Output::atlas_directory, Settings::Input::sprite_directory).toString();
+    QString dir = QFileDialog::getExistingDirectory(this, tr("Select directory to save atlases"), default_dir);
     if(!dir.isEmpty())
+    {
+        settings.setValue(Settings::Output::atlas_directory, dir);
         m_edit_export_directory->setText(dir);
+    }
 }
 
 void SpritePackerWidget::onAlgorithmChanged()

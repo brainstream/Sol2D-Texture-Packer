@@ -49,7 +49,7 @@ SpriteSheetSplitterWidget::SpriteSheetSplitterWidget(QWidget * _parent) :
 void SpriteSheetSplitterWidget::openTexture()
 {
     QSettings settings;
-    QString last_dir = settings.value(gc_settings_key_sheet_dir).toString();
+    QString last_dir = settings.value(Settings::Input::texture_directory).toString();
     QString filename = QFileDialog::getOpenFileName(
         this,
         tr("Open a Texture"),
@@ -58,7 +58,7 @@ void SpriteSheetSplitterWidget::openTexture()
     if(!filename.isEmpty())
     {
         QFileInfo file_info(filename);
-        settings.setValue(gc_settings_key_sheet_dir, file_info.absolutePath());
+        settings.setValue(Settings::Input::texture_directory, file_info.absolutePath());
         GridPack * grid_pack = new GridPack(filename, this);
         connect(grid_pack, &GridPack::framesChanged, this, &SpriteSheetSplitterWidget::syncWithPack);
         m_pack = QSharedPointer<Pack>(grid_pack, [this, grid_pack](Pack *) {
@@ -90,7 +90,8 @@ void SpriteSheetSplitterWidget::syncWithPack()
 {
     QGraphicsScene * scene = m_preview->scene();
     scene->clear();
-    TransparentGraphicsPixmapItem * pixmap_item = new TransparentGraphicsPixmapItem(QPixmap::fromImage(m_pack->texture()));
+    TransparentGraphicsPixmapItem * pixmap_item =
+        new TransparentGraphicsPixmapItem(QPixmap::fromImage(m_pack->texture()));
     scene->addItem(pixmap_item);
     qreal border_half_width = m_sprite_pen.widthF() / 2;
     bool is_valid = m_pack->forEachFrame([this, scene, border_half_width](const Frame & __frame) {
@@ -105,11 +106,14 @@ void SpriteSheetSplitterWidget::syncWithPack()
 void SpriteSheetSplitterWidget::exportSprites()
 {
     QSettings settings;
-    QString last_dir = settings.value(gc_settings_key_split_dir, gc_settings_key_sheet_dir).toString();
+    QString last_dir = settings.value(
+        Settings::Output::sprite_directory,
+        Settings::Input::texture_directory
+    ).toString();
     QString dir_path = QFileDialog::getExistingDirectory(this, QString(), last_dir);
     if(dir_path.isEmpty())
         return;
-    settings.setValue(gc_settings_key_split_dir, dir_path);
+    settings.setValue(Settings::Output::sprite_directory, dir_path);
     m_pack->unpack(dir_path);
 }
 
@@ -120,24 +124,19 @@ void SpriteSheetSplitterWidget::exportToAtlas()
         return;
     }
     Sol2dAtlasSerializer serializer;
-    QString texture_file_path = m_pack->textureFilename(); // TODO: bad default!
-    QString default_filename = m_last_atlas_export_file;
-    if(default_filename.isEmpty())
-    {
-        const QFileInfo texture_fi(texture_file_path);
-        default_filename = texture_fi
-            .dir()
-            .absoluteFilePath(QString("%1.%2")
-            .arg(texture_fi.baseName(), serializer.defaultFileExtenstion()));
-    }
-    QString filename = QFileDialog::getSaveFileName(
+    QSettings settings;
+    QFileInfo texture_fi(m_pack->textureFilename());
+    QString texture_file_path = texture_fi
+        .absoluteDir()
+        .absoluteFilePath(QString("%1.%2")
+        .arg(texture_fi.baseName(), serializer.defaultFileExtenstion()));
+    texture_file_path = QFileDialog::getSaveFileName(
         this,
         QString(),
-        default_filename,
+        texture_file_path,
         QString(tr("Atlas (%1) (*.%1)")).arg(serializer.defaultFileExtenstion()));
-    if(!filename.isEmpty())
+    if(!texture_file_path.isEmpty())
     {
-        m_last_atlas_export_file = filename;
         Atlas atlas
         {
             .texture = texture_file_path,
@@ -149,7 +148,7 @@ void SpriteSheetSplitterWidget::exportToAtlas()
         });
         try
         {
-            serializer.serialize(atlas, filename);
+            serializer.serialize(atlas, texture_file_path);
         }
         catch(const Exception & _exception)
         {
@@ -161,7 +160,7 @@ void SpriteSheetSplitterWidget::exportToAtlas()
 void SpriteSheetSplitterWidget::openAtlas()
 {
     QSettings settings;
-    QString last_dir = settings.value(gc_settings_key_atlas_dir).toString();
+    QString last_dir = settings.value(Settings::Input::atlas_directory).toString();
     QString filename = QFileDialog::getOpenFileName(this, QString(), last_dir);
     if(!filename.isEmpty())
     {
@@ -177,7 +176,7 @@ void SpriteSheetSplitterWidget::openAtlas()
             m_page_atlas->setPack(filename, atlas_pack);
             m_page_grid->unsetPack();
             m_stacked_widget_properties->setCurrentWidget(m_page_atlas);
-            settings.setValue(gc_settings_key_atlas_dir, file_info.absolutePath());
+            settings.setValue(Settings::Input::atlas_directory, file_info.absolutePath());
             applyNewTexture();
         }
         catch(const Exception & exception)
