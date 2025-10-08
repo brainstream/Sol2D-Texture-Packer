@@ -35,14 +35,14 @@ public:
     }
 
     virtual ~Pack() = default;
-    void unpack(const QDir & _output_dir) const;
+    void unpack(const QDir & _output_dir, const QString & _format) const;
     const QImage & texture() const;
     const QString & textureFilename() const { return m_texture_filename; }
     virtual qsizetype frameCount() const = 0;
     virtual bool forEachFrame(std::function<void(const Frame &)> _cb) const = 0;
 
 private:
-    QString makeUnpackFilename(const QDir & _output_dir, const Frame & _frame) const;
+    QString makeUnpackFilename(const QDir & _output_dir, const QString & _format, const Frame & _frame) const;
 
 private:
     const QString m_texture_filename;

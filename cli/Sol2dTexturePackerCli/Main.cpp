@@ -148,6 +148,7 @@ private:
     std::unique_ptr<Application> parseUnpack() const;
     std::unique_ptr<Application> parseUnpackGrid() const;
     std::unique_ptr<Application> parseUnpackAtlas() const;
+    void printSupportedImageFormats() const;
 
 private:
     IO & m_io;
@@ -659,7 +660,7 @@ std::unique_ptr<Application> AppRunner::parsePack() const
     const QCommandLineOption format_option
     {
         { "t", "format" },
-        QObject::tr("Texture file format. Supported formats (default: png)"),
+        QObject::tr("Texture file format (default: png)"),
         QObject::tr("format")
     };
     const QList options
@@ -728,8 +729,8 @@ std::unique_ptr<Application> AppRunner::parsePack() const
                     m_io.out << "    " <<  joinOptionNames(allow_merge_option.names()) << Qt::endl;
             }
         }
-        m_io.out << Qt::endl << QObject::tr("Supported texture file formats (depends on Qt)") << ": " <<
-            QImageWriter().supportedImageFormats().join(", ") << Qt::endl;
+        m_io.out << Qt::endl;
+        printSupportedImageFormats();
         return noop(ExitCodes::Success);
     }
 
@@ -864,6 +865,12 @@ std::unique_ptr<Application> AppRunner::parsePack() const
         ));
 }
 
+void AppRunner::printSupportedImageFormats() const
+{
+    m_io.out << QObject::tr("Supported image formats (depends on Qt)") << ": " <<
+        QImageWriter().supportedImageFormats().join(", ") << Qt::endl;
+}
+
 std::unique_ptr<Application> AppRunner::parseUnpack() const
 {
     // 1st argument is app name
@@ -924,6 +931,12 @@ std::unique_ptr<Application> AppRunner::parseUnpackGrid() const
         QObject::tr("Output directory"),
         QObject::tr("directory")
     };
+    const QCommandLineOption format_option
+    {
+        QStringList { "ft", "format" },
+        QObject::tr("Sprite format (default: png)"),
+        QObject::tr("format")
+    };
     const QCommandLineOption rows_option
     {
         QStringList { "rows" },
@@ -978,6 +991,7 @@ std::unique_ptr<Application> AppRunner::parseUnpackGrid() const
         m_help_options,
         texture_option,
         output_option,
+        format_option,
         rows_option,
         columns_option,
         sprite_width_option,
@@ -998,18 +1012,23 @@ std::unique_ptr<Application> AppRunner::parseUnpackGrid() const
                 " " << "[options]" << Qt::endl <<
             Qt::endl <<
             QObject::tr("Options") << ":" << Qt::endl <<
-            options << Qt::endl;
+            options << Qt::endl <<
+            Qt::endl;
+        printSupportedImageFormats();
         return noop(ExitCodes::Success);
     }
 
     GridOptions grid_options = {};
     QString texture;
     QString out_directory;
+    QString format = "png";
 
     if(parser.isSet(texture_option.names().constFirst()))
         texture = parser.value(texture_option.names().constFirst());
     if(parser.isSet(output_option.names().constFirst()))
         out_directory = parser.value(output_option.names().constFirst());
+    if(parser.isSet(format_option.names().constFirst()))
+        format = parser.value(format_option.names().constFirst());
     if(parser.isSet(rows_option.names().constFirst()))
         grid_options.row_count = parser.value(rows_option.names().constFirst()).toInt();
     if(parser.isSet(columns_option.names().constFirst()))
@@ -1048,7 +1067,7 @@ std::unique_ptr<Application> AppRunner::parseUnpackGrid() const
     if(grid_options.margin_left < 0)
         return invalidArgument(margin_left_option);
 
-    return std::unique_ptr<Application>(new UnpackApplication(texture, grid_options, out_directory));
+    return std::unique_ptr<Application>(new UnpackApplication(texture, grid_options, out_directory, format));
 }
 
 std::unique_ptr<Application> AppRunner::parseUnpackAtlas() const
@@ -1069,12 +1088,19 @@ QStringList args = m_args;
         QObject::tr("Output directory"),
         QObject::tr("directory")
     };
+    const QCommandLineOption format_option
+        {
+            QStringList { "ft", "format" },
+            QObject::tr("Sprite format (default: png)"),
+            QObject::tr("format")
+    };
 
     const QList options
     {
         m_help_options,
         atlas_option,
-        output_option
+        output_option,
+        format_option
     };
 
     QCommandLineParser parser;
@@ -1087,24 +1113,29 @@ QStringList args = m_args;
                 " " << "[options]" << Qt::endl <<
             Qt::endl <<
             QObject::tr("Options") << ":" << Qt::endl <<
-            options << Qt::endl;
+            options << Qt::endl <<
+            Qt::endl;
+        printSupportedImageFormats();
         return noop(ExitCodes::Success);
     }
 
     QString atlas_filename;
     QString out_directory;
+    QString format = "png";
 
     if(parser.isSet(atlas_option.names().constFirst()))
         atlas_filename = parser.value(atlas_option.names().constFirst());
     if(parser.isSet(output_option.names().constFirst()))
         out_directory = parser.value(output_option.names().constFirst());
+    if(parser.isSet(format_option.names().constFirst()))
+        format = parser.value(format_option.names().constFirst());
 
     if(atlas_filename.isEmpty())
         return noRequiredArgument(atlas_option);
     if(out_directory.isEmpty())
         return noRequiredArgument(output_option);
 
-    return std::unique_ptr<Application>(new UnpackApplication(atlas_filename, out_directory));
+    return std::unique_ptr<Application>(new UnpackApplication(atlas_filename, out_directory, format));
 }
 
 } // namespace

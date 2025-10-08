@@ -35,7 +35,7 @@ private slots:
     void openTexture();
     void syncWithPack();
     void exportSprites();
-    void exportToAtlas();
+    void saveAtlas();
     void openAtlas();
 
 private:

@@ -132,26 +132,58 @@
        </widget>
       </item>
       <item>
+       <widget class="QGroupBox" name="m_groupbox_export_sprites">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="title">
+         <string/>
+        </property>
+        <layout class="QFormLayout" name="formLayout">
+         <item row="0" column="0">
+          <widget class="QLabel" name="m_label_sprite_format">
+           <property name="text">
+            <string>Sprite format</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QComboBox" name="m_combo_sprite_format">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0" colspan="2">
+          <widget class="QPushButton" name="m_btn_export_sprites">
+           <property name="text">
+            <string>Export sprites...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../Resources/Resources.qrc">
+             <normaloff>:/icons/document-save</normaloff>:/icons/document-save</iconset>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
        <layout class="QHBoxLayout" name="m_layout_3">
         <item>
-         <widget class="QPushButton" name="m_btn_export_to_atlas">
+         <widget class="QPushButton" name="m_btn_save_atlas">
           <property name="text">
-           <string>Export to atlas...</string>
+           <string>Save atlas...</string>
           </property>
           <property name="icon">
            <iconset resource="../Resources/Resources.qrc">
             <normaloff>:/icons/document-new</normaloff>:/icons/document-new</iconset>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="m_btn_export_sprites">
-          <property name="text">
-           <string>Export sprites...</string>
-          </property>
-          <property name="icon">
-           <iconset resource="../Resources/Resources.qrc">
-            <normaloff>:/icons/document-save</normaloff>:/icons/document-save</iconset>
           </property>
          </widget>
         </item>
@@ -190,8 +222,9 @@
  <tabstops>
   <tabstop>m_btn_open_texture</tabstop>
   <tabstop>m_btn_open_atlas</tabstop>
-  <tabstop>m_btn_export_to_atlas</tabstop>
+  <tabstop>m_combo_sprite_format</tabstop>
   <tabstop>m_btn_export_sprites</tabstop>
+  <tabstop>m_btn_save_atlas</tabstop>
   <tabstop>m_preview</tabstop>
  </tabstops>
  <resources>

@@ -27,6 +27,7 @@
 #include <QGraphicsScene>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QImageWriter>
 
 SpriteSheetSplitterWidget::SpriteSheetSplitterWidget(QWidget * _parent) :
     QWidget(_parent),
@@ -35,15 +36,24 @@ SpriteSheetSplitterWidget::SpriteSheetSplitterWidget(QWidget * _parent) :
     m_sprite_brush(QColor(255, 0, 0, 50)),
     m_pack(nullptr)
 {
-
     setupUi(this);
     m_preview->setScene(new QGraphicsScene(this));
     m_preview->setZoomModel(&m_zoom_widget->model());
     setExportControlsEnabled(false);
+    {
+        int format_index = 0;
+        const QList<QByteArray> image_formats = QImageWriter::supportedImageFormats();
+        for(int i = 0; i < image_formats.count(); ++i)
+        {
+            m_combo_sprite_format->addItem(image_formats[i]);
+            if(image_formats[i] == "png") format_index = i;
+        }
+        m_combo_sprite_format->setCurrentIndex(format_index);
+    }
     connect(m_btn_open_texture, &QPushButton::clicked, this, &SpriteSheetSplitterWidget::openTexture);
     connect(m_btn_open_atlas, &QPushButton::clicked, this, &SpriteSheetSplitterWidget::openAtlas);
     connect(m_btn_export_sprites, &QPushButton::clicked, this, &SpriteSheetSplitterWidget::exportSprites);
-    connect(m_btn_export_to_atlas, &QPushButton::clicked, this, &SpriteSheetSplitterWidget::exportToAtlas);
+    connect(m_btn_save_atlas, &QPushButton::clicked, this, &SpriteSheetSplitterWidget::saveAtlas);
 }
 
 void SpriteSheetSplitterWidget::openTexture()
@@ -74,16 +84,16 @@ void SpriteSheetSplitterWidget::openTexture()
 
 void SpriteSheetSplitterWidget::applyNewTexture()
 {
-        m_preview->scene()->setSceneRect(0, 0, m_pack->texture().width(), m_pack->texture().height());
-        m_zoom_widget->model().setZoom(100);
-        syncWithPack();
-        emit sheetLoaded(m_pack->textureFilename());
+    m_preview->scene()->setSceneRect(0, 0, m_pack->texture().width(), m_pack->texture().height());
+    m_zoom_widget->model().setZoom(100);
+    syncWithPack();
+    emit sheetLoaded(m_pack->textureFilename());
 }
 
-void SpriteSheetSplitterWidget::setExportControlsEnabled(bool syncWithPack)
+void SpriteSheetSplitterWidget::setExportControlsEnabled(bool _enabled)
 {
-    m_btn_export_sprites->setEnabled(syncWithPack);
-    m_btn_export_to_atlas->setEnabled(syncWithPack);
+    m_groupbox_export_sprites->setEnabled(_enabled);
+    m_btn_save_atlas->setEnabled(_enabled);
 }
 
 void SpriteSheetSplitterWidget::syncWithPack()
@@ -114,28 +124,29 @@ void SpriteSheetSplitterWidget::exportSprites()
     if(dir_path.isEmpty())
         return;
     settings.setValue(Settings::Output::sprite_directory, dir_path);
-    m_pack->unpack(dir_path);
+    m_pack->unpack(dir_path, m_combo_sprite_format->currentText());
 }
 
-void SpriteSheetSplitterWidget::exportToAtlas()
+void SpriteSheetSplitterWidget::saveAtlas()
 {
     if(!m_pack)
     {
         return;
     }
+    const QFileInfo texture_fi(m_pack->textureFilename());
+    const QString texture_file_path =  texture_fi.absoluteFilePath();
     Sol2dAtlasSerializer serializer;
-    QSettings settings;
-    QFileInfo texture_fi(m_pack->textureFilename());
-    QString texture_file_path = texture_fi
+    QString atlas_file_path = texture_fi
         .absoluteDir()
         .absoluteFilePath(QString("%1.%2")
         .arg(texture_fi.baseName(), serializer.defaultFileExtenstion()));
-    texture_file_path = QFileDialog::getSaveFileName(
+    atlas_file_path = QFileDialog::getSaveFileName(
         this,
         QString(),
-        texture_file_path,
+        atlas_file_path,
         QString(tr("Atlas (%1) (*.%1)")).arg(serializer.defaultFileExtenstion()));
-    if(!texture_file_path.isEmpty())
+
+    if(!atlas_file_path.isEmpty())
     {
         Atlas atlas
         {
@@ -148,7 +159,7 @@ void SpriteSheetSplitterWidget::exportToAtlas()
         });
         try
         {
-            serializer.serialize(atlas, texture_file_path);
+            serializer.serialize(atlas, atlas_file_path);
         }
         catch(const Exception & _exception)
         {

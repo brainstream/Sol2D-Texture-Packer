@@ -25,8 +25,9 @@
 class UnpackApplication::Runner
 {
 public:
-    Runner(const QString & _out_directory) :
-        m_out_directory(_out_directory)
+    Runner(const QString & _out_directory, const QString & _format) :
+        m_out_directory(_out_directory),
+        m_format(_format)
     {
     }
 
@@ -35,13 +36,19 @@ public:
 
 protected:
     const QString m_out_directory;
+    const QString m_format;
 };
 
 class UnpackApplication::GridRunner : public UnpackApplication::Runner
 {
 public:
-    GridRunner(const QString & _texture, const GridOptions & _grid, const QString & _out_directory) :
-        UnpackApplication::Runner(_out_directory),
+    GridRunner(
+        const QString & _texture,
+        const GridOptions & _grid,
+        const QString & _out_directory,
+        const QString & _format
+    ) :
+        UnpackApplication::Runner(_out_directory, _format),
         m_texture(_texture),
         m_grid(_grid)
     {
@@ -58,14 +65,14 @@ void UnpackApplication::GridRunner::run()
 {
     GridPack pack(m_texture);
     pack.reconfigure(m_grid);
-    pack.unpack(m_out_directory);
+    pack.unpack(m_out_directory, m_format);
 }
 
 class UnpackApplication::AtlasRunner : public UnpackApplication::Runner
 {
 public:
-    AtlasRunner(const QString & _atlas, const QString & _out_directory) :
-        UnpackApplication::Runner(_out_directory),
+    AtlasRunner(const QString & _atlas, const QString & _out_directory, const QString & _format) :
+        UnpackApplication::Runner(_out_directory, _format),
         m_atlas(_atlas)
     {
     }
@@ -84,20 +91,21 @@ void UnpackApplication::AtlasRunner::run()
         serializer.deserialize(m_atlas, atlas);
     }
     AtlasPack pack(atlas);
-    pack.unpack(m_out_directory);
+    pack.unpack(m_out_directory, m_format);
 }
 
 UnpackApplication::UnpackApplication(
     const QString & _texture,
     const GridOptions & _grid,
-    const QString & _out_directory
+    const QString & _out_directory,
+    const QString & _format
 ) :
-    m_runner(new GridRunner(_texture, _grid, _out_directory))
+    m_runner(new GridRunner(_texture, _grid, _out_directory, _format))
 {
 }
 
-UnpackApplication::UnpackApplication(const QString & _atlas, const QString & _out_directory) :
-    m_runner(new AtlasRunner(_atlas, _out_directory))
+UnpackApplication::UnpackApplication(const QString & _atlas, const QString & _out_directory, const QString & _format) :
+    m_runner(new AtlasRunner(_atlas, _out_directory, _format))
 {
 }
 

@@ -20,7 +20,7 @@
 #include <LibSol2dTexturePacker/Exception.h>
 #include <QPainter>
 
-void Pack::unpack(const QDir & _output_dir) const
+void Pack::unpack(const QDir & _output_dir, const QString & _format) const
 {
     QImage texture = this->texture();
     QTransform rotation;
@@ -35,21 +35,21 @@ void Pack::unpack(const QDir & _output_dir) const
             __frame.sprite_rect.topLeft(),
             texture,
             __frame.texture_rect);
-        const QString filename = makeUnpackFilename(_output_dir, __frame);
+        const QString filename = makeUnpackFilename(_output_dir, _format, __frame);
         if(!img.save(filename))
             throw FileOpenException(filename, FileOpenException::Write);
     });
 }
 
-QString Pack::makeUnpackFilename(const QDir & _output_dir, const Frame & _frame) const
+QString Pack::makeUnpackFilename(const QDir & _output_dir, const QString & _format, const Frame & _frame) const
 {
     const QString base_name = _frame.name.isEmpty() ? "sprite" : QFileInfo(_frame.name).baseName();
     {
-        const QFileInfo fi(_output_dir.filePath(base_name + ".png")); // TODO: Other image formats
+        const QFileInfo fi(_output_dir.filePath(base_name + "." + _format));
         if(!fi.exists())
             return fi.absoluteFilePath();
     }
-    const QString name_format = QString("%1 (%2).png").arg(base_name); // TODO: Other image formats
+    const QString name_format = QString("%1 (%3).%2").arg(base_name, _format);
     for(int i = 1; ; ++i)
     {
         const QFileInfo fi(_output_dir.filePath(name_format.arg(i)));

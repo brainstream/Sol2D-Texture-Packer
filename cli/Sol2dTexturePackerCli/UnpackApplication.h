@@ -31,9 +31,16 @@ private:
     class AtlasRunner;
 
 public:
-    UnpackApplication(const QString & _texture, const GridOptions & _grid, const QString & _out_directory);
-    UnpackApplication(const QString & _atlas, const QString & _out_directory);
+    UnpackApplication(
+        const QString & _texture,
+        const GridOptions & _grid,
+        const QString & _out_directory,
+        const QString & _format);
+
+    UnpackApplication(const QString & _atlas, const QString & _out_directory, const QString & _format);
+
     ~UnpackApplication() override;
+
     int exec() override;
 
 private:
