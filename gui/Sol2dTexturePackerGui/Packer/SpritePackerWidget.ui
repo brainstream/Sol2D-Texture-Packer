@@ -19,45 +19,13 @@
      <property name="orientation">
       <enum>Qt::Orientation::Horizontal</enum>
      </property>
-     <widget class="QWidget" name="verticalLayoutWidget">
-      <layout class="QVBoxLayout" name="m_layout">
-       <item>
-        <widget class="QTreeView" name="m_tree_sprites">
-         <property name="contextMenuPolicy">
-          <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
-         </property>
-         <property name="alternatingRowColors">
-          <bool>true</bool>
-         </property>
-         <property name="selectionMode">
-          <enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum>
-         </property>
-         <property name="rootIsDecorated">
-          <bool>false</bool>
-         </property>
-         <property name="uniformRowHeights">
-          <bool>true</bool>
-         </property>
-         <property name="itemsExpandable">
-          <bool>false</bool>
-         </property>
-         <attribute name="headerVisible">
-          <bool>false</bool>
-         </attribute>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="m_btn_add_sprites">
-         <property name="text">
-          <string>Add Sprites</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../Resources/Resources.qrc">
-           <normaloff>:/icons/list-add</normaloff>:/icons/list-add</iconset>
-         </property>
-        </widget>
-       </item>
-      </layout>
+     <widget class="SpriteListWidget" name="m_widget_sprite_list" native="true">
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>0</height>
+       </size>
+      </property>
      </widget>
      <widget class="QWidget" name="verticalLayoutWidget_2">
       <layout class="QVBoxLayout" name="m_layout_2">
@@ -496,9 +464,14 @@
    <extends>QGraphicsView</extends>
    <header location="global">Sol2dTexturePackerGui/GraphicsView.h</header>
   </customwidget>
+  <customwidget>
+   <class>SpriteListWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">Sol2dTexturePackerGui/SpriteListWidget.h</header>
+   <container>1</container>
+  </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>m_btn_add_sprites</tabstop>
   <tabstop>m_spin_max_width</tabstop>
   <tabstop>m_spin_max_height</tabstop>
   <tabstop>m_combo_algorithm</tabstop>
@@ -518,7 +491,6 @@
   <tabstop>m_checkbox_remove_file_ext</tabstop>
   <tabstop>m_combo_texture_format</tabstop>
   <tabstop>m_btn_export</tabstop>
-  <tabstop>m_tree_sprites</tabstop>
   <tabstop>m_preview</tabstop>
  </tabstops>
  <resources>

@@ -35,10 +35,12 @@ protected:
 private slots:
     void showSheetSplitter();
     void showSpritePacker();
+    void showSpriteAnimator();
     void closeTab(int _index);
     void showAboutDialog();
 
 private:
     QIcon * m_split_icon;
     QIcon * m_pack_icon;
+    QIcon * m_animation_icon;
 };

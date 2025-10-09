@@ -15,5 +15,6 @@
         <file alias="edit-cut">Icons/edit-cut.svg</file>
         <file alias="icon">Icons/icon.png</file>
         <file alias="help-browser">Icons/help-browser.svg</file>
+        <file alias="video-x-generic">Icons/video-x-generic.svg</file>
     </qresource>
 </RCC>

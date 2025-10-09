@@ -18,42 +18,31 @@
 
 #pragma once
 
-#include "ui_SpritePackerWidget.h"
-#include <LibSol2dTexturePacker/Packers/RawAtlasPack.h>
-#include <memory>
+#include <LibSol2dTexturePacker/Sprite.h>
+#include "ui_SpriteListWidget.h"
+#include <QMenu>
 
-class SpritePackerWidget : public QWidget, private Ui::SpritePackerWidget
+class SpriteListWidget : public QWidget, private Ui::SpriteListWidget
 {
     Q_OBJECT
 
 private:
-    struct Packers;
     class SpriteListModel;
 
 public:
-    explicit SpritePackerWidget(QWidget * _parent = nullptr);
-    ~SpritePackerWidget() override;
+    explicit SpriteListWidget(QWidget * _parent = nullptr);
+    const QList<Sprite> & getSprites() const;
 
 signals:
-    void packNameChanged(const QString & _name);
+    void spriteListChanged();
 
 private slots:
-    void renderPack();
-    void exportPack();
-    void browseForExportDir();
-    void validateExportPackRequirements();
-    void onAlgorithmChanged();
-    void onMaxRectesBiAllowFlipChanged(Qt::CheckState _state);
-    void onMaxRectesBinHeuristicChanged(int _index);
-    void onSkylineBinUseWasteMapChanged(Qt::CheckState _state);
-    void onSkylineBinHeuristicChanged(int _index);
-    void onGuillotineBinChoiceHeuristicChanged(int _index);
-    void onGuillotineBinSplitHeuristicChanged(int _index);
-    void onGuillotineBinAllowMergeChanged(Qt::CheckState _state);
-    void onShelfBinSplitHeuristicChanged(int _index);
-    void onShelfBinUseWasteMapChanged(Qt::CheckState _state);
+    void addSprites();
+    void removeSprites();
+    void showTreeItemContextMentu(const QPoint & _pos);
 
 private:
-    Packers * m_packers;
-    std::unique_ptr<RawAtlasPack> m_atlases;
+    SpriteListModel * m_sprites_model;
+    QMenu * m_tree_item_context_menu;
+    const QString m_open_image_dialog_filter;
 };

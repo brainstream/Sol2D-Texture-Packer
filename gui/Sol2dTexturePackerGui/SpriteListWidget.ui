@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SpriteListWidget</class>
+ <widget class="QWidget" name="SpriteListWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>475</width>
+    <height>837</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QTreeView" name="m_tree_sprites">
+     <property name="contextMenuPolicy">
+      <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
+     </property>
+     <property name="alternatingRowColors">
+      <bool>true</bool>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum>
+     </property>
+     <property name="rootIsDecorated">
+      <bool>false</bool>
+     </property>
+     <property name="uniformRowHeights">
+      <bool>true</bool>
+     </property>
+     <property name="itemsExpandable">
+      <bool>false</bool>
+     </property>
+     <attribute name="headerVisible">
+      <bool>false</bool>
+     </attribute>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="m_btn_add_sprites">
+     <property name="text">
+      <string>Add Sprites</string>
+     </property>
+     <property name="icon">
+      <iconset resource="Resources/Resources.qrc">
+       <normaloff>:/icons/list-add</normaloff>:/icons/list-add</iconset>
+     </property>
+    </widget>
+   </item>
+  </layout>
+  <action name="m_action_remove_sprite">
+   <property name="icon">
+    <iconset resource="Resources/Resources.qrc">
+     <normaloff>:/icons/list-remove</normaloff>:/icons/list-remove</iconset>
+   </property>
+   <property name="text">
+    <string>Remove</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+ </widget>
+ <tabstops>
+  <tabstop>m_tree_sprites</tabstop>
+  <tabstop>m_btn_add_sprites</tabstop>
+ </tabstops>
+ <resources>
+  <include location="Resources/Resources.qrc"/>
+ </resources>
+ <connections/>
+</ui>

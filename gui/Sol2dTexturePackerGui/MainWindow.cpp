@@ -18,6 +18,7 @@
 
 #include <Sol2dTexturePackerGui/Splitter/SpriteSheetSplitterWidget.h>
 #include <Sol2dTexturePackerGui/Packer/SpritePackerWidget.h>
+#include <Sol2dTexturePackerGui/Animator/SpriteAnimationWidget.h>
 #include <Sol2dTexturePackerGui/MainWindow.h>
 #include <Sol2dTexturePackerGui/AboutDialog.h>
 #include <Sol2dTexturePackerGui/Settings.h>
@@ -26,7 +27,8 @@
 MainWindow::MainWindow(QWidget *_parent) :
     QMainWindow(_parent),
     m_split_icon(new QIcon(":/icons/edit-cut")),
-    m_pack_icon(new QIcon(":/icons/package-x-generic"))
+    m_pack_icon(new QIcon(":/icons/package-x-generic")),
+    m_animation_icon(new QIcon(":/icons/video-x-generic"))
 {
     setupUi(this);
     QSettings settings;
@@ -35,11 +37,13 @@ MainWindow::MainWindow(QWidget *_parent) :
 
     m_btn_pack_sprites->setDefaultAction(m_action_pack_sprites);
     m_btn_split_sheet->setDefaultAction(m_action_split_sheet);
+    m_btn_animation->setDefaultAction(m_action_animation);
     m_btn_about->setDefaultAction(m_action_about);
 
     connect(m_tabs, &QTabWidget::tabCloseRequested, this, &MainWindow::closeTab);
     connect(m_action_split_sheet, &QAction::triggered, this, &MainWindow::showSheetSplitter);
     connect(m_action_pack_sprites, &QAction::triggered, this, &MainWindow::showSpritePacker);
+    connect(m_action_animation, &QAction::triggered, this, &MainWindow::showSpriteAnimator);
     connect(m_action_about, &QAction::triggered, this, &MainWindow::showAboutDialog);
 }
 
@@ -61,11 +65,11 @@ void MainWindow::showSheetSplitter()
 {
     SpriteSheetSplitterWidget * widget = new SpriteSheetSplitterWidget(this);
     m_tabs->setCurrentIndex(m_tabs->addTab(widget, *m_split_icon, tr("Split Sprite Sheet")));
-    connect(widget, &SpriteSheetSplitterWidget::sheetLoaded, this, [this, widget](const QString & _filename) {
+    connect(widget, &SpriteSheetSplitterWidget::sheetLoaded, this, [this, widget](const QString & __filename) {
         int index = m_tabs->indexOf(widget);
         if(index >= 0)
         {
-            QFileInfo fi(_filename);
+            QFileInfo fi(__filename);
             m_tabs->setTabText(index, tr("Splitting: %1").arg(fi.fileName()));
         }
     });
@@ -75,6 +79,17 @@ void MainWindow::showSpritePacker()
 {
     SpritePackerWidget * widget = new SpritePackerWidget(this);
     m_tabs->setCurrentIndex(m_tabs->addTab(widget, *m_pack_icon, tr("Pack Sprites")));
+    connect(widget, &SpritePackerWidget::packNameChanged, this, [this, widget](const QString & __name) {
+        int index = m_tabs->indexOf(widget);
+        if(index >= 0)
+            m_tabs->setTabText(index, tr("Packing: %1").arg(__name));
+    });
+}
+
+void MainWindow::showSpriteAnimator()
+{
+    SpriteAnimationWidget * widget = new SpriteAnimationWidget(this);
+    m_tabs->setCurrentIndex(m_tabs->addTab(widget, *m_animation_icon, tr("Sprite Animation")));
 }
 
 void MainWindow::closeTab(int _index)

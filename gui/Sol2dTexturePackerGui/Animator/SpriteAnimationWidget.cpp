@@ -16,44 +16,10 @@
  *                                                                                                        *
  **********************************************************************************************************/
 
-#pragma once
+#include <Sol2dTexturePackerGui/Animator/SpriteAnimationWidget.h>
 
-#include "ui_SpritePackerWidget.h"
-#include <LibSol2dTexturePacker/Packers/RawAtlasPack.h>
-#include <memory>
-
-class SpritePackerWidget : public QWidget, private Ui::SpritePackerWidget
+SpriteAnimationWidget::SpriteAnimationWidget(QWidget * _parent) :
+    QWidget(_parent)
 {
-    Q_OBJECT
-
-private:
-    struct Packers;
-    class SpriteListModel;
-
-public:
-    explicit SpritePackerWidget(QWidget * _parent = nullptr);
-    ~SpritePackerWidget() override;
-
-signals:
-    void packNameChanged(const QString & _name);
-
-private slots:
-    void renderPack();
-    void exportPack();
-    void browseForExportDir();
-    void validateExportPackRequirements();
-    void onAlgorithmChanged();
-    void onMaxRectesBiAllowFlipChanged(Qt::CheckState _state);
-    void onMaxRectesBinHeuristicChanged(int _index);
-    void onSkylineBinUseWasteMapChanged(Qt::CheckState _state);
-    void onSkylineBinHeuristicChanged(int _index);
-    void onGuillotineBinChoiceHeuristicChanged(int _index);
-    void onGuillotineBinSplitHeuristicChanged(int _index);
-    void onGuillotineBinAllowMergeChanged(Qt::CheckState _state);
-    void onShelfBinSplitHeuristicChanged(int _index);
-    void onShelfBinUseWasteMapChanged(Qt::CheckState _state);
-
-private:
-    Packers * m_packers;
-    std::unique_ptr<RawAtlasPack> m_atlases;
-};
+    setupUi(this);
+}

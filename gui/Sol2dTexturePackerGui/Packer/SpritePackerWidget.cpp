@@ -19,7 +19,6 @@
 #include <Sol2dTexturePackerGui/Packer/SpritePackerWidget.h>
 #include <Sol2dTexturePackerGui/TransparentGraphicsPixmapItem.h>
 #include <Sol2dTexturePackerGui/BusySmartThread.h>
-#include <Sol2dTexturePackerGui/ImageFormat.h>
 #include <Sol2dTexturePackerGui/Settings.h>
 #include <LibSol2dTexturePacker/Packers/MaxRectsBinAtlasPacker.h>
 #include <LibSol2dTexturePacker/Packers/SkylineBinAtlasPacker.h>
@@ -56,87 +55,16 @@ struct SpritePackerWidget::Packers
     AtlasPacker * current;
 };
 
-class SpritePackerWidget::SpriteListModel : public QAbstractListModel
-{
-public:
-    explicit SpriteListModel(QObject * _parent);
-    int rowCount(const QModelIndex & _parent) const override;
-    QVariant data(const QModelIndex & _index, int _role) const override;
-    bool removeRows(int _row, int _count, const QModelIndex & _parent) override;
-    void addSprite(const Sprite & _sprite);
-    const QList<Sprite> & getSprites() const;
-
-private:
-    QList<Sprite> m_sprites;
-};
-
-SpritePackerWidget::SpriteListModel::SpriteListModel(QObject * _parent) :
-    QAbstractListModel(_parent)
-{
-}
-
-int SpritePackerWidget::SpriteListModel::rowCount(const QModelIndex & _parent) const
-{
-    if(_parent.isValid())
-        return 0;
-    return static_cast<int>(m_sprites.count());
-}
-
-QVariant SpritePackerWidget::SpriteListModel::data(const QModelIndex & _index, int _role) const
-{
-    switch(_role)
-    {
-    case Qt::DisplayRole:
-        return m_sprites[_index.row()].name;
-    case Qt::DecorationRole:
-        return m_sprites[_index.row()].image.scaled(64, 64, Qt::KeepAspectRatio);
-    default:
-        return QVariant();
-    }
-}
-
-void SpritePackerWidget::SpriteListModel::addSprite(const Sprite & _sprite)
-{
-    auto it = std::find_if(
-        m_sprites.begin(),
-        m_sprites.end(),
-        [&_sprite](const Sprite & __s) { return __s.path == _sprite.path; });
-    if(it == m_sprites.end())
-    {
-        beginInsertRows(QModelIndex(), m_sprites.count(), m_sprites.count() + 1);
-        m_sprites.append(_sprite);
-        endInsertRows();
-    }
-}
-
-bool SpritePackerWidget::SpriteListModel::removeRows(int _row, int _count, const QModelIndex & _parent)
-{
-    beginRemoveRows(_parent, _row, _row + _count);
-    m_sprites.remove(_row, _count);
-    endRemoveRows();
-    return true;
-}
-
-inline const QList<Sprite> & SpritePackerWidget::SpriteListModel::getSprites() const
-{
-    return m_sprites;
-}
 
 SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
     QWidget(_parent),
-    m_packers(new Packers),
-    m_open_image_dialog_filter(makeAllReadSupportedImageFormatsFilterString())
+    m_packers(new Packers)
 {
     setupUi(this);
-
-    m_tree_item_context_menu = new QMenu(this);
-    m_tree_item_context_menu->addAction(m_action_remove_sprite);
 
     m_packers->current = nullptr;
     m_packers->max_rects_bin.setChoiceHeuristic(MaxRectsBinAtlasPackerChoiceHeuristic::BestAreaFit);
 
-    m_sprites_model = new SpriteListModel(m_tree_sprites);
-    m_tree_sprites->setModel(m_sprites_model);
     m_preview->setScene(new QGraphicsScene(m_preview));
     m_preview->setZoomModel(&m_zoom_widget->model());
     m_splitter->setSizes({100, 500});
@@ -244,17 +172,20 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
         m_combo_texture_format->setCurrentIndex(png_idx);
     }
 
-    connect(m_btn_add_sprites, &QPushButton::clicked, this, &SpritePackerWidget::addSprites);
-    connect(m_action_remove_sprite, &QAction::triggered, this, &SpritePackerWidget::removeSprites);
-    connect(m_tree_sprites, &QTreeView::customContextMenuRequested, this, &SpritePackerWidget::showTreeItemContextMentu);
+    QTimer::singleShot(100, this, [this]() {
+        emit packNameChanged(m_edit_export_name->text());
+    });
+
+    connect(m_widget_sprite_list, &SpriteListWidget::spriteListChanged, this, &SpritePackerWidget::renderPack);
     connect(m_checkbox_crop, &QCheckBox::checkStateChanged, this, &SpritePackerWidget::renderPack);
     connect(m_checkbox_detect_duplicates, &QCheckBox::checkStateChanged, this, &SpritePackerWidget::renderPack);
     connect(m_spin_max_width, &QSpinBox::editingFinished, this, &SpritePackerWidget::renderPack);
     connect(m_spin_max_height, &QSpinBox::editingFinished, this, &SpritePackerWidget::renderPack);
     connect(m_btn_export, &QPushButton::clicked, this, &SpritePackerWidget::exportPack);
+    connect(m_btn_browse_export_directory, &QPushButton::clicked, this, &SpritePackerWidget::browseForExportDir);
     connect(m_edit_export_directory, &QLineEdit::textChanged, this, &SpritePackerWidget::validateExportPackRequirements);
     connect(m_edit_export_name, &QLineEdit::textChanged, this, &SpritePackerWidget::validateExportPackRequirements);
-    connect(m_btn_browse_export_directory, &QPushButton::clicked, this, &SpritePackerWidget::browseForExportDir);
+    connect(m_edit_export_name, &QLineEdit::textChanged, this, &SpritePackerWidget::packNameChanged);
     connect(
         m_checkbox_mrb_allow_flip,
         &QCheckBox::checkStateChanged,
@@ -330,61 +261,13 @@ SpritePackerWidget::~SpritePackerWidget()
     delete m_packers;
 }
 
-void SpritePackerWidget::addSprites()
-{
-    QSettings settings;
-    QStringList files = QFileDialog::getOpenFileNames(
-        this,
-        QString(),
-        settings.value(Settings::Input::sprite_directory).toString(),
-        m_open_image_dialog_filter
-    );
-    if(files.isEmpty())
-        return;
-    settings.setValue(
-        Settings::Input::sprite_directory,
-        std::filesystem::absolute(std::filesystem::path(files[0].toStdString()).parent_path()).c_str()
-    );
-    foreach(const QString & file, files) {
-        QImage image;
-        if(!image.load(file)) continue;
-        QFileInfo fi(file);
-        m_sprites_model->addSprite(
-            Sprite
-            {
-                .path = fi.absoluteFilePath(),
-                .name = fi.fileName(),
-                .image = image
-            }
-        );
-    }
-    renderPack();
-}
-
-void SpritePackerWidget::removeSprites()
-{
-    const QItemSelection selection = m_tree_sprites->selectionModel()->selection();
-    std::list<int> rows;
-    foreach(const QModelIndex & idx, selection.indexes())
-    {
-        const int r = idx.row();
-        if(rows.empty() || r < rows.back()) // sort desc
-            rows.push_back(r);
-        else
-            rows.push_front(r);
-    }
-    for(const int row : rows)
-        m_sprites_model->removeRow(row);
-    renderPack();
-}
-
 void SpritePackerWidget::renderPack()
 {
     BusySmartThread * thread = new BusySmartThread(
         [this]()
         {
             m_atlases = m_packers->current->pack(
-                m_sprites_model->getSprites(),
+                m_widget_sprite_list->getSprites(),
                 {
                     .max_atlas_size = QSize(
                         m_spin_max_width->value(),
@@ -419,13 +302,6 @@ void SpritePackerWidget::renderPack()
         QMessageBox::critical(this, QString(), __message);
     });
     thread->start();
-}
-
-void SpritePackerWidget::showTreeItemContextMentu(const QPoint & _pos)
-{
-    QModelIndex index = m_tree_sprites->indexAt(_pos);
-    if(index.isValid())
-        m_tree_item_context_menu->exec(m_tree_sprites->mapToGlobal(_pos));
 }
 
 void SpritePackerWidget::exportPack()
