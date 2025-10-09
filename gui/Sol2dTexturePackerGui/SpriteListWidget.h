@@ -32,6 +32,7 @@ private:
 public:
     explicit SpriteListWidget(QWidget * _parent = nullptr);
     const QList<Sprite> & sprites() const;
+    void setSprites(const QList<Sprite> & _sprites);
 
 signals:
     void spriteListChanged();

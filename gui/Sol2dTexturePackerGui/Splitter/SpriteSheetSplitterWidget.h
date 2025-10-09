@@ -19,7 +19,9 @@
 #pragma once
 
 #include "ui_SpriteSheetSplitterWidget.h"
+#include <Sol2dTexturePackerGui/SpriteAnimationPipe.h>
 #include <LibSol2dTexturePacker/Pack/Pack.h>
+#include <QMenu>
 
 class SpriteSheetSplitterWidget : public QWidget, private Ui::SpriteSheetSplitterWidget
 {
@@ -27,6 +29,7 @@ class SpriteSheetSplitterWidget : public QWidget, private Ui::SpriteSheetSplitte
 
 public:
     explicit SpriteSheetSplitterWidget(QWidget * _parent = nullptr);
+    void setSpriteAnimationPipe(SpriteAnimationPipe * _pipe) { m_sprite_animation_pipe = _pipe; }
 
 signals:
     void sheetLoaded(const QString & _filename);
@@ -37,6 +40,8 @@ private slots:
     void exportSprites();
     void saveAtlas();
     void openAtlas();
+    void previewContextMenuRequested(const QPoint & _pos);
+    void sendToAnimation();
 
 private:
     void applyNewTexture();
@@ -47,4 +52,6 @@ private:
     QPen m_sprite_pen;
     QBrush m_sprite_brush;
     QSharedPointer<Pack> m_pack;
+    SpriteAnimationPipe * m_sprite_animation_pipe;
+    QMenu * m_sprite_menu;
 };

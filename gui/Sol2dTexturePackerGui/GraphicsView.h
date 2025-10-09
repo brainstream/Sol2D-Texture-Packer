@@ -33,6 +33,9 @@ protected:
     void drawBackground(QPainter * _painter, const QRectF & _rect) override;
     void wheelEvent(QWheelEvent * _event) override;
     void keyPressEvent(QKeyEvent * _event) override;
+    void mousePressEvent(QMouseEvent * _event) override;
+    void mouseReleaseEvent(QMouseEvent * _event) override;
+    void mouseMoveEvent(QMouseEvent * _event) override;
 
 private slots:
     void applyZoom(quint32 _zoom);

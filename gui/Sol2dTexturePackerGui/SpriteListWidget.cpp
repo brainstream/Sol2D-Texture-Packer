@@ -29,6 +29,7 @@ public:
     QVariant data(const QModelIndex & _index, int _role) const override;
     bool removeRows(int _row, int _count, const QModelIndex & _parent) override;
     void addSprite(const Sprite & _sprite);
+    void setSprites(const QList<Sprite> & _sprites);
     const QList<Sprite> & sprites() const;
 
 private:
@@ -72,6 +73,13 @@ void SpriteListWidget::SpriteListModel::addSprite(const Sprite & _sprite)
         m_sprites.append(_sprite);
         endInsertRows();
     }
+}
+
+void SpriteListWidget::SpriteListModel::setSprites(const QList<Sprite> & _sprites)
+{
+    beginResetModel();
+    m_sprites = _sprites;
+    endResetModel();
 }
 
 bool SpriteListWidget::SpriteListModel::removeRows(int _row, int _count, const QModelIndex & _parent)
@@ -159,4 +167,10 @@ void SpriteListWidget::showTreeItemContextMentu(const QPoint & _pos)
 const QList<Sprite> & SpriteListWidget::sprites() const
 {
     return m_sprites_model->sprites();
+}
+
+void SpriteListWidget::setSprites(const QList<Sprite> & _sprites)
+{
+    m_sprites_model->setSprites(_sprites);
+    emit spriteListChanged();
 }

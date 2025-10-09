@@ -83,3 +83,8 @@ void SpriteAnimationWidget::timerEvent(QTimerEvent *)
     m_label_animation->setPixmap(m_frames[m_next_frame_index]);
     ++m_next_frame_index;
 }
+
+void SpriteAnimationWidget::setSprites(const QList<Sprite> & _sprites)
+{
+    m_widget_sprite_list->setSprites(_sprites);
+}

@@ -22,23 +22,30 @@
 
 void Pack::unpack(const QDir & _output_dir, const QString & _format) const
 {
-    QImage texture = this->texture();
-    QTransform rotation;
-    rotation.rotate(90);
     forEachFrame([&](const Frame & __frame) {
-        QImage img(__frame.sprite_rect.width(), __frame.sprite_rect.height(), QImage::Format_ARGB32);
-        img.fill(0);
-        QPainter painter(&img);
-        if(__frame.is_rotated)
-            painter.setTransform(rotation);
-        painter.drawImage(
-            __frame.sprite_rect.topLeft(),
-            texture,
-            __frame.texture_rect);
-        const QString filename = makeUnpackFilename(_output_dir, _format, __frame);
-        if(!img.save(filename))
-            throw FileOpenException(filename, FileOpenException::Write);
+        Sprite sprite = unpackFrame(__frame, _output_dir, _format);
+        if(!sprite.image.save(sprite.path))
+            throw FileOpenException(sprite.path, FileOpenException::Write);
     });
+}
+
+Sprite Pack::unpackFrame(const Frame & _frame, const QDir & _output_dir, const QString & _format) const
+{
+    QImage img(_frame.sprite_rect.width(), _frame.sprite_rect.height(), QImage::Format_ARGB32);
+    img.fill(0);
+    QPainter painter(&img);
+    if(_frame.is_rotated)
+    {
+        QTransform rotation;
+        rotation.rotate(90);
+        painter.setTransform(rotation);
+    }
+    painter.drawImage(
+        _frame.sprite_rect.topLeft(),
+        this->texture(),
+        _frame.texture_rect);
+    const QString filename = makeUnpackFilename(_output_dir, _format, _frame);
+    return Sprite { .path = filename, .name = _frame.name, .image = img };
 }
 
 QString Pack::makeUnpackFilename(const QDir & _output_dir, const QString & _format, const Frame & _frame) const

@@ -18,31 +18,12 @@
 
 #pragma once
 
-#include "ui_MainWindow.h"
-#include <Sol2dTexturePackerGui/SpriteAnimationPipe.h>
-#include <QMainWindow>
+#include <LibSol2dTexturePacker/Sprite.h>
 
-class MainWindow : public QMainWindow, public SpriteAnimationPipe, private Ui::MainWindow
+class SpriteAnimationPipe
 {
-    Q_OBJECT
-
 public:
-    MainWindow(QWidget * _parent = nullptr);
-    ~MainWindow() override;
-    void produceAnimation(const QList<Sprite> & _sprites) override;
-
-protected:
-    void closeEvent(QCloseEvent * _event) override;
-
-private slots:
-    void showSheetSplitter();
-    void showSpritePacker();
-    void showSpriteAnimator();
-    void closeTab(int _index);
-    void showAboutDialog();
-
-private:
-    QIcon * m_split_icon;
-    QIcon * m_pack_icon;
-    QIcon * m_animation_icon;
+    SpriteAnimationPipe() { }
+    virtual ~SpriteAnimationPipe() { }
+    virtual void produceAnimation(const QList<Sprite> & _sprites) = 0;
 };

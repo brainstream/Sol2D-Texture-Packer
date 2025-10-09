@@ -30,6 +30,9 @@
          <height>600</height>
         </size>
        </property>
+       <property name="contextMenuPolicy">
+        <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
+       </property>
        <property name="dragMode">
         <enum>QGraphicsView::DragMode::RubberBandDrag</enum>
        </property>
@@ -187,6 +190,18 @@
     </widget>
    </item>
   </layout>
+  <action name="m_action_animate">
+   <property name="icon">
+    <iconset resource="../Resources/Resources.qrc">
+     <normaloff>:/icons/video-x-generic</normaloff>:/icons/video-x-generic</iconset>
+   </property>
+   <property name="text">
+    <string>Animate</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

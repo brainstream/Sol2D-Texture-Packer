@@ -19,6 +19,7 @@
 #pragma once
 
 #include <LibSol2dTexturePacker/Frame.h>
+#include <LibSol2dTexturePacker/Sprite.h>
 #include <QImage>
 #include <QDir>
 #include <QObject>
@@ -36,6 +37,7 @@ public:
 
     virtual ~Pack() = default;
     void unpack(const QDir & _output_dir, const QString & _format) const;
+    Sprite unpackFrame(const Frame & _frame, const QDir & _output_dir, const QString & _format) const;
     const QImage & texture() const;
     const QString & textureFilename() const { return m_texture_filename; }
     virtual qsizetype frameCount() const = 0;

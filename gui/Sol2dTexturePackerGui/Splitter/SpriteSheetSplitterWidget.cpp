@@ -29,14 +29,23 @@
 #include <QMessageBox>
 #include <QImageWriter>
 
+namespace {
+
+const int g_key_custom_data_frame = 1;
+
+} // namespace
+
 SpriteSheetSplitterWidget::SpriteSheetSplitterWidget(QWidget * _parent) :
     QWidget(_parent),
     m_open_image_dialog_filter(makeAllReadSupportedImageFormatsFilterString()),
     m_sprite_pen(QColor(120, 0, 0, 80), 1.0, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin),
     m_sprite_brush(QColor(255, 0, 0, 50)),
-    m_pack(nullptr)
+    m_pack(nullptr),
+    m_sprite_animation_pipe(nullptr)
 {
     setupUi(this);
+    m_sprite_menu = new QMenu(this);
+    m_sprite_menu->addAction(m_action_animate);
     m_preview->setScene(new QGraphicsScene(this));
     m_preview->setZoomModel(&m_zoom_widget->model());
     setExportControlsEnabled(false);
@@ -54,6 +63,12 @@ SpriteSheetSplitterWidget::SpriteSheetSplitterWidget(QWidget * _parent) :
     connect(m_btn_open_atlas, &QPushButton::clicked, this, &SpriteSheetSplitterWidget::openAtlas);
     connect(m_btn_export_sprites, &QPushButton::clicked, this, &SpriteSheetSplitterWidget::exportSprites);
     connect(m_btn_save_atlas, &QPushButton::clicked, this, &SpriteSheetSplitterWidget::saveAtlas);
+    connect(
+        m_preview,
+        &QGraphicsView::customContextMenuRequested,
+        this,
+        &SpriteSheetSplitterWidget::previewContextMenuRequested);
+    connect(m_action_animate, &QAction::triggered, this, &SpriteSheetSplitterWidget::sendToAnimation);
 }
 
 void SpriteSheetSplitterWidget::openTexture()
@@ -109,6 +124,7 @@ void SpriteSheetSplitterWidget::syncWithPack()
         rect.adjust(border_half_width, border_half_width, -border_half_width, -border_half_width);
         QGraphicsRectItem * item = scene->addRect(rect, m_sprite_pen, m_sprite_brush);
         item->setFlag(QGraphicsItem::ItemIsSelectable);
+        item->setData(g_key_custom_data_frame, QVariant::fromValue(__frame));
     });
     setExportControlsEnabled(is_valid);
 }
@@ -195,4 +211,26 @@ void SpriteSheetSplitterWidget::openAtlas()
             QMessageBox::critical(this, nullptr, exception.message());
         }
     }
+}
+
+void SpriteSheetSplitterWidget::previewContextMenuRequested(const QPoint & _pos)
+{
+    if(m_sprite_animation_pipe == nullptr || m_preview->scene()->selectedItems().isEmpty())
+        return;
+    m_sprite_menu->exec(m_preview->mapToGlobal(_pos));
+}
+
+void SpriteSheetSplitterWidget::sendToAnimation()
+{
+    if(m_sprite_animation_pipe == nullptr || m_pack == nullptr || m_pack->frameCount() == 0)
+        return;
+    QList<QGraphicsItem *> selection = m_preview->scene()->selectedItems();
+    QList<Sprite> sprites;
+    sprites.reserve(selection.count());
+    foreach(const QGraphicsItem * item, selection)
+    {
+        Frame frame = item->data(g_key_custom_data_frame).value<Frame>();
+        sprites.append(m_pack->unpackFrame(frame, QDir(), "png"));
+    }
+    m_sprite_animation_pipe->produceAnimation(sprites);
 }

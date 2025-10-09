@@ -18,6 +18,7 @@
 
 #include <QApplication>
 #include <Sol2dTexturePackerGui/MainWindow.h>
+#include <LibSol2dTexturePacker/Frame.h>
 
 int main(int _argc, char * _argv[])
 {
@@ -26,7 +27,11 @@ int main(int _argc, char * _argv[])
     app.setApplicationDisplayName(__S2TP_APP);
     app.setApplicationVersion(__S2TP_VERSION);
     app.setOrganizationName(__S2TP_ORG);
-    MainWindow wnd;
-    wnd.show();
+
+    qRegisterMetaType<Frame>("Frame");
+
+    std::unique_ptr<MainWindow> wnd = std::make_unique<MainWindow>();
+    wnd->show();
+
     return app.exec();
 }

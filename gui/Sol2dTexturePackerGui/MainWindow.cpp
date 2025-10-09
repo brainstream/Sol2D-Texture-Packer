@@ -64,6 +64,7 @@ void MainWindow::closeEvent(QCloseEvent * _event)
 void MainWindow::showSheetSplitter()
 {
     SpriteSheetSplitterWidget * widget = new SpriteSheetSplitterWidget(this);
+    widget->setSpriteAnimationPipe(this);
     m_tabs->setCurrentIndex(m_tabs->addTab(widget, *m_split_icon, tr("Split Sprite Sheet")));
     connect(widget, &SpriteSheetSplitterWidget::sheetLoaded, this, [this, widget](const QString & __filename) {
         int index = m_tabs->indexOf(widget);
@@ -88,8 +89,15 @@ void MainWindow::showSpritePacker()
 
 void MainWindow::showSpriteAnimator()
 {
+    produceAnimation({});
+}
+
+void MainWindow::produceAnimation(const QList<Sprite> & _sprites)
+{
     SpriteAnimationWidget * widget = new SpriteAnimationWidget(this);
     m_tabs->setCurrentIndex(m_tabs->addTab(widget, *m_animation_icon, tr("Sprite Animation")));
+    if(!_sprites.isEmpty())
+        widget->setSprites(_sprites);
 }
 
 void MainWindow::closeTab(int _index)

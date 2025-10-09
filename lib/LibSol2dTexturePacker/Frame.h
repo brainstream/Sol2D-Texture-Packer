@@ -21,11 +21,17 @@
 #include <LibSol2dTexturePacker/Def.h>
 #include <QString>
 #include <QRect>
+#include <QMetaType>
 
 struct S2TP_EXPORT Frame
 {
+    Q_GADGET
+
+public:
     QRect texture_rect;
     QRect sprite_rect;
     QString name;
     bool is_rotated;
 };
+
+Q_DECLARE_METATYPE(Frame)

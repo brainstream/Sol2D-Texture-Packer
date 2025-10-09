@@ -19,6 +19,7 @@
 #include <Sol2dTexturePackerGui/GraphicsView.h>
 #include <QGraphicsItem>
 #include <QWheelEvent>
+#include <QMouseEvent>
 
 GraphicsView::GraphicsView(QWidget * _parent) :
     QGraphicsView(_parent),
@@ -94,6 +95,30 @@ void GraphicsView::keyPressEvent(QKeyEvent * _event)
         _event->accept();
     else
         QGraphicsView::keyPressEvent(_event);
+}
+
+void GraphicsView::mousePressEvent(QMouseEvent * _event)
+{
+    if(_event->button() == Qt::LeftButton)
+        QGraphicsView::mousePressEvent(_event);
+    else
+        _event->ignore();
+}
+
+void GraphicsView::mouseReleaseEvent(QMouseEvent * _event)
+{
+    if(_event->button() == Qt::LeftButton)
+        QGraphicsView::mouseReleaseEvent(_event);
+    else
+        _event->ignore();
+}
+
+void GraphicsView::mouseMoveEvent(QMouseEvent * _event)
+{
+    if(_event->buttons() == Qt::LeftButton)
+        QGraphicsView::mouseMoveEvent(_event);
+    else
+        _event->ignore();
 }
 
 void GraphicsView::setZoomModel(ZoomModel * _model)
