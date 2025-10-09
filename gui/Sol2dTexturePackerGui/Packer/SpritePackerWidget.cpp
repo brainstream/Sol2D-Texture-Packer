@@ -267,7 +267,7 @@ void SpritePackerWidget::renderPack()
         [this]()
         {
             m_atlases = m_packers->current->pack(
-                m_widget_sprite_list->getSprites(),
+                m_widget_sprite_list->sprites(),
                 {
                     .max_atlas_size = QSize(
                         m_spin_max_width->value(),

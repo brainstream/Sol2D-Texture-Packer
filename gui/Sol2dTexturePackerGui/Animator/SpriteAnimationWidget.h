@@ -19,6 +19,7 @@
 #pragma once
 
 #include "ui_SpriteAnimationWidget.h"
+#include <LibSol2dTexturePacker/Sprite.h>
 
 class SpriteAnimationWidget : public QWidget, private Ui::SpriteAnimationWidget
 {
@@ -26,4 +27,20 @@ class SpriteAnimationWidget : public QWidget, private Ui::SpriteAnimationWidget
 
 public:
     explicit SpriteAnimationWidget(QWidget * _parent = nullptr);
+
+protected:
+    void timerEvent(QTimerEvent * _event) override;
+
+private slots:
+    void updateTimer();
+    void updateFrames();
+
+private:
+    void stopTimer();
+
+private:
+    int m_timer_id;
+    int m_next_frame_index;
+    QSize m_default_preview_size;
+    QList<QPixmap> m_frames;
 };
