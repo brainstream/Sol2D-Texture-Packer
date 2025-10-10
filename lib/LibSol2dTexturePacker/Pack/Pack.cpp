@@ -31,7 +31,7 @@ void Pack::unpack(const QDir & _output_dir, const QString & _format) const
 
 Sprite Pack::unpackFrame(const Frame & _frame, const QDir & _output_dir, const QString & _format) const
 {
-    QImage img(_frame.sprite_rect.width(), _frame.sprite_rect.height(), QImage::Format_ARGB32);
+    QImage img(_frame.sprite_rect.width(), _frame.sprite_rect.height(), QImage::Format_RGBA8888);
     img.fill(0);
     QPainter painter(&img);
     if(_frame.is_rotated)
@@ -40,10 +40,19 @@ Sprite Pack::unpackFrame(const Frame & _frame, const QDir & _output_dir, const Q
         rotation.rotate(90);
         painter.setTransform(rotation);
     }
+
+
+
+
     painter.drawImage(
         _frame.sprite_rect.topLeft(),
         this->texture(),
         _frame.texture_rect);
+
+
+
+
+
     const QString filename = makeUnpackFilename(_output_dir, _format, _frame);
     return Sprite { .path = filename, .name = _frame.name, .image = img };
 }

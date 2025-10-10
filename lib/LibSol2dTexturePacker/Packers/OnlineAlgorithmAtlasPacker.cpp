@@ -36,16 +36,16 @@ struct Item
     ) :
         image(_image),
         name(_name),
-        source_rect(_source_rect),
-        destination_rect(_destination_rect),
+        sprite_rect(_source_rect),
+        texture_rect(_destination_rect),
         is_rotated(_is_rotated)
     {
     }
 
     const QImage * image;
     QString name;
-    QRect source_rect;
-    QRect destination_rect;
+    QRect sprite_rect;
+    QRect texture_rect;
     QByteArray hash_sum;
     bool is_rotated;
 };
@@ -56,30 +56,37 @@ QImage render(const std::list<Item> & _items)
     int max_y = 0;
     foreach(const Item & item, _items)
     {
-        int x = item.destination_rect.x() + item.destination_rect.width();
-        int y = item.destination_rect.y() + item.destination_rect.height();
+        int x = item.texture_rect.x() + item.texture_rect.width();
+        int y = item.texture_rect.y() + item.texture_rect.height();
         if(x > max_x) max_x = x;
         if(y > max_y) max_y = y;
     }
     QImage image(max_x, max_y, QImage::Format_RGBA8888);
     image.fill(Qt::transparent);
     QPainter painter(&image);
+
     QTransform rotation;
     rotation.rotate(90);
+
     for(const Item & item : _items)
     {
         if(item.image == nullptr)
             continue;
         painter.drawImage(
-            item.destination_rect.topLeft(),
+            item.texture_rect,
             item.is_rotated ? item.image->transformed(rotation) : *item.image,
             item.is_rotated
                 ? QRect(
-                      item.image->height() - (item.source_rect.height() + item.source_rect.y()),
-                      item.source_rect.x(),
-                      item.source_rect.height(),
-                      item.source_rect.width())
-                : item.source_rect);
+                      item.sprite_rect.y(),
+                      item.sprite_rect.x(),
+                      item.texture_rect.width(),
+                      item.texture_rect.height())
+                : QRect(
+                      item.sprite_rect.x(),
+                      item.sprite_rect.y(),
+                      item.texture_rect.width(),
+                      item.texture_rect.height())
+        );
     }
     return image;
 }
@@ -158,8 +165,8 @@ QList<Frame> itemsToFrames(std::list<Item> _items)
     for(const Item & item : _items)
     {
         frames.append({
-            .texture_rect = item.destination_rect,
-            .sprite_rect = item.source_rect,
+            .texture_rect = item.texture_rect,
+            .sprite_rect = item.sprite_rect,
             .name = item.name,
             .is_rotated = item.is_rotated
         });
@@ -211,8 +218,8 @@ std::unique_ptr<RawAtlasPack> OnlineAlgorithmAtlasPacker::pack(
         {
             QRect sprite_rect = _options.crop ? crop(sprite.image) : sprite.image.rect();
         RETRY:
-            QRect dest_rect = algorithm->insert(sprite_rect.width(), sprite_rect.height());
-            if(dest_rect.isNull())
+            QRect texture_rect = algorithm->insert(sprite_rect.width(), sprite_rect.height());
+            if(texture_rect.isNull())
             {
                 if(items.empty())
                 {
@@ -229,9 +236,13 @@ std::unique_ptr<RawAtlasPack> OnlineAlgorithmAtlasPacker::pack(
             items.emplace_back(
                 &sprite.image,
                 sprite_name,
-                sprite_rect,
-                dest_rect,
-                dest_rect.width() == sprite_rect.height());
+                QRect(
+                    sprite_rect.x(),
+                    sprite_rect.y(),
+                    sprite.image.rect().width(),
+                    sprite.image.rect().height()),
+                texture_rect,
+                texture_rect.width() == sprite_rect.height());
             if(_options.detect_duplicates)
                 items.back().hash_sum = hash_sum;
         }
