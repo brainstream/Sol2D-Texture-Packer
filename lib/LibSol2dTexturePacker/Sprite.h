@@ -21,10 +21,28 @@
 #include <LibSol2dTexturePacker/Def.h>
 #include <QString>
 #include <QImage>
+#include <QMetaType>
 
 struct S2TP_EXPORT Sprite
 {
+    Q_GADGET
+
+public:
     QString path;
     QString name;
     QImage image;
 };
+
+Q_DECLARE_METATYPE(Sprite)
+
+inline QDataStream & operator << (QDataStream & _out, const Sprite & _sprite)
+{
+    _out << _sprite.path << _sprite.name << _sprite.image;
+    return _out;
+}
+
+inline QDataStream & operator >> (QDataStream & _in, Sprite & _sprite)
+{
+    _in >> _sprite.path >> _sprite.name >> _sprite.image;
+    return _in;
+}

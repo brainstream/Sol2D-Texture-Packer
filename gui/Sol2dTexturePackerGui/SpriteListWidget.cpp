@@ -20,6 +20,7 @@
 #include <Sol2dTexturePackerGui/ImageFormat.h>
 #include <Sol2dTexturePackerGui/Settings.h>
 #include <QFileDialog>
+#include <QMimeData>
 
 class SpriteListWidget::SpriteListModel : public QAbstractListModel
 {
@@ -31,10 +32,30 @@ public:
     void addSprite(const Sprite & _sprite);
     void setSprites(const QList<Sprite> & _sprites);
     const QList<Sprite> & sprites() const;
+    bool canDropMimeData(
+        const QMimeData * _data,
+        Qt::DropAction _action,
+        int _row,
+        int _column,
+        const QModelIndex & _parent) const override;
+    bool dropMimeData(
+        const QMimeData * _data,
+        Qt::DropAction _action,
+        int _row,
+        int _column,
+        const QModelIndex & _parent) override;
+    Qt::DropActions supportedDropActions() const override;
+    Qt::DropActions supportedDragActions() const override;
+    Qt::ItemFlags flags(const QModelIndex & _index) const override;
+    QStringList mimeTypes() const override;
+    QMimeData * mimeData(const QModelIndexList & _indexes) const override;
 
 private:
+    static const QString m_mime_sprite;
     QList<Sprite> m_sprites;
 };
+
+const QString SpriteListWidget::SpriteListModel::m_mime_sprite("application/vnd.s2tp.sprite");
 
 SpriteListWidget::SpriteListModel::SpriteListModel(QObject * _parent) :
     QAbstractListModel(_parent)
@@ -90,9 +111,93 @@ bool SpriteListWidget::SpriteListModel::removeRows(int _row, int _count, const Q
     return true;
 }
 
+bool SpriteListWidget::SpriteListModel::canDropMimeData(
+    const QMimeData * _data,
+    Qt::DropAction _action,
+    int _row,
+    int _column,
+    const QModelIndex & _parent) const
+{
+    Q_UNUSED(_row)
+    Q_UNUSED(_column)
+    Q_UNUSED(_parent)
+    return _action == Qt::IgnoreAction || (_action == Qt::MoveAction && _data->hasFormat(m_mime_sprite));
+}
+
+bool SpriteListWidget::SpriteListModel::dropMimeData(
+    const QMimeData * _data,
+    Qt::DropAction _action,
+    int _row,
+    int _column,
+    const QModelIndex & _parent)
+{
+    if(!canDropMimeData(_data, _action, _row, _column, _parent))
+        return false;
+    if(_action == Qt::IgnoreAction)
+        return true;
+
+    int idx = _row == -1 ? rowCount(QModelIndex()) : _row;
+
+    QList<Sprite> sprites;
+    {
+        QByteArray byte_array = _data->data(m_mime_sprite);
+        QDataStream stream(&byte_array, QIODevice::ReadOnly);
+        Sprite sprite;
+        while(!stream.atEnd())
+        {
+            stream >> sprite;
+            sprites.append(sprite);
+        }
+    }
+
+    if(sprites.empty())
+        return false;
+
+    beginInsertRows(QModelIndex(), _row, _row + sprites.count() - 1);
+    foreach(const Sprite & sprite, sprites)
+        m_sprites.insert(idx++, sprite);
+    endInsertRows();
+    return true;
+}
+
+Qt::DropActions SpriteListWidget::SpriteListModel::supportedDropActions() const
+{
+    return Qt::MoveAction;
+}
+
+Qt::DropActions SpriteListWidget::SpriteListModel::supportedDragActions() const
+{
+    return Qt::MoveAction;
+}
+
 inline const QList<Sprite> & SpriteListWidget::SpriteListModel::sprites() const
 {
     return m_sprites;
+}
+
+Qt::ItemFlags SpriteListWidget::SpriteListModel::flags(const QModelIndex & _index) const
+{
+    Qt::ItemFlags defaultFlags = QAbstractListModel::flags(_index);
+    if(_index.isValid())
+        return Qt::ItemIsDragEnabled | defaultFlags;
+    else
+        return Qt::ItemIsDropEnabled | defaultFlags;
+}
+
+QStringList SpriteListWidget::SpriteListModel::mimeTypes() const
+{
+    return QStringList { m_mime_sprite };
+}
+
+QMimeData * SpriteListWidget::SpriteListModel::mimeData(const QModelIndexList & _indexes) const
+{
+    QMimeData * data = new QMimeData;
+    QByteArray byte_array;
+    QDataStream stream(&byte_array, QIODevice::WriteOnly);
+    foreach(const QModelIndex & idx, _indexes)
+        stream << m_sprites[idx.row()];
+    data->setData(m_mime_sprite, byte_array);
+    return data;
 }
 
 SpriteListWidget::SpriteListWidget(QWidget * _parent) :
@@ -107,6 +212,9 @@ SpriteListWidget::SpriteListWidget(QWidget * _parent) :
     connect(m_btn_add_sprites, &QPushButton::clicked, this, &SpriteListWidget::addSprites);
     connect(m_action_remove_sprite, &QAction::triggered, this, &SpriteListWidget::removeSprites);
     connect(m_tree_sprites, &QTreeView::customContextMenuRequested, this, &SpriteListWidget::showTreeItemContextMentu);
+    connect(m_sprites_model, &QAbstractListModel::rowsRemoved, this, &SpriteListWidget::spriteListChanged);
+    connect(m_sprites_model, &QAbstractListModel::rowsInserted, this, &SpriteListWidget::spriteListChanged);
+    connect(m_sprites_model, &QAbstractListModel::modelReset, this, &SpriteListWidget::spriteListChanged);
 }
 
 void SpriteListWidget::addSprites()
@@ -135,9 +243,8 @@ void SpriteListWidget::addSprites()
                 .name = fi.fileName(),
                 .image = image
             }
-            );
+        );
     }
-    emit spriteListChanged();
 }
 
 void SpriteListWidget::removeSprites()
@@ -154,7 +261,6 @@ void SpriteListWidget::removeSprites()
     }
     for(const int row : rows)
         m_sprites_model->removeRow(row);
-    emit spriteListChanged();
 }
 
 void SpriteListWidget::showTreeItemContextMentu(const QPoint & _pos)
@@ -172,5 +278,4 @@ const QList<Sprite> & SpriteListWidget::sprites() const
 void SpriteListWidget::setSprites(const QList<Sprite> & _sprites)
 {
     m_sprites_model->setSprites(_sprites);
-    emit spriteListChanged();
 }
