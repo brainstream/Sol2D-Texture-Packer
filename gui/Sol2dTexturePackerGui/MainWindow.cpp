@@ -23,6 +23,7 @@
 #include <Sol2dTexturePackerGui/AboutDialog.h>
 #include <Sol2dTexturePackerGui/Settings.h>
 #include <QFileInfo>
+#include <QShortcut>
 
 MainWindow::MainWindow(QWidget *_parent) :
     QMainWindow(_parent),
@@ -40,7 +41,10 @@ MainWindow::MainWindow(QWidget *_parent) :
     m_btn_animation->setDefaultAction(m_action_animation);
     m_btn_about->setDefaultAction(m_action_about);
 
+    QShortcut * shortcut_close_tab = new QShortcut(QKeySequence("CTRL+W"), this);
+
     connect(m_tabs, &QTabWidget::tabCloseRequested, this, &MainWindow::closeTab);
+    connect(shortcut_close_tab, &QShortcut::activated, this, &MainWindow::closeActiveTab);
     connect(m_action_split_sheet, &QAction::triggered, this, &MainWindow::showSheetSplitter);
     connect(m_action_pack_sprites, &QAction::triggered, this, &MainWindow::showSpritePacker);
     connect(m_action_animation, &QAction::triggered, this, &MainWindow::showSpriteAnimator);
@@ -98,6 +102,13 @@ void MainWindow::produceAnimation(const QList<Sprite> & _sprites)
     m_tabs->setCurrentIndex(m_tabs->addTab(widget, *m_animation_icon, tr("Sprite Animation")));
     if(!_sprites.isEmpty())
         widget->setSprites(_sprites);
+}
+
+void MainWindow::closeActiveTab()
+{
+    int index = m_tabs->currentIndex();
+    if(index >= 0)
+        closeTab(index);
 }
 
 void MainWindow::closeTab(int _index)

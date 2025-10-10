@@ -29,6 +29,10 @@ public:
     explicit GraphicsView(QWidget * _parent);
     void setZoomModel(ZoomModel * _model);
 
+public slots:
+    void selectAll();
+    void clearSelection();
+
 protected:
     void drawBackground(QPainter * _painter, const QRectF & _rect) override;
     void wheelEvent(QWheelEvent * _event) override;

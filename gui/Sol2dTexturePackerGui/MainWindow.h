@@ -38,6 +38,7 @@ private slots:
     void showSheetSplitter();
     void showSpritePacker();
     void showSpriteAnimator();
+    void closeActiveTab();
     void closeTab(int _index);
     void showAboutDialog();
 

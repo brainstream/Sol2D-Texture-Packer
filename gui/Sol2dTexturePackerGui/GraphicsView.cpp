@@ -20,11 +20,16 @@
 #include <QGraphicsItem>
 #include <QWheelEvent>
 #include <QMouseEvent>
+#include <QShortcut>
 
 GraphicsView::GraphicsView(QWidget * _parent) :
     QGraphicsView(_parent),
     m_zoom_model(nullptr)
 {
+    QShortcut * shortcut_select_all = new QShortcut(QKeySequence("CTRL+A"), this);
+    QShortcut * shortcut_clear_selection = new QShortcut(QKeySequence("ESC"), this);
+    connect(shortcut_select_all, &QShortcut::activated, this, &GraphicsView::selectAll);
+    connect(shortcut_clear_selection, &QShortcut::activated, this, &GraphicsView::clearSelection);
 }
 
 void GraphicsView::drawBackground(QPainter * _painter, const QRectF &)
@@ -141,4 +146,22 @@ void GraphicsView::applyZoom(quint32 _zoom)
     double scale_factor = _zoom / 100.0;
     resetTransform();
     scale(scale_factor, scale_factor);
+}
+
+void GraphicsView::selectAll()
+{
+    if(QGraphicsScene * scene = this->scene())
+    {
+        foreach(QGraphicsItem * item, scene->items())
+            item->setSelected(true);
+    }
+}
+
+void GraphicsView::clearSelection()
+{
+    if(QGraphicsScene * scene = this->scene())
+    {
+        foreach(QGraphicsItem * item, scene->selectedItems())
+        item->setSelected(false);
+    }
 }
