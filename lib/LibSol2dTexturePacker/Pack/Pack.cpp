@@ -31,28 +31,17 @@ void Pack::unpack(const QDir & _output_dir, const QString & _format) const
 
 Sprite Pack::unpackFrame(const Frame & _frame, const QDir & _output_dir, const QString & _format) const
 {
-    QImage img(_frame.sprite_rect.width(), _frame.sprite_rect.height(), QImage::Format_RGBA8888);
-    img.fill(0);
-    QPainter painter(&img);
+    QImage texture_sprite = texture().copy(_frame.texture_rect);
     if(_frame.is_rotated)
     {
         QTransform rotation;
-        rotation.rotate(90);
-        painter.setTransform(rotation);
+        rotation.rotate(-90);
+        texture_sprite = texture_sprite.transformed(rotation);
     }
-
-
-
-
-    painter.drawImage(
-        _frame.sprite_rect.topLeft(),
-        this->texture(),
-        _frame.texture_rect);
-
-
-
-
-
+    QImage img(_frame.sprite_rect.width(), _frame.sprite_rect.height(), QImage::Format_RGBA8888);
+    img.fill(0);
+    QPainter painter(&img);
+    painter.drawImage(_frame.sprite_rect.x(), _frame.sprite_rect.y(), texture_sprite);
     const QString filename = makeUnpackFilename(_output_dir, _format, _frame);
     return Sprite { .path = filename, .name = _frame.name, .image = img };
 }
@@ -60,18 +49,7 @@ Sprite Pack::unpackFrame(const Frame & _frame, const QDir & _output_dir, const Q
 QString Pack::makeUnpackFilename(const QDir & _output_dir, const QString & _format, const Frame & _frame) const
 {
     const QString base_name = _frame.name.isEmpty() ? "sprite" : QFileInfo(_frame.name).baseName();
-    {
-        const QFileInfo fi(_output_dir.filePath(base_name + "." + _format));
-        if(!fi.exists())
-            return fi.absoluteFilePath();
-    }
-    const QString name_format = QString("%1 (%3).%2").arg(base_name, _format);
-    for(int i = 1; ; ++i)
-    {
-        const QFileInfo fi(_output_dir.filePath(name_format.arg(i)));
-        if(!fi.exists())
-            return fi.absoluteFilePath();
-    }
+    return  QFileInfo(_output_dir.filePath(base_name + "." + _format)).absoluteFilePath();
 }
 
 const QImage & Pack::texture() const
