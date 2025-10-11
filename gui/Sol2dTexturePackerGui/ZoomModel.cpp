@@ -20,7 +20,9 @@
 
 namespace {
 
-constexpr quint32 g_zoom_step = 5;
+constexpr double g_zoom_step = 1.0;
+constexpr double g_min_zoom = 1.0;
+constexpr double g_max_zoom = 100000.0;
 
 } // namespace
 
@@ -32,15 +34,18 @@ ZoomModel::ZoomModel(quint32 _zoom, QObject * _parent) :
 
 void ZoomModel::increment()
 {
-    setZoom(m_zoom + g_zoom_step);
+    const double factor = 1.0 + g_zoom_step / std::log(m_zoom + 1.0);
+    const double new_zoom = m_zoom * factor;
+    if(new_zoom <= g_max_zoom)
+        setZoom(static_cast<quint32>(new_zoom));
 }
 
 void ZoomModel::decrement()
 {
-    if(m_zoom <= g_zoom_step)
-        setZoom(1);
-    else
-        setZoom(m_zoom - g_zoom_step);
+    const double factor = 1.0 + g_zoom_step / std::log(m_zoom + 1.0);
+    const double new_zoom = m_zoom / factor;
+    if(new_zoom >= g_min_zoom)
+        setZoom(static_cast<quint32>(new_zoom));
 }
 
 void ZoomModel::setZoom(quint32 _zoom)

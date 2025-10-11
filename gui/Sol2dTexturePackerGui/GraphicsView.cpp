@@ -188,6 +188,6 @@ void GraphicsView::clearSelection()
     if(QGraphicsScene * scene = this->scene())
     {
         foreach(QGraphicsItem * item, scene->selectedItems())
-        item->setSelected(false);
+            item->setSelected(false);
     }
 }
