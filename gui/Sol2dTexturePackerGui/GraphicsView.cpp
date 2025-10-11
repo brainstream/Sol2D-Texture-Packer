@@ -21,15 +21,50 @@
 #include <QWheelEvent>
 #include <QMouseEvent>
 #include <QShortcut>
+#include <QScrollBar>
 
 GraphicsView::GraphicsView(QWidget * _parent) :
     QGraphicsView(_parent),
-    m_zoom_model(nullptr)
+    m_zoom_model(nullptr),
+    m_is_in_drag_mode(false)
 {
-    QShortcut * shortcut_select_all = new QShortcut(QKeySequence("CTRL+A"), this);
-    QShortcut * shortcut_clear_selection = new QShortcut(QKeySequence("ESC"), this);
-    connect(shortcut_select_all, &QShortcut::activated, this, &GraphicsView::selectAll);
-    connect(shortcut_clear_selection, &QShortcut::activated, this, &GraphicsView::clearSelection);
+    setMouseTracking(true);
+
+    connect(
+        new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_A), this),
+        &QShortcut::activated,
+        this,
+        &GraphicsView::selectAll);
+    connect(
+        new QShortcut(QKeySequence(Qt::Key_Escape), this),
+        &QShortcut::activated,
+        this,
+        &GraphicsView::clearSelection);
+    connect(
+        new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Plus), this),
+        &QShortcut::activated,
+        this,
+        &GraphicsView::incrementZoom);
+    connect(
+        new QShortcut(QKeySequence(Qt::Key_ZoomIn), this),
+        &QShortcut::activated,
+        this,
+        &GraphicsView::incrementZoom);
+    connect(
+        new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Minus), this),
+        &QShortcut::activated,
+        this,
+        &GraphicsView::decrementZoom);
+    connect(
+        new QShortcut(QKeySequence(Qt::Key_ZoomOut), this),
+        &QShortcut::activated,
+        this,
+        &GraphicsView::decrementZoom);
+    connect(
+        new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_0), this),
+        &QShortcut::activated,
+        this,
+        &GraphicsView::resetZoom);
 }
 
 void GraphicsView::drawBackground(QPainter * _painter, const QRectF &)
@@ -46,84 +81,75 @@ void GraphicsView::wheelEvent(QWheelEvent * _event)
     {
         QPoint delta = _event->angleDelta();
         if(delta.y() > 0)
-            m_zoom_model->increment();
+            incrementZoom();
         else if(delta.y() < 0)
-            m_zoom_model->decrement();
+            decrementZoom();
     }
 }
 
-void GraphicsView::keyPressEvent(QKeyEvent * _event)
+void GraphicsView::incrementZoom()
 {
-    bool accept = true;
-    if(_event->modifiers().testFlag(Qt::ControlModifier))
-    {
-        switch(_event->key())
-        {
-        case Qt::Key_A:
-            foreach(QGraphicsItem * item, scene()->items())
-                item->setSelected(true);
-            break;
-        case Qt::Key_0:
-            if(m_zoom_model) m_zoom_model->setZoom(100);
-            break;
-        case Qt::Key_Plus:
-            if(m_zoom_model) m_zoom_model->increment();
-            break;
-        case Qt::Key_Minus:
-            if(m_zoom_model) m_zoom_model->decrement();
-            break;
-        default:
-            accept = false;
-            break;
-        }
-    }
-    else
-    {
-        switch(_event->key())
-        {
-        case Qt::Key_Escape:
-            foreach(QGraphicsItem * item, scene()->items())
-                item->setSelected(false);
-            break;
-        case Qt::Key_ZoomIn:
-            if(m_zoom_model) m_zoom_model->increment();
-            break;
-        case Qt::Key_ZoomOut:
-            if(m_zoom_model) m_zoom_model->decrement();
-            break;
-        default:
-            accept = false;
-            break;
-        }
-    }
-    if(accept)
-        _event->accept();
-    else
-        QGraphicsView::keyPressEvent(_event);
+    if(m_zoom_model)
+        m_zoom_model->increment();
+}
+
+void GraphicsView::decrementZoom()
+{
+    if(m_zoom_model)
+        m_zoom_model->decrement();
+}
+
+void GraphicsView::resetZoom()
+{
+    if(m_zoom_model)
+        m_zoom_model->setZoom(100);
 }
 
 void GraphicsView::mousePressEvent(QMouseEvent * _event)
 {
-    if(_event->button() == Qt::LeftButton)
+    switch(_event->button())
+    {
+    case Qt::LeftButton:
         QGraphicsView::mousePressEvent(_event);
-    else
+        break;
+    case Qt::MiddleButton:
+        m_is_in_drag_mode = true;
+        m_prev_drag_point = _event->pos();
+        setCursor(Qt::ClosedHandCursor);
+        break;
+    default:
         _event->ignore();
+        break;
+    }
 }
 
 void GraphicsView::mouseReleaseEvent(QMouseEvent * _event)
 {
-    if(_event->button() == Qt::LeftButton)
+    switch(_event->button())
+    {
+    case Qt::LeftButton:
         QGraphicsView::mouseReleaseEvent(_event);
-    else
+        break;
+    case Qt::MiddleButton:
+        m_is_in_drag_mode = false;
+        unsetCursor();
+        break;
+    default:
         _event->ignore();
+        break;
+    }
 }
 
 void GraphicsView::mouseMoveEvent(QMouseEvent * _event)
 {
-    if(_event->buttons() == Qt::LeftButton)
-        QGraphicsView::mouseMoveEvent(_event);
-    else
-        _event->ignore();
+    if(m_is_in_drag_mode && _event->buttons().testFlag(Qt::MiddleButton))
+    {
+        QPoint delta = _event->pos() - m_prev_drag_point;
+        horizontalScrollBar()->setValue(horizontalScrollBar()->value() - delta.x());
+        verticalScrollBar()->setValue(verticalScrollBar()->value() - delta.y());
+        m_prev_drag_point = _event->pos();
+    }
+    QGraphicsView::mouseMoveEvent(_event);
 }
 
 void GraphicsView::setZoomModel(ZoomModel * _model)
