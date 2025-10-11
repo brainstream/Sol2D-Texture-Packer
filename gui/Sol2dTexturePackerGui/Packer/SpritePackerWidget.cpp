@@ -263,6 +263,9 @@ SpritePackerWidget::~SpritePackerWidget()
 
 void SpritePackerWidget::renderPack()
 {
+    m_preview->scene()->clear();
+    if(m_widget_sprite_list->sprites().isEmpty())
+        return;
     BusySmartThread * thread = new BusySmartThread(
         [this]()
         {
@@ -281,7 +284,6 @@ void SpritePackerWidget::renderPack()
         },
         this);
     connect(thread, &BusySmartThread::finished, this, [this, thread]() {
-        m_preview->scene()->clear();
         const qreal y_gap = 100.0;
         qreal max_width = .0;
         qreal y_offset = .0;

@@ -22,6 +22,31 @@
 #include <QFileDialog>
 #include <QMimeData>
 #include <QShortcut>
+#include <QDragEnterEvent>
+#include <QHeaderView>
+#include <QPushButton>
+#include <QVBoxLayout>
+
+namespace {
+
+constexpr char g_mime_sprite[] = "application/vnd.s2tp.sprite";
+constexpr char g_mime_uri_list[] = "text/uri-list";
+
+} // namespace
+
+class SpriteListWidget::SpriteTreeView : public QTreeView
+{
+public:
+    explicit SpriteTreeView(QWidget * _parent);
+
+protected:
+    void dragEnterEvent(QDragEnterEvent * _event) override;
+    void dragMoveEvent(QDragMoveEvent * _event) override;
+    void dropEvent(QDropEvent * _event) override;
+
+private:
+    SpriteListWidget::SpriteListModel * spriteListModel() const;
+};
 
 class SpriteListWidget::SpriteListModel : public QAbstractListModel
 {
@@ -31,6 +56,7 @@ public:
     QVariant data(const QModelIndex & _index, int _role) const override;
     bool removeRows(int _row, int _count, const QModelIndex & _parent) override;
     void addSprite(const Sprite & _sprite);
+    void addSprites(const QList<Sprite> & _sprites);
     void setSprites(const QList<Sprite> & _sprites);
     const QList<Sprite> & sprites() const;
     bool canDropMimeData(
@@ -52,11 +78,77 @@ public:
     QMimeData * mimeData(const QModelIndexList & _indexes) const override;
 
 private:
-    static const QString m_mime_sprite;
     QList<Sprite> m_sprites;
 };
 
-const QString SpriteListWidget::SpriteListModel::m_mime_sprite("application/vnd.s2tp.sprite");
+inline SpriteListWidget::SpriteTreeView::SpriteTreeView(QWidget * _parent) :
+    QTreeView(_parent)
+{
+}
+
+inline SpriteListWidget::SpriteListModel * SpriteListWidget::SpriteTreeView::spriteListModel() const
+{
+    return static_cast<SpriteListWidget::SpriteListModel *>(model());
+}
+
+void SpriteListWidget::SpriteTreeView::dragEnterEvent(QDragEnterEvent * _event)
+{
+    if(_event->mimeData()->hasFormat(g_mime_uri_list) && _event->mimeData()->hasUrls())
+    {
+        _event->setDropAction(Qt::CopyAction);
+        _event->accept();
+    }
+    else if(_event->mimeData()->hasFormat(g_mime_sprite))
+    {
+        _event->acceptProposedAction();
+    }
+    else
+    {
+        QTreeView::dragMoveEvent(_event);
+    }
+}
+
+void SpriteListWidget::SpriteTreeView::dragMoveEvent(QDragMoveEvent * _event)
+{
+    if(_event->mimeData()->hasFormat(g_mime_uri_list) && _event->mimeData()->hasUrls())
+    {
+        _event->setDropAction(Qt::CopyAction);
+        _event->accept();
+    }
+    else
+    {
+        QTreeView::dragMoveEvent(_event);
+    }
+}
+
+void SpriteListWidget::SpriteTreeView::dropEvent(QDropEvent * _event)
+{
+    if(_event->mimeData()->hasFormat(g_mime_uri_list) && _event->mimeData()->hasUrls())
+    {
+        QList<Sprite> sprites;
+        foreach(const QUrl & url, _event->mimeData()->urls())
+        {
+            if(!url.isLocalFile())
+                continue;
+            const QFileInfo fi(url.toLocalFile());
+            const QString absolute_path = fi.absoluteFilePath();
+            const QImage img(absolute_path);
+            if(img.isNull())
+                continue;
+            sprites.append({
+                .path = absolute_path,
+                .name = fi.baseName(),
+                .image = img
+            });
+        }
+        spriteListModel()->addSprites(sprites);
+        _event->acceptProposedAction();
+    }
+    else
+    {
+        QTreeView::dropEvent(_event);
+    }
+}
 
 SpriteListWidget::SpriteListModel::SpriteListModel(QObject * _parent) :
     QAbstractListModel(_parent)
@@ -85,14 +177,26 @@ QVariant SpriteListWidget::SpriteListModel::data(const QModelIndex & _index, int
 
 void SpriteListWidget::SpriteListModel::addSprite(const Sprite & _sprite)
 {
-    auto it = std::find_if(
-        m_sprites.begin(),
-        m_sprites.end(),
-        [&_sprite](const Sprite & __s) { return __s.path == _sprite.path; });
-    if(it == m_sprites.end())
+    addSprites({ _sprite });
+}
+
+void SpriteListWidget::SpriteListModel::addSprites(const QList<Sprite> & _sprites)
+{
+    QList<Sprite> sprites;
+    sprites.reserve(_sprites.count());
+    foreach(const Sprite & s, _sprites)
     {
-        beginInsertRows(QModelIndex(), m_sprites.count(), m_sprites.count() + 1);
-        m_sprites.append(_sprite);
+        auto it = std::find_if(
+            m_sprites.begin(),
+            m_sprites.end(),
+            [&s](const Sprite & __s) { return __s.path == s.path; });
+        if(it == m_sprites.end())
+            sprites.append(s);
+    }
+    if(!sprites.isEmpty())
+    {
+        beginInsertRows(QModelIndex(), m_sprites.count(), m_sprites.count() + sprites.count());
+        m_sprites.append(sprites);
         endInsertRows();
     }
 }
@@ -122,7 +226,7 @@ bool SpriteListWidget::SpriteListModel::canDropMimeData(
     Q_UNUSED(_row)
     Q_UNUSED(_column)
     Q_UNUSED(_parent)
-    return _action == Qt::IgnoreAction || (_action == Qt::MoveAction && _data->hasFormat(m_mime_sprite));
+    return _action == Qt::IgnoreAction || (_action == Qt::MoveAction && _data->hasFormat(g_mime_sprite));
 }
 
 bool SpriteListWidget::SpriteListModel::dropMimeData(
@@ -141,7 +245,7 @@ bool SpriteListWidget::SpriteListModel::dropMimeData(
 
     QList<Sprite> sprites;
     {
-        QByteArray byte_array = _data->data(m_mime_sprite);
+        QByteArray byte_array = _data->data(g_mime_sprite);
         QDataStream stream(&byte_array, QIODevice::ReadOnly);
         Sprite sprite;
         while(!stream.atEnd())
@@ -178,16 +282,16 @@ inline const QList<Sprite> & SpriteListWidget::SpriteListModel::sprites() const
 
 Qt::ItemFlags SpriteListWidget::SpriteListModel::flags(const QModelIndex & _index) const
 {
-    Qt::ItemFlags defaultFlags = QAbstractListModel::flags(_index);
+    Qt::ItemFlags default_flags = QAbstractListModel::flags(_index);
     if(_index.isValid())
-        return Qt::ItemIsDragEnabled | defaultFlags;
+        return Qt::ItemIsDragEnabled | default_flags;
     else
-        return Qt::ItemIsDropEnabled | defaultFlags;
+        return Qt::ItemIsDropEnabled | default_flags;
 }
 
 QStringList SpriteListWidget::SpriteListModel::mimeTypes() const
 {
-    return QStringList { m_mime_sprite };
+    return QStringList { g_mime_sprite };
 }
 
 QMimeData * SpriteListWidget::SpriteListModel::mimeData(const QModelIndexList & _indexes) const
@@ -197,7 +301,7 @@ QMimeData * SpriteListWidget::SpriteListModel::mimeData(const QModelIndexList & 
     QDataStream stream(&byte_array, QIODevice::WriteOnly);
     foreach(const QModelIndex & idx, _indexes)
         stream << m_sprites[idx.row()];
-    data->setData(m_mime_sprite, byte_array);
+    data->setData(g_mime_sprite, byte_array);
     return data;
 }
 
@@ -205,21 +309,37 @@ SpriteListWidget::SpriteListWidget(QWidget * _parent) :
     QWidget(_parent),
     m_open_image_dialog_filter(makeAllReadSupportedImageFormatsFilterString())
 {
-    setupUi(this);
-    m_sprites_model = new SpriteListModel(m_tree_sprites);
-    m_tree_sprites->setModel(m_sprites_model);
+    m_tree_sprites = new SpriteTreeView(this);
+    m_tree_sprites->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
+    m_tree_sprites->setAcceptDrops(true);
+    m_tree_sprites->setDragEnabled(true);
+    m_tree_sprites->setDragDropMode(QAbstractItemView::DragDropMode::DragDrop);
+    m_tree_sprites->setDefaultDropAction(Qt::DropAction::MoveAction);
+    m_tree_sprites->setDropIndicatorShown(true);
+    m_tree_sprites->setAlternatingRowColors(true);
+    m_tree_sprites->setSelectionMode(QAbstractItemView::SelectionMode::ExtendedSelection);
+    m_tree_sprites->setRootIsDecorated(false);
+    m_tree_sprites->setUniformRowHeights(true);
+    m_tree_sprites->setItemsExpandable(false);
+    m_tree_sprites->header()->setVisible(false);
+    m_tree_sprites->setModel(m_sprites_model = new SpriteListModel(m_tree_sprites));
+
+    QShortcut * shortcut_remove_sprite = new QShortcut(QKeySequence(Qt::Key_Delete), this);
+    QAction * action_remove_sprite = new QAction(QIcon(":/icons/list-remove"), tr("Remove"), this);
+    action_remove_sprite->setShortcut(action_remove_sprite->shortcut());
+    QPushButton * btn_add_sprites = new QPushButton(QIcon(":/icons/list-add"), tr("Add Sprites"), this);
+
+    QVBoxLayout * layout = new QVBoxLayout(this);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->addWidget(m_tree_sprites);
+    layout->addWidget(btn_add_sprites);
+
     m_tree_item_context_menu = new QMenu(this);
-    m_tree_item_context_menu->addAction(m_action_remove_sprite);
-    connect(m_btn_add_sprites, &QPushButton::clicked, this, &SpriteListWidget::addSprites);
-    connect(m_action_remove_sprite, &QAction::triggered, this, &SpriteListWidget::removeSprites);
-    if(!m_action_remove_sprite->shortcut().isEmpty())
-    {
-        connect(
-            new QShortcut(m_action_remove_sprite->shortcut(), this),
-            &QShortcut::activated,
-            this,
-            &SpriteListWidget::removeSprites);
-    }
+    m_tree_item_context_menu->addAction(action_remove_sprite);
+
+    connect(btn_add_sprites, &QPushButton::clicked, this, &SpriteListWidget::addSprites);
+    connect(action_remove_sprite, &QAction::triggered, this, &SpriteListWidget::removeSprites);
+    connect(shortcut_remove_sprite, &QShortcut::activated, this, &SpriteListWidget::removeSprites);
     connect(m_tree_sprites, &QTreeView::customContextMenuRequested, this, &SpriteListWidget::showTreeItemContextMentu);
     connect(m_sprites_model, &QAbstractListModel::rowsRemoved, this, &SpriteListWidget::spriteListChanged);
     connect(m_sprites_model, &QAbstractListModel::rowsInserted, this, &SpriteListWidget::spriteListChanged);
@@ -241,19 +361,19 @@ void SpriteListWidget::addSprites()
         Settings::Input::sprite_directory,
         std::filesystem::absolute(std::filesystem::path(files[0].toStdString()).parent_path()).c_str()
         );
+    QList<Sprite> sprites;
+    sprites.reserve(files.count());
     foreach(const QString & file, files) {
         QImage image;
         if(!image.load(file)) continue;
         QFileInfo fi(file);
-        m_sprites_model->addSprite(
-            Sprite
-            {
-                .path = fi.absoluteFilePath(),
-                .name = fi.fileName(),
-                .image = image
-            }
-        );
+        sprites.append(            {
+            .path = fi.absoluteFilePath(),
+            .name = fi.fileName(),
+            .image = image
+        });
     }
+    m_sprites_model->addSprites(sprites);
 }
 
 void SpriteListWidget::removeSprites()

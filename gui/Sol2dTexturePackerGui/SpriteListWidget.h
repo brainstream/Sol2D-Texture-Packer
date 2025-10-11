@@ -19,14 +19,15 @@
 #pragma once
 
 #include <LibSol2dTexturePacker/Sprite.h>
-#include "ui_SpriteListWidget.h"
 #include <QMenu>
+#include <QTreeView>
 
-class SpriteListWidget : public QWidget, private Ui::SpriteListWidget
+class SpriteListWidget : public QWidget
 {
     Q_OBJECT
 
 private:
+    class SpriteTreeView;
     class SpriteListModel;
 
 public:
@@ -43,6 +44,7 @@ private slots:
     void showTreeItemContextMentu(const QPoint & _pos);
 
 private:
+    QTreeView * m_tree_sprites;
     SpriteListModel * m_sprites_model;
     QMenu * m_tree_item_context_menu;
     const QString m_open_image_dialog_filter;
