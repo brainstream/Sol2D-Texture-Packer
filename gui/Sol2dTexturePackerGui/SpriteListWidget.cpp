@@ -21,6 +21,7 @@
 #include <Sol2dTexturePackerGui/Settings.h>
 #include <QFileDialog>
 #include <QMimeData>
+#include <QShortcut>
 
 class SpriteListWidget::SpriteListModel : public QAbstractListModel
 {
@@ -211,6 +212,14 @@ SpriteListWidget::SpriteListWidget(QWidget * _parent) :
     m_tree_item_context_menu->addAction(m_action_remove_sprite);
     connect(m_btn_add_sprites, &QPushButton::clicked, this, &SpriteListWidget::addSprites);
     connect(m_action_remove_sprite, &QAction::triggered, this, &SpriteListWidget::removeSprites);
+    if(!m_action_remove_sprite->shortcut().isEmpty())
+    {
+        connect(
+            new QShortcut(m_action_remove_sprite->shortcut(), this),
+            &QShortcut::activated,
+            this,
+            &SpriteListWidget::removeSprites);
+    }
     connect(m_tree_sprites, &QTreeView::customContextMenuRequested, this, &SpriteListWidget::showTreeItemContextMentu);
     connect(m_sprites_model, &QAbstractListModel::rowsRemoved, this, &SpriteListWidget::spriteListChanged);
     connect(m_sprites_model, &QAbstractListModel::rowsInserted, this, &SpriteListWidget::spriteListChanged);
