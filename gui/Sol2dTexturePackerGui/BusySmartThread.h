@@ -19,32 +19,23 @@
 #pragma once
 
 #include <QTimer>
-#include <Sol2dTexturePackerGui/LambdaThread.h>
-#include <Sol2dTexturePackerGui/BusyDialog.h>
 
 class BusySmartThread : public QObject
 {
     Q_OBJECT
 
 public:
-    BusySmartThread(std::function<void()> _lambda, QWidget * _parent_widget);
-    ~BusySmartThread() override;
+    explicit BusySmartThread(QWidget * _parent_widget);
     void setSpinnerDisplayTimeout(uint32_t _timeout_ms);
-    void start();
+    void start(std::function<void()> _lambda);
 
 signals:
-    void exception(QString _message);
-    void finished();
-
-private:
-    void showBusyDialog();
-    void destroyBusyDialog();
-    void finish();
+    void failed(QString _message);
+    void success();
+    void complete();
 
 private:
     uint32_t m_spinner_display_timeout;
     QWidget * m_parent_widget;
-    BusyDialog * m_dialog;
-    LambdaThread * m_thread;
     QTimer * m_timer;
 };

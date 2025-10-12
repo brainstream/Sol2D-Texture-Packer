@@ -17,9 +17,15 @@
  **********************************************************************************************************/
 
 #include <Sol2dTexturePackerGui/BusyDialog.h>
+#include <QCloseEvent>
 
 BusyDialog::BusyDialog(QWidget * _parent) :
-    QDialog(_parent, Qt::FramelessWindowHint | Qt::Dialog)
+    QProgressDialog(tr("Calculating..."), QString(), 0, 0, _parent, Qt::Dialog | Qt::FramelessWindowHint)
 {
-    setupUi(this);
+    setModal(true);
+}
+
+void BusyDialog::closeEvent(QCloseEvent * _event)
+{
+    _event->ignore();
 }

@@ -26,7 +26,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 6.4.0 REQUIRED COMPONENTS Widgets Xml)
+find_package(Qt6 6.4.0 REQUIRED COMPONENTS Widgets Xml Concurrent)
 add_subdirectory(third_party/RectangleBinPack)
 
 set(S2TP_LIB_TARGET Library)
@@ -97,6 +97,7 @@ target_link_libraries(
     ${S2TP_GUI_TARGET}
     PRIVATE
     Qt6::Widgets
+    Qt6::Concurrent
     ${S2TP_LIB_TARGET}
 )
 

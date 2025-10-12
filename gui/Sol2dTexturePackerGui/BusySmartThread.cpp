@@ -17,34 +17,17 @@
  **********************************************************************************************************/
 
 #include <Sol2dTexturePackerGui/BusySmartThread.h>
+#include <Sol2dTexturePackerGui/BusyDialog.h>
+#include <LibSol2dTexturePacker/Exception.h>
+#include <QtConcurrentRun>
 
-BusySmartThread::BusySmartThread(std::function<void()> _lambda, QWidget * _parent_widget) :
+BusySmartThread::BusySmartThread(QWidget * _parent_widget) :
     QObject(_parent_widget),
     m_spinner_display_timeout(400),
-    m_parent_widget(_parent_widget),
-    m_dialog(nullptr)
+    m_parent_widget(_parent_widget)
 {
-    m_thread = new LambdaThread(_lambda, this);
     m_timer = new QTimer(this);
     m_timer->setSingleShot(true);
-    connect(m_thread, &LambdaThread::exception, this, &BusySmartThread::exception);
-    connect(m_thread, &LambdaThread::finished, this, &BusySmartThread::finish);
-    connect(m_timer, &QTimer::timeout, this, &BusySmartThread::showBusyDialog);
-}
-
-BusySmartThread::~BusySmartThread()
-{
-    destroyBusyDialog();
-}
-
-void BusySmartThread::destroyBusyDialog()
-{
-    if(m_dialog)
-    {
-        m_dialog->hide();
-        delete m_dialog;
-        m_dialog = nullptr;
-    }
 }
 
 void BusySmartThread::setSpinnerDisplayTimeout(uint32_t _timeout_ms)
@@ -52,24 +35,28 @@ void BusySmartThread::setSpinnerDisplayTimeout(uint32_t _timeout_ms)
     m_spinner_display_timeout = _timeout_ms;
 }
 
-void BusySmartThread::start()
+void BusySmartThread::start(std::function<void()> _lambda)
 {
+    BusyDialog * dialog = new BusyDialog(m_parent_widget);
+    connect(m_timer, &QTimer::timeout, dialog, &BusyDialog::show);
     m_timer->setInterval(m_spinner_display_timeout);
     m_timer->start();
-    m_thread->start();
-}
-
-void BusySmartThread::finish()
-{
-    m_timer->stop();
-    destroyBusyDialog();
-    emit finished();
-}
-
-void BusySmartThread::showBusyDialog()
-{
-    if(m_dialog)
-        return;
-    m_dialog = new BusyDialog(m_parent_widget);
-    m_dialog->show();
+    QFuture future = QtConcurrent::run([_lambda, dialog, this]() {
+        try
+        {
+            _lambda();
+            emit success();
+        }
+        catch(const Exception & error)
+        {
+            emit failed(error.message());
+        }
+        catch(...)
+        {
+            emit failed(tr("An unknown error has occurred"));
+        }
+        dialog->deleteLater();
+        m_timer->stop();
+        emit complete();
+    });
 }

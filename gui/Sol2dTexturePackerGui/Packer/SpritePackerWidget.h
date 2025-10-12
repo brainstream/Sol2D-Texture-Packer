@@ -42,6 +42,8 @@ private slots:
     void exportPack();
     void browseForExportDir();
     void validateExportPackRequirements();
+    void onTextureWidthChanged();
+    void onTextureHeightChanged();
     void onAlgorithmChanged();
     void onMaxRectesBiAllowFlipChanged(Qt::CheckState _state);
     void onMaxRectesBinHeuristicChanged(int _index);
@@ -56,4 +58,5 @@ private slots:
 private:
     Packers * m_packers;
     std::unique_ptr<RawAtlasPack> m_atlases;
+    QSize m_last_calulated_size;
 };

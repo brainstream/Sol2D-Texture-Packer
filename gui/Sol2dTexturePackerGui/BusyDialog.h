@@ -18,12 +18,15 @@
 
 #pragma once
 
-#include "ui_BusyDialog.h"
+#include <QProgressDialog>
 
-class BusyDialog : public QDialog, private Ui::BusyDialog
+class BusyDialog : public QProgressDialog
 {
     Q_OBJECT
 
 public:
     explicit BusyDialog(QWidget * _parent = nullptr);
+
+protected:
+    void closeEvent(QCloseEvent * _event) override;
 };

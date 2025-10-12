@@ -358,8 +358,7 @@ void SpriteListWidget::addSprites()
         this,
         QString(),
         settings.value(Settings::Input::sprite_directory).toString(),
-        m_open_image_dialog_filter
-        );
+        m_open_image_dialog_filter);
     if(files.isEmpty())
         return;
     settings.setValue(
@@ -368,11 +367,12 @@ void SpriteListWidget::addSprites()
         );
     QList<Sprite> sprites;
     sprites.reserve(files.count());
-    foreach(const QString & file, files) {
+    foreach(const QString & file, files)
+    {
         QImage image;
         if(!image.load(file)) continue;
         QFileInfo fi(file);
-        sprites.append(            {
+        sprites.append({
             .path = fi.absoluteFilePath(),
             .name = fi.fileName(),
             .image = image

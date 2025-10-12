@@ -58,13 +58,16 @@ struct SpritePackerWidget::Packers
 
 SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
     QWidget(_parent),
-    m_packers(new Packers)
+    m_packers(new Packers),
+    m_last_calulated_size(2048, 2048)
 {
     setupUi(this);
 
     m_packers->current = nullptr;
     m_packers->max_rects_bin.setChoiceHeuristic(MaxRectsBinAtlasPackerChoiceHeuristic::BestAreaFit);
 
+    m_spin_max_width->setValue(m_last_calulated_size.width());
+    m_spin_max_height->setValue(m_last_calulated_size.height());
     m_preview->setScene(new QGraphicsScene(m_preview));
     m_preview->setZoomModel(&m_zoom_widget->model());
     m_splitter->setSizes({100, 500});
@@ -179,8 +182,8 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
     connect(m_widget_sprite_list, &SpriteListWidget::spriteListChanged, this, &SpritePackerWidget::renderPack);
     connect(m_checkbox_crop, &QCheckBox::checkStateChanged, this, &SpritePackerWidget::renderPack);
     connect(m_checkbox_detect_duplicates, &QCheckBox::checkStateChanged, this, &SpritePackerWidget::renderPack);
-    connect(m_spin_max_width, &QSpinBox::editingFinished, this, &SpritePackerWidget::renderPack);
-    connect(m_spin_max_height, &QSpinBox::editingFinished, this, &SpritePackerWidget::renderPack);
+    connect(m_spin_max_width, &QSpinBox::editingFinished, this, &SpritePackerWidget::onTextureWidthChanged);
+    connect(m_spin_max_height, &QSpinBox::editingFinished, this, &SpritePackerWidget::onTextureHeightChanged);
     connect(m_btn_export, &QPushButton::clicked, this, &SpritePackerWidget::exportPack);
     connect(m_btn_browse_export_directory, &QPushButton::clicked, this, &SpritePackerWidget::browseForExportDir);
     connect(m_edit_export_directory, &QLineEdit::textChanged, this, &SpritePackerWidget::validateExportPackRequirements);
@@ -266,24 +269,8 @@ void SpritePackerWidget::renderPack()
     m_preview->scene()->clear();
     if(m_widget_sprite_list->sprites().isEmpty())
         return;
-    BusySmartThread * thread = new BusySmartThread(
-        [this]()
-        {
-            m_atlases = m_packers->current->pack(
-                m_widget_sprite_list->sprites(),
-                {
-                    .max_atlas_size = QSize(
-                        m_spin_max_width->value(),
-                        m_spin_max_height->value()
-                        ),
-                    .detect_duplicates = m_checkbox_detect_duplicates->isChecked(),
-                    .crop = m_checkbox_crop->isChecked(),
-                    .remove_file_extensions = m_checkbox_remove_file_ext->isChecked()
-                });
-
-        },
-        this);
-    connect(thread, &BusySmartThread::finished, this, [this, thread]() {
+    BusySmartThread * thread = new BusySmartThread(this);
+    connect(thread, &BusySmartThread::success, this, [this]() {
         const qreal y_gap = 100.0;
         qreal max_width = .0;
         qreal y_offset = .0;
@@ -298,12 +285,47 @@ void SpritePackerWidget::renderPack()
         }
         m_preview->scene()->setSceneRect(-max_width / 2.0, 0, max_width, y_offset);
         validateExportPackRequirements();
-        thread->deleteLater();
     });
-    connect(thread, &BusySmartThread::exception, this, [this](const QString & __message) {
+    connect(thread, &BusySmartThread::failed, this, [this](const QString & __message) {
         QMessageBox::critical(this, QString(), __message);
     });
-    thread->start();
+    connect(thread, &BusySmartThread::complete, thread, &BusySmartThread::deleteLater);
+    thread->start([this]() {
+        QList<Sprite> sprites_snapshot = m_widget_sprite_list->sprites();
+        m_atlases = m_packers->current->pack(
+            sprites_snapshot,
+            {
+                .max_atlas_size = QSize(
+                    m_spin_max_width->value(),
+                    m_spin_max_height->value()
+                    ),
+                .detect_duplicates = m_checkbox_detect_duplicates->isChecked(),
+                .crop = m_checkbox_crop->isChecked(),
+                .remove_file_extensions = m_checkbox_remove_file_ext->isChecked()
+            });
+    });
+}
+
+void SpritePackerWidget::onTextureWidthChanged()
+{
+    // Workaround: prevent duplicated events
+    // https://forum.qt.io/topic/105335
+    if(m_spin_max_width->value() != m_last_calulated_size.width())
+    {
+        m_last_calulated_size.setWidth(m_spin_max_width->value());
+        renderPack();
+    }
+}
+
+void SpritePackerWidget::onTextureHeightChanged()
+{
+    // Workaround: prevent duplicated events
+    // https://forum.qt.io/topic/105335
+    if(m_spin_max_height->value() != m_last_calulated_size.height())
+    {
+        m_last_calulated_size.setHeight(m_spin_max_height->value());
+        renderPack();
+    }
 }
 
 void SpritePackerWidget::exportPack()
