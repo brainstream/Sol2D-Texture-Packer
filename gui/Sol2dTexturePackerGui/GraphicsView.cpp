@@ -85,6 +85,10 @@ void GraphicsView::wheelEvent(QWheelEvent * _event)
         else if(delta.y() < 0)
             decrementZoom();
     }
+    else
+    {
+        QGraphicsView::wheelEvent(_event);
+    }
 }
 
 void GraphicsView::incrementZoom()
