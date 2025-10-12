@@ -187,6 +187,7 @@ const Item * findDuplicate(const std::list<Item> & _items, const QByteArray & _h
 } // namespace name
 
 std::unique_ptr<RawAtlasPack> OnlineAlgorithmAtlasPacker::pack(
+    QPromise<void> & _promise,
     const QList<Sprite> & _sprites,
     const AtlasPackerOptions & _options) const
 {
@@ -195,6 +196,8 @@ std::unique_ptr<RawAtlasPack> OnlineAlgorithmAtlasPacker::pack(
     std::unique_ptr<AtlasPackerOnlineAlgorithm> algorithm = createAlgorithm(_options.max_atlas_size);
     foreach(const Sprite & sprite, _sprites)
     {
+        if(isCanceled(_promise))
+            return nullptr;
         const QString sprite_name = _options.remove_file_extensions
             ? QFileInfo(sprite.name).baseName()
             : QFileInfo(sprite.name).fileName();

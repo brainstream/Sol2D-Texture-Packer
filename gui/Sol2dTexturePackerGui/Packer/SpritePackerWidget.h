@@ -19,6 +19,7 @@
 #pragma once
 
 #include "ui_SpritePackerWidget.h"
+#include <Sol2dTexturePackerGui/BusySmartThread.h>
 #include <LibSol2dTexturePacker/Packers/RawAtlasPack.h>
 #include <memory>
 
@@ -39,6 +40,8 @@ signals:
 
 private slots:
     void renderPack();
+    void onRenderPackFinished();
+    void onRenderPackError(const QString & _message);
     void exportPack();
     void browseForExportDir();
     void validateExportPackRequirements();
@@ -59,4 +62,5 @@ private:
     Packers * m_packers;
     std::unique_ptr<RawAtlasPack> m_atlases;
     QSize m_last_calulated_size;
+    BusySmartThread * m_thread;
 };

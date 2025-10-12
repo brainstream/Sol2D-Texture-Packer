@@ -19,6 +19,7 @@
 #pragma once
 
 #include <QTimer>
+#include <QFuture>
 
 class BusySmartThread : public QObject
 {
@@ -27,7 +28,7 @@ class BusySmartThread : public QObject
 public:
     explicit BusySmartThread(QWidget * _parent_widget);
     void setSpinnerDisplayTimeout(uint32_t _timeout_ms);
-    void start(std::function<void()> _lambda);
+    void start(std::function<void(QPromise<void> &)> _lambda);
 
 signals:
     void failed(QString _message);
@@ -38,4 +39,5 @@ private:
     uint32_t m_spinner_display_timeout;
     QWidget * m_parent_widget;
     QTimer * m_timer;
+    QFuture<void> m_future;
 };

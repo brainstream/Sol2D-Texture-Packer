@@ -38,6 +38,7 @@ public:
     }
 
     std::unique_ptr<RawAtlasPack> pack(
+        QPromise<void> & _promise,
         const QList<Sprite> & _sprites,
         const AtlasPackerOptions & _options) const override;
 

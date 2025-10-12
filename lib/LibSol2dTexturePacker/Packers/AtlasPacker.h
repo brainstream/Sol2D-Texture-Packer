@@ -20,6 +20,7 @@
 
 #include <LibSol2dTexturePacker/Packers/RawAtlasPack.h>
 #include <LibSol2dTexturePacker/Sprite.h>
+#include <QPromise>
 #include <QObject>
 
 struct S2TP_EXPORT AtlasPackerOptions
@@ -40,8 +41,16 @@ public:
     }
 
     virtual std::unique_ptr<RawAtlasPack> pack(
+        QPromise<void> & _promise,
         const QList<Sprite> & _sprites,
         const AtlasPackerOptions & _options) const = 0;
+
+protected:
+    bool isCanceled(QPromise<void> & _promise) const
+    {
+        _promise.suspendIfRequested();
+        return _promise.isCanceled();
+    }
 
 protected:
     QSize m_max_atlas_size;

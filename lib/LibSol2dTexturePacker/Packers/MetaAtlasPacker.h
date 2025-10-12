@@ -26,20 +26,25 @@ public:
     explicit MetaAtlasPacker(QObject * _parent = nullptr);
 
     std::unique_ptr<RawAtlasPack> pack(
+        QPromise<void> & _promise,
         const QList<Sprite> & _sprites,
         const AtlasPackerOptions & _options) const override;
 
 private:
     std::unique_ptr<RawAtlasPack> packBestMaxRectsBinAtlasPacker(
+        QPromise<void> & _promise,
         const QList<Sprite> & _sprites,
         const AtlasPackerOptions & _options) const;
     std::unique_ptr<RawAtlasPack> packBestSkylineBinAtlasPacker(
+        QPromise<void> & _promise,
         const QList<Sprite> & _sprites,
         const AtlasPackerOptions & _options) const;
     std::unique_ptr<RawAtlasPack> packBestGuillotineBinAtlaskPacker(
+        QPromise<void> & _promise,
         const QList<Sprite> & _sprites,
         const AtlasPackerOptions & _options) const;
     std::unique_ptr<RawAtlasPack> packBestShelfBinAtlasPacker(
+        QPromise<void> & _promise,
         const QList<Sprite> & _sprites,
         const AtlasPackerOptions & _options) const;
 };

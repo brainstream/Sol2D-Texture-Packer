@@ -45,20 +45,30 @@ MetaAtlasPacker::MetaAtlasPacker(QObject * _parent) :
 }
 
 std::unique_ptr<RawAtlasPack> MetaAtlasPacker::pack(
+    QPromise<void> & _promise,
     const QList<Sprite> & _sprites,
     const AtlasPackerOptions & _options) const
 {
-    std::unique_ptr<RawAtlasPack> result = packBestMaxRectsBinAtlasPacker(_sprites, _options);
-    std::unique_ptr<RawAtlasPack> temp = packBestSkylineBinAtlasPacker(_sprites, _options);
+    if(isCanceled(_promise)) return nullptr;
+    std::unique_ptr<RawAtlasPack> result = packBestMaxRectsBinAtlasPacker(_promise, _sprites, _options);
+
+    if(isCanceled(_promise)) return nullptr;
+    std::unique_ptr<RawAtlasPack> temp = packBestSkylineBinAtlasPacker(_promise, _sprites, _options);
     if(*temp < *result) result.reset(temp.release());
-    temp = packBestGuillotineBinAtlaskPacker(_sprites, _options);
+
+    if(isCanceled(_promise)) return nullptr;
+    temp = packBestGuillotineBinAtlaskPacker(_promise, _sprites, _options);
     if(*temp < *result) result.reset(temp.release());
-    temp = packBestShelfBinAtlasPacker(_sprites, _options);
+
+    if(isCanceled(_promise)) return nullptr;
+    temp = packBestShelfBinAtlasPacker(_promise, _sprites, _options);
     if(*temp < *result) result.reset(temp.release());
+
     return result;
 }
 
 std::unique_ptr<RawAtlasPack> MetaAtlasPacker::packBestMaxRectsBinAtlasPacker(
+    QPromise<void> & _promise,
     const QList<Sprite> & _sprites,
     const AtlasPackerOptions & _options) const
 {
@@ -74,9 +84,11 @@ std::unique_ptr<RawAtlasPack> MetaAtlasPacker::packBestMaxRectsBinAtlasPacker(
     {
         for(bool allow_flip : { false, true })
         {
+            if(isCanceled(_promise))
+                return nullptr;
             packer.allowFlip(allow_flip);
             packer.setChoiceHeuristic(heuristic);
-            std::unique_ptr<RawAtlasPack> pack = packer.pack(_sprites, _options);
+            std::unique_ptr<RawAtlasPack> pack = packer.pack(_promise, _sprites, _options);
             if(!result || *pack < *result)
                 result.reset(pack.release());
         }
@@ -85,6 +97,7 @@ std::unique_ptr<RawAtlasPack> MetaAtlasPacker::packBestMaxRectsBinAtlasPacker(
 }
 
 std::unique_ptr<RawAtlasPack> MetaAtlasPacker::packBestSkylineBinAtlasPacker(
+    QPromise<void> & _promise,
     const QList<Sprite> & _sprites,
     const AtlasPackerOptions & _options) const
 {
@@ -97,9 +110,11 @@ std::unique_ptr<RawAtlasPack> MetaAtlasPacker::packBestSkylineBinAtlasPacker(
     {
         for(bool use_waste_map : { false, true })
         {
+            if(isCanceled(_promise))
+                return nullptr;
             packer.enableWasteMap(use_waste_map);
             packer.setLevelChoiceHeuristic(heuristic);
-            std::unique_ptr<RawAtlasPack> pack = packer.pack(_sprites, _options);
+            std::unique_ptr<RawAtlasPack> pack = packer.pack(_promise, _sprites, _options);
             if(!result || *pack < *result)
                 result.reset(pack.release());
         }
@@ -108,6 +123,7 @@ std::unique_ptr<RawAtlasPack> MetaAtlasPacker::packBestSkylineBinAtlasPacker(
 }
 
 std::unique_ptr<RawAtlasPack> MetaAtlasPacker::packBestGuillotineBinAtlaskPacker(
+    QPromise<void> & _promise,
     const QList<Sprite> & _sprites,
     const AtlasPackerOptions & _options) const
 {
@@ -133,10 +149,12 @@ std::unique_ptr<RawAtlasPack> MetaAtlasPacker::packBestGuillotineBinAtlaskPacker
         {
             for(bool enable_merge : { false, true })
             {
+                if(isCanceled(_promise))
+                    return nullptr;
                 packer.enableMerge(enable_merge);
                 packer.setChoiceHeuristic(choice_heuristic);
                 packer.setSplitHeuristic(split_heuristic);
-                std::unique_ptr<RawAtlasPack> pack = packer.pack(_sprites, _options);
+                std::unique_ptr<RawAtlasPack> pack = packer.pack(_promise, _sprites, _options);
                 if(!result || *pack < *result)
                     result.reset(pack.release());
             }
@@ -146,6 +164,7 @@ std::unique_ptr<RawAtlasPack> MetaAtlasPacker::packBestGuillotineBinAtlaskPacker
 }
 
 std::unique_ptr<RawAtlasPack> MetaAtlasPacker::packBestShelfBinAtlasPacker(
+    QPromise<void> & _promise,
     const QList<Sprite> & _sprites,
     const AtlasPackerOptions & _options) const
 {
@@ -163,9 +182,11 @@ std::unique_ptr<RawAtlasPack> MetaAtlasPacker::packBestShelfBinAtlasPacker(
     {
         for(bool use_waste_map : { false, true })
         {
+            if(isCanceled(_promise))
+                return nullptr;
             packer.enableWasteMap(use_waste_map);
             packer.setChoiceHeuristic(heuristic);
-            std::unique_ptr<RawAtlasPack> pack = packer.pack(_sprites, _options);
+            std::unique_ptr<RawAtlasPack> pack = packer.pack(_promise, _sprites, _options);
             if(!result || *pack < *result)
                 result.reset(pack.release());
         }

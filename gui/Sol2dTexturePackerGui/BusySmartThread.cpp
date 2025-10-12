@@ -35,16 +35,21 @@ void BusySmartThread::setSpinnerDisplayTimeout(uint32_t _timeout_ms)
     m_spinner_display_timeout = _timeout_ms;
 }
 
-void BusySmartThread::start(std::function<void()> _lambda)
+void BusySmartThread::start(std::function<void(QPromise<void> &)> _lambda)
 {
     BusyDialog * dialog = new BusyDialog(m_parent_widget);
     connect(m_timer, &QTimer::timeout, dialog, &BusyDialog::show);
     m_timer->setInterval(m_spinner_display_timeout);
     m_timer->start();
-    QFuture future = QtConcurrent::run([_lambda, dialog, this]() {
+    if(m_future.isRunning())
+    {
+        m_future.cancel();
+        m_future.waitForFinished();
+    }
+    m_future = QtConcurrent::run([_lambda, dialog, this](QPromise<void> & __promise) {
         try
         {
-            _lambda();
+            _lambda(__promise);
             emit success();
         }
         catch(const Exception & error)

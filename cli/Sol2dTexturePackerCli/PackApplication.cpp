@@ -37,7 +37,8 @@ PackApplication::PackApplication(
 
 int PackApplication::exec()
 {
-    std::unique_ptr<RawAtlasPack> pack = m_packer->pack(m_sprites, m_options);
+    QPromise<void> promise;
+    std::unique_ptr<RawAtlasPack> pack = m_packer->pack(promise, m_sprites, m_options);
     pack->save(m_output_directory, m_atlas_name, m_texture_format);
     return 0;
 }
