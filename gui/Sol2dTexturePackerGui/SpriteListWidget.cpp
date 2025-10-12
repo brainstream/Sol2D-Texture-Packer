@@ -324,7 +324,12 @@ SpriteListWidget::SpriteListWidget(QWidget * _parent) :
     m_tree_sprites->header()->setVisible(false);
     m_tree_sprites->setModel(m_sprites_model = new SpriteListModel(m_tree_sprites));
 
-    QShortcut * shortcut_remove_sprite = new QShortcut(QKeySequence(Qt::Key_Delete), this);
+    QShortcut * shortcut_remove_sprite = new QShortcut(
+        QKeySequence(Qt::Key_Delete),
+        m_tree_sprites,
+        nullptr,
+        nullptr,
+        Qt::WidgetShortcut);
     QAction * action_remove_sprite = new QAction(QIcon(":/icons/list-remove"), tr("Remove"), this);
     action_remove_sprite->setShortcut(action_remove_sprite->shortcut());
     QPushButton * btn_add_sprites = new QPushButton(QIcon(":/icons/list-add"), tr("Add Sprites"), this);
@@ -379,6 +384,7 @@ void SpriteListWidget::addSprites()
 void SpriteListWidget::removeSprites()
 {
     const QItemSelection selection = m_tree_sprites->selectionModel()->selection();
+    int next_selected_row = INT_MAX;
     std::list<int> rows;
     foreach(const QModelIndex & idx, selection.indexes())
     {
@@ -387,9 +393,14 @@ void SpriteListWidget::removeSprites()
             rows.push_back(r);
         else
             rows.push_front(r);
+        if(r < next_selected_row)
+            next_selected_row = r;
     }
     for(const int row : rows)
         m_sprites_model->removeRow(row);
+    if(next_selected_row >= m_sprites_model->sprites().count())
+        next_selected_row = m_sprites_model->sprites().count() - 1;
+    m_tree_sprites->setCurrentIndex(m_sprites_model->index(next_selected_row));
 }
 
 void SpriteListWidget::showTreeItemContextMentu(const QPoint & _pos)

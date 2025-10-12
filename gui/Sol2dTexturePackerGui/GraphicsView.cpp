@@ -31,37 +31,37 @@ GraphicsView::GraphicsView(QWidget * _parent) :
     setMouseTracking(true);
 
     connect(
-        new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_A), this),
+        new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_A), this, nullptr, nullptr, Qt::WidgetShortcut),
         &QShortcut::activated,
         this,
         &GraphicsView::selectAll);
     connect(
-        new QShortcut(QKeySequence(Qt::Key_Escape), this),
+        new QShortcut(QKeySequence(Qt::Key_Escape), this, nullptr, nullptr, Qt::WidgetShortcut),
         &QShortcut::activated,
         this,
         &GraphicsView::clearSelection);
     connect(
-        new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Plus), this),
+        new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Plus), this, nullptr, nullptr, Qt::WidgetShortcut),
         &QShortcut::activated,
         this,
         &GraphicsView::incrementZoom);
     connect(
-        new QShortcut(QKeySequence(Qt::Key_ZoomIn), this),
+        new QShortcut(QKeySequence(Qt::Key_ZoomIn), this, nullptr, nullptr, Qt::WidgetShortcut),
         &QShortcut::activated,
         this,
         &GraphicsView::incrementZoom);
     connect(
-        new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Minus), this),
+        new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Minus), this, nullptr, nullptr, Qt::WidgetShortcut),
         &QShortcut::activated,
         this,
         &GraphicsView::decrementZoom);
     connect(
-        new QShortcut(QKeySequence(Qt::Key_ZoomOut), this),
+        new QShortcut(QKeySequence(Qt::Key_ZoomOut), this, nullptr, nullptr, Qt::WidgetShortcut),
         &QShortcut::activated,
         this,
         &GraphicsView::decrementZoom);
     connect(
-        new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_0), this),
+        new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_0), this, nullptr, nullptr, Qt::WidgetShortcut),
         &QShortcut::activated,
         this,
         &GraphicsView::resetZoom);
