@@ -268,7 +268,6 @@ SpritePackerWidget::~SpritePackerWidget()
 
 void SpritePackerWidget::renderPack()
 {
-    m_preview->scene()->clear();
     if(m_widget_sprite_list->sprites().isEmpty())
         return;
     m_thread->start([this](QPromise<void> & __promise) {
@@ -290,6 +289,9 @@ void SpritePackerWidget::renderPack()
 
 void SpritePackerWidget::onRenderPackFinished()
 {
+    m_preview->scene()->clear();
+    if(m_atlases == nullptr)
+        return;
     const qreal y_gap = 100.0;
     qreal max_width = .0;
     qreal y_offset = .0;
