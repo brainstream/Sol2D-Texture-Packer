@@ -37,6 +37,7 @@ private slots:
     void updateFrames();
 
 private:
+    void renderFrame();
     void stopTimer();
 
 private:

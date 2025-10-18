@@ -24,6 +24,7 @@ SpriteAnimationWidget::SpriteAnimationWidget(QWidget * _parent) :
     m_next_frame_index(0)
 {
     setupUi(this);
+    m_splitter->setSizes({100, 500});
     m_default_preview_size = m_label_animation->size();
     connect(m_spin_box_frame_rate, &QSpinBox::valueChanged, this, &SpriteAnimationWidget::updateTimer);
     connect(m_widget_sprite_list, &SpriteListWidget::spriteListChanged, this, &SpriteAnimationWidget::updateFrames);
@@ -33,11 +34,21 @@ SpriteAnimationWidget::SpriteAnimationWidget(QWidget * _parent) :
 void SpriteAnimationWidget::updateTimer()
 {
     stopTimer();
-    if(!m_frames.isEmpty())
+    switch(m_frames.count())
     {
-        int fps = m_spin_box_frame_rate->value();
-        if(fps <= 0) fps = 1;
-        m_timer_id = startTimer(1000.0 / fps);
+    case 0:
+        return;
+    case 1:
+        renderFrame();
+        return;
+    default:
+        {
+            renderFrame();
+            int fps = m_spin_box_frame_rate->value();
+            if(fps <= 0) fps = 1;
+            m_timer_id = startTimer(1000.0 / fps);
+        }
+        return;
     }
 }
 
@@ -54,27 +65,53 @@ void SpriteAnimationWidget::updateFrames()
 {
     stopTimer();
     m_frames.clear();
+    m_next_frame_index = 0;
     m_label_animation->clear();
     const QList<Sprite> & sprites = m_widget_sprite_list->sprites();
     m_frames.reserve(sprites.count());
-    int max_width = 0;
-    int max_height = 0;
+
+    float scale_factor = 1.0f;
+
     foreach(const Sprite & sprite, sprites)
     {
-        m_frames.append(QPixmap::fromImage(sprite.image));
-        if(sprite.image.width() > max_width)
-            max_width = sprite.image.width();
-        if(sprite.image.height() > max_height)
-            max_height = sprite.image.height();
+        if(sprite.image.width() > m_label_animation->width())
+        {
+            const float sf = static_cast<float>(m_label_animation->width()) / sprite.image.width();
+            if(sf < scale_factor) scale_factor = sf;
+        }
+        if(sprite.image.height() > m_label_animation->height())
+        {
+            const float sf = static_cast<float>(m_label_animation->height()) / sprite.image.height();
+            if(sf < scale_factor) scale_factor = sf;
+        }
     }
-    if(max_width && max_height)
-        m_label_animation->setMinimumSize(max_width, max_height);
-    else
-        m_label_animation->setMinimumSize(m_default_preview_size);
+
+    const bool need_scale = scale_factor != 1.0f;
+
+    foreach(const Sprite & sprite, sprites)
+    {
+        if(need_scale)
+        {
+            m_frames.append(QPixmap::fromImage(sprite.image).scaled(
+                sprite.image.size() * scale_factor,
+                Qt::KeepAspectRatio,
+                Qt::SmoothTransformation));
+        }
+        else
+        {
+            m_frames.append(QPixmap::fromImage(sprite.image));
+        }
+    }
+
     updateTimer();
 }
 
 void SpriteAnimationWidget::timerEvent(QTimerEvent *)
+{
+    renderFrame();
+}
+
+void SpriteAnimationWidget::renderFrame()
 {
     if(m_frames.isEmpty())
         return;
