@@ -62,6 +62,8 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
 {
     setupUi(this);
 
+    QSettings settings;
+
     m_thread = new BusySmartThread(this);
     m_packers->current = nullptr;
     m_packers->max_rects_bin.setChoiceHeuristic(MaxRectsBinAtlasPackerChoiceHeuristic::BestAreaFit);
@@ -71,6 +73,8 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
     m_preview->setScene(new QGraphicsScene(m_preview));
     m_preview->setZoomModel(&m_zoom_widget->model());
     m_splitter->setSizes({100, 500});
+    m_splitter->restoreGeometry(settings.value(Settings::Geometry::packer_splitter).toByteArray());
+    m_splitter->restoreState(settings.value(Settings::State::packer_splitter).toByteArray());
 
     m_combo_algorithm->addItem("Max Rects", static_cast<int>(PackAlgorithm::MaxRectsBin));
     m_combo_algorithm->addItem("Skyline", static_cast<int>(PackAlgorithm::SkylineBinPack));
@@ -263,6 +267,9 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
 
 SpritePackerWidget::~SpritePackerWidget()
 {
+    QSettings settings;
+    settings.setValue(Settings::Geometry::packer_splitter, m_splitter->saveGeometry());
+    settings.setValue(Settings::State::packer_splitter, m_splitter->saveState());
     delete m_packers;
 }
 

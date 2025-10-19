@@ -33,8 +33,8 @@ MainWindow::MainWindow(QWidget *_parent) :
 {
     setupUi(this);
     QSettings settings;
-    restoreGeometry(settings.value(Settings::MainWindow::geometry).toByteArray());
-    restoreState(settings.value(Settings::MainWindow::state).toByteArray());
+    restoreGeometry(settings.value(Settings::Geometry::main_window).toByteArray());
+    restoreState(settings.value(Settings::State::main_window).toByteArray());
 
     m_btn_pack_sprites->setDefaultAction(m_action_pack_sprites);
     m_btn_split_sheet->setDefaultAction(m_action_split_sheet);
@@ -59,10 +59,10 @@ MainWindow::~MainWindow()
 
 void MainWindow::closeEvent(QCloseEvent * _event)
 {
-    Q_UNUSED(_event)
     QSettings settings;
-    settings.setValue(Settings::MainWindow::geometry, saveGeometry());
-    settings.setValue(Settings::MainWindow::state, saveState());
+    settings.setValue(Settings::Geometry::main_window, saveGeometry());
+    settings.setValue(Settings::State::main_window, saveState());
+    QMainWindow::closeEvent(_event);
 }
 
 void MainWindow::showSheetSplitter()

@@ -17,6 +17,7 @@
  **********************************************************************************************************/
 
 #include <Sol2dTexturePackerGui/Animator/SpriteAnimationWidget.h>
+#include <Sol2dTexturePackerGui/Settings.h>
 
 SpriteAnimationWidget::SpriteAnimationWidget(QWidget * _parent) :
     QWidget(_parent),
@@ -24,11 +25,21 @@ SpriteAnimationWidget::SpriteAnimationWidget(QWidget * _parent) :
     m_next_frame_index(0)
 {
     setupUi(this);
+    QSettings settings;
     m_splitter->setSizes({100, 500});
+    m_splitter->restoreGeometry(settings.value(Settings::Geometry::animator_splitter).toByteArray());
+    m_splitter->restoreState(settings.value(Settings::State::animator_splitter).toByteArray());
     m_default_preview_size = m_label_animation->size();
     connect(m_spin_box_frame_rate, &QSpinBox::valueChanged, this, &SpriteAnimationWidget::updateTimer);
     connect(m_widget_sprite_list, &SpriteListWidget::spriteListChanged, this, &SpriteAnimationWidget::updateFrames);
     updateFrames();
+}
+
+SpriteAnimationWidget::~SpriteAnimationWidget()
+{
+    QSettings settings;
+    settings.setValue(Settings::State::animator_splitter, m_splitter->saveState());
+    settings.setValue(Settings::Geometry::animator_splitter, m_splitter->saveGeometry());
 }
 
 void SpriteAnimationWidget::updateTimer()
@@ -106,9 +117,10 @@ void SpriteAnimationWidget::updateFrames()
     updateTimer();
 }
 
-void SpriteAnimationWidget::timerEvent(QTimerEvent *)
+void SpriteAnimationWidget::timerEvent(QTimerEvent * _event)
 {
     renderFrame();
+    QWidget::timerEvent(_event);
 }
 
 void SpriteAnimationWidget::renderFrame()

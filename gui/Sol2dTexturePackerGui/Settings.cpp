@@ -18,8 +18,13 @@
 
 #include <Sol2dTexturePackerGui/Settings.h>
 
-const char * const Settings::MainWindow::geometry = "MainWindow/Geometry";
-const char * const Settings::MainWindow::state = "MainWindow/State";
+const char * const Settings::Geometry::main_window = "Geometry/MainWindow";
+const char * const Settings::Geometry::animator_splitter = "Geometry/AnimatorSplitter";
+const char * const Settings::Geometry::packer_splitter = "Geometry/PackerSplitter";
+
+const char * const Settings::State::main_window = "State/MainWindow";
+const char * const Settings::State::animator_splitter = "State/AnimatorSplitter";
+const char * const Settings::State::packer_splitter = "State/PackerSplitter";
 
 const char * const Settings::Input::texture_directory = "Input/TextureDirectory";
 const char * const Settings::Input::atlas_directory = "Input/AtlasDirectory";

@@ -27,6 +27,7 @@ class SpriteAnimationWidget : public QWidget, private Ui::SpriteAnimationWidget
 
 public:
     explicit SpriteAnimationWidget(QWidget * _parent = nullptr);
+    ~SpriteAnimationWidget() override;
     void setSprites(const QList<Sprite> & _sprites);
 
 protected:

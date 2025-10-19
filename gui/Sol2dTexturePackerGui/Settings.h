@@ -22,10 +22,18 @@
 
 struct Settings
 {
-    struct MainWindow
+    struct Geometry
     {
-        static const char * const geometry;
-        static const char * const state;
+        static const char * const main_window;
+        static const char * const animator_splitter;
+        static const char * const packer_splitter;
+    };
+
+    struct State
+    {
+        static const char * const main_window;
+        static const char * const animator_splitter;
+        static const char * const packer_splitter;
     };
 
     struct Input
