@@ -368,24 +368,7 @@
            </property>
           </widget>
          </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="m_label_atlas_format">
-           <property name="text">
-            <string>Atlas format</string>
-           </property>
-          </widget>
-         </item>
          <item row="2" column="1">
-          <widget class="QComboBox" name="m_combo_atlas_format">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
           <widget class="QCheckBox" name="m_checkbox_remove_file_ext">
            <property name="text">
             <string>Remove file extensions</string>
@@ -395,14 +378,14 @@
            </property>
           </widget>
          </item>
-         <item row="4" column="0">
+         <item row="3" column="0">
           <widget class="QLabel" name="m_label_texture_format">
            <property name="text">
             <string>Texture format</string>
            </property>
           </widget>
          </item>
-         <item row="4" column="1">
+         <item row="3" column="1">
           <widget class="QComboBox" name="m_combo_texture_format">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -412,7 +395,7 @@
            </property>
           </widget>
          </item>
-         <item row="5" column="1">
+         <item row="4" column="1">
           <widget class="QPushButton" name="m_btn_export">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -487,7 +470,6 @@
   <tabstop>m_edit_export_directory</tabstop>
   <tabstop>m_btn_browse_export_directory</tabstop>
   <tabstop>m_edit_export_name</tabstop>
-  <tabstop>m_combo_atlas_format</tabstop>
   <tabstop>m_checkbox_remove_file_ext</tabstop>
   <tabstop>m_combo_texture_format</tabstop>
   <tabstop>m_btn_export</tabstop>

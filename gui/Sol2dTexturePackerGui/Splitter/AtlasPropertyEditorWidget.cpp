@@ -43,7 +43,6 @@ void AtlasPropertyEditorWidget::setPack(const QString & _data_file, AtlasPack * 
     {
         m_edit_texture_size->clear();
         m_edit_texture_file->clear();
-        m_combo_format->clear();
         m_edit_data_file->clear();
     }
 }

@@ -165,8 +165,6 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
         tr("Worst Width Fit"),
         static_cast<int>(ShelfBinAtlasPackerChoiceHeuristic::WorstWidthFit));
 
-    m_combo_atlas_format->addItem(tr("Sol2D"));
-
     {
         QList<QByteArray> supported_image_formats = QImageWriter::supportedImageFormats();
         int png_idx = -1;
