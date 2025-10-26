@@ -23,7 +23,8 @@
 void RawAtlasPack::save(
     const QDir & _directory,
     const QString & _atlas_name,
-    const QString & _image_format)
+    const QString & _image_format,
+    const QString & _color_to_alpha)
 {
     if(m_atlases.empty())
         return;
@@ -38,6 +39,7 @@ void RawAtlasPack::save(
         Atlas atlas
         {
             .texture = QString("%1.%2").arg(base_filename, _image_format),
+            .color_to_alpha = _color_to_alpha,
             .frames = ra.frames
         };
         ++index;

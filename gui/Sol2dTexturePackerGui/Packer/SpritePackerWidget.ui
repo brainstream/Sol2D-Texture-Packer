@@ -69,6 +69,12 @@
       </property>
       <item>
        <widget class="QGroupBox" name="m_groupbox_main_settings">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="title">
          <string>Main settings</string>
         </property>
@@ -125,6 +131,16 @@
            </property>
           </widget>
          </item>
+         <item row="2" column="1">
+          <widget class="QCheckBox" name="m_checkbox_crop">
+           <property name="text">
+            <string>Crop</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
          <item row="3" column="1">
           <widget class="QCheckBox" name="m_checkbox_detect_duplicates">
            <property name="text">
@@ -135,15 +151,48 @@
            </property>
           </widget>
          </item>
-         <item row="2" column="1">
-          <widget class="QCheckBox" name="m_checkbox_crop">
-           <property name="text">
-            <string>Crop</string>
+         <item row="4" column="0">
+          <widget class="QCheckBox" name="m_checkbox_color_to_alpha">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
            </property>
-           <property name="checked">
-            <bool>true</bool>
+           <property name="text">
+            <string>Color to alpha</string>
            </property>
           </widget>
+         </item>
+         <item row="4" column="1">
+          <layout class="QHBoxLayout" name="m_layout">
+           <property name="spacing">
+            <number>2</number>
+           </property>
+           <item>
+            <widget class="QLineEdit" name="m_edit_color_to_alpha">
+             <property name="placeholderText">
+              <string>Hex color (e.g., #e6b800)</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="m_btn_pick_color_to_alpha">
+             <property name="maximumSize">
+              <size>
+               <width>35</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="toolTip">
+              <string>Pick...</string>
+             </property>
+             <property name="text">
+              <string notr="true">...</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
         </layout>
        </widget>
@@ -457,6 +506,11 @@
  <tabstops>
   <tabstop>m_spin_max_width</tabstop>
   <tabstop>m_spin_max_height</tabstop>
+  <tabstop>m_checkbox_crop</tabstop>
+  <tabstop>m_checkbox_detect_duplicates</tabstop>
+  <tabstop>m_checkbox_color_to_alpha</tabstop>
+  <tabstop>m_edit_color_to_alpha</tabstop>
+  <tabstop>m_btn_pick_color_to_alpha</tabstop>
   <tabstop>m_combo_algorithm</tabstop>
   <tabstop>m_combo_mrb_heuristic</tabstop>
   <tabstop>m_checkbox_mrb_allow_flip</tabstop>

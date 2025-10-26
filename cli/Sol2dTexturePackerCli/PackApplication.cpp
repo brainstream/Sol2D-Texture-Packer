@@ -24,14 +24,16 @@ PackApplication::PackApplication(
     const AtlasPackerOptions & _options,
     const QDir & _output_directory,
     const QString & _atlas_name,
-    const QString & _texture_format
+    const QString & _texture_format,
+    const QString & _color_to_alpha
 ) :
     m_sprites(std::move(_sprites)),
     m_packer(std::move(_packer)),
     m_options(_options),
     m_output_directory(_output_directory),
     m_atlas_name(_atlas_name),
-    m_texture_format(_texture_format)
+    m_texture_format(_texture_format),
+    m_color_to_alpha(_color_to_alpha)
 {
 }
 
@@ -39,6 +41,6 @@ int PackApplication::exec()
 {
     QPromise<void> promise;
     std::unique_ptr<RawAtlasPack> pack = m_packer->pack(promise, m_sprites, m_options);
-    pack->save(m_output_directory, m_atlas_name, m_texture_format);
+    pack->save(m_output_directory, m_atlas_name, m_texture_format, m_color_to_alpha);
     return 0;
 }

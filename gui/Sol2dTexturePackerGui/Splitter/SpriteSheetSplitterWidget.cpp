@@ -167,6 +167,7 @@ void SpriteSheetSplitterWidget::saveAtlas()
         Atlas atlas
         {
             .texture = texture_file_path,
+            .color_to_alpha = QString(),
             .frames = QList<Frame>()
         };
         atlas.frames.reserve(m_pack->frameCount());

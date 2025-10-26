@@ -24,5 +24,6 @@
 struct S2TP_EXPORT Atlas
 {
     QString texture;
+    QString color_to_alpha;
     QList<Frame> frames;
 };

@@ -32,7 +32,8 @@ public:
         const AtlasPackerOptions & _options,
         const QDir & _output_directory,
         const QString & _atlas_name,
-        const QString & _texture_format);
+        const QString & _texture_format,
+        const QString & _color_to_alpha);
     int exec() override;
 
 private:
@@ -42,4 +43,5 @@ private:
     const QDir m_output_directory;
     const QString m_atlas_name;
     const QString m_texture_format;
+    const QString m_color_to_alpha;
 };

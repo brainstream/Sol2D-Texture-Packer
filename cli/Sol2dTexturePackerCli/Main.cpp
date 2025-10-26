@@ -663,6 +663,12 @@ std::unique_ptr<Application> AppRunner::parsePack() const
         QObject::tr("Texture file format (default: png)"),
         QObject::tr("format")
     };
+    const QCommandLineOption alpha_color_option
+    {
+        { "p", "alpha" },
+        QObject::tr("A color that should be interpreted as alpha"),
+        QObject::tr("Hex color (e.g., #e6b800)")
+    };
     const QList options
     {
         m_help_options,
@@ -679,7 +685,8 @@ std::unique_ptr<Application> AppRunner::parsePack() const
         crop_option,
         detect_duplicates_option,
         remove_file_ext_option,
-        format_option
+        format_option,
+        alpha_color_option
     };
     parser.addOptions(options);
 
@@ -861,8 +868,11 @@ std::unique_ptr<Application> AppRunner::parsePack() const
             : default_atlas_name,
         parser.isSet(format_option.names().constFirst())
             ? parser.value(format_option.names().constFirst())
-            : default_format
-        ));
+            : default_format,
+        parser.isSet(alpha_color_option.names().constFirst())
+            ? parser.value(alpha_color_option.names().constFirst())
+            : QString()
+    ));
 }
 
 void AppRunner::printSupportedImageFormats() const

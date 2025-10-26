@@ -28,6 +28,7 @@
 #include <QList>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QColorDialog>
 #include <QAbstractListModel>
 #include <QImageWriter>
 
@@ -184,6 +185,8 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
     connect(m_thread, &BusySmartThread::success, this, &SpritePackerWidget::onRenderPackFinished);
     connect(m_thread, &BusySmartThread::failed, this, &SpritePackerWidget::onRenderPackError);
     connect(m_widget_sprite_list, &SpriteListWidget::spriteListChanged, this, &SpritePackerWidget::renderPack);
+    connect(m_checkbox_color_to_alpha, &QCheckBox::checkStateChanged, this, &SpritePackerWidget::onColorToAlphaToggle);
+    connect(m_btn_pick_color_to_alpha, &QPushButton::clicked, this, &SpritePackerWidget::pickColorToAlpha);
     connect(m_checkbox_crop, &QCheckBox::checkStateChanged, this, &SpritePackerWidget::renderPack);
     connect(m_checkbox_detect_duplicates, &QCheckBox::checkStateChanged, this, &SpritePackerWidget::renderPack);
     connect(m_spin_max_width, &QSpinBox::editingFinished, this, &SpritePackerWidget::onTextureWidthChanged);
@@ -259,6 +262,7 @@ SpritePackerWidget::SpritePackerWidget(QWidget * _parent) :
         static_cast<ShelfBinAtlasPackerChoiceHeuristic>(m_combo_shelf_choice_heuristic->currentData().toInt()));
     m_packers->shelf_bin.enableWasteMap(m_checkbox_shelf_use_waste_map->isChecked());
 
+    onColorToAlphaToggle();
     onAlgorithmChanged();
     validateExportPackRequirements();
 }
@@ -269,6 +273,29 @@ SpritePackerWidget::~SpritePackerWidget()
     settings.setValue(Settings::Geometry::packer_splitter, m_splitter->saveGeometry());
     settings.setValue(Settings::State::packer_splitter, m_splitter->saveState());
     delete m_packers;
+}
+
+void SpritePackerWidget::onColorToAlphaToggle()
+{
+    m_edit_color_to_alpha->setEnabled(m_checkbox_color_to_alpha->isChecked());
+    m_btn_pick_color_to_alpha->setEnabled(m_checkbox_color_to_alpha->isChecked());
+}
+
+void SpritePackerWidget::pickColorToAlpha()
+{
+    QColor color = QColor::fromString(m_edit_color_to_alpha->text());
+    if(!color.isValid())
+        color.setRgb(255, 0, 255);
+    QColorDialog dlg(color, this);
+    dlg.setOption(QColorDialog::ShowAlphaChannel, false);
+    if(dlg.exec() == QDialog::Accepted)
+    {
+        color = dlg.currentColor();
+        m_edit_color_to_alpha->setText(QString("#%1%2%3")
+            .arg(color.red(), 2, 16, '0')
+            .arg(color.green(), 2, 16, '0')
+            .arg(color.blue(), 2, 16, '0'));
+    }
 }
 
 void SpritePackerWidget::renderPack()
@@ -347,7 +374,9 @@ void SpritePackerWidget::exportPack()
         m_atlases->save(
             m_edit_export_directory->text(),
             m_edit_export_name->text(),
-            m_combo_texture_format->currentText());
+            m_combo_texture_format->currentText(),
+            m_edit_color_to_alpha->text());
+        QMessageBox::information(this, QString(), tr("Atlas export completed successfully"));
     }
     catch(const Exception & _exception)
     {

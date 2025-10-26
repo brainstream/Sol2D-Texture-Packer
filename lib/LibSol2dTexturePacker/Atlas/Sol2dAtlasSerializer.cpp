@@ -30,6 +30,7 @@ const char * g_xml_tag_atlas = "atlas";
 const char * g_xml_tag_frame = "frame";
 const char * g_xml_attr_version = "version";
 const char * g_xml_attr_texture = "texture";
+const char * g_xml_attr_alpha = "alpha";
 const char * g_xml_attr_name = "name";
 const char * g_xml_attr_rotated = "rotated";
 const char * g_xml_attr_texture_x = "tx";
@@ -101,6 +102,8 @@ void Sol2dAtlasSerializer::serialize(const Atlas & _atlas, const QString & _file
     xml.writeStartElement(g_xml_tag_atlas);
     xml.writeAttribute(g_xml_attr_version, QString::number(m_latest_version));
     xml.writeAttribute(g_xml_attr_texture, makeTextureRelativePath(_atlas, _file));
+    if(!_atlas.color_to_alpha.isEmpty())
+        xml.writeAttribute(g_xml_attr_alpha, _atlas.color_to_alpha);
     for(int i = 0; i < _atlas.frames.count(); ++i)
     {
         const Frame & frame = _atlas.frames[i];
@@ -167,6 +170,7 @@ void Sol2dAtlasSerializer::deserialize(const QString & _file, Atlas & _atlas)
         if(!texture_fi.isAbsolute())
             tmp_atlas.texture = QFileInfo(_file).dir().absoluteFilePath(tmp_atlas.texture);
     }
+    tmp_atlas.color_to_alpha = xatlas.attribute(g_xml_attr_alpha);
     quint32 frame_position = 1;
     for(
         QDomElement xframe = xatlas.firstChildElement(g_xml_tag_frame);
